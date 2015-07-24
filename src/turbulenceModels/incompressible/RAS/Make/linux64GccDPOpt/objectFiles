@@ -1,0 +1,3 @@
+OBJECTS = \
+$(OBJECTS_DIR)/porouskEpsilon.o\
+$(OBJECTS_DIR)/porousrealizableKE.o

@@ -1,0 +1,3 @@
+LOCAL_OBJECTS = \
+porouskEpsilon.o\
+porousrealizableKE.o

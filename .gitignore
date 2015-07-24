@@ -1,0 +1,29 @@
+# Folders
+cases/
+tutorials/
+lnInclude/
+
+# Compiled source
+*.o
+*.pyc
+*.so
+*.dep
+
+# Temporaries
+*~
+.~*
+*.backup
+
+# QT Creator files
+*.config
+*.creator
+*.creator.*
+*.files
+*.includes
+
+# Clions files
+*.project
+*.cproject
+
+# Data files
+VTK

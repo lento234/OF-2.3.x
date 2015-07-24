@@ -1,0 +1,4 @@
+porouskEpsilon/porouskEpsilon.C
+porousrealizableKE/porousrealizableKE.C
+
+LIB = $(FOAM_USER_LIBBIN)/libporousIncompressibleRASModels
