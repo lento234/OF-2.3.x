@@ -3,6 +3,7 @@ cases/
 tutorials/
 lnInclude/
 platforms/
+linux*Gcc*/
 
 # Compiled source
 *.o
