@@ -2,6 +2,7 @@
 cases/
 tutorials/
 lnInclude/
+platforms/
 
 # Compiled source
 *.o
