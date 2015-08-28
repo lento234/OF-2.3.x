@@ -29,3 +29,7 @@ linux*Gcc*/
 
 # Data files
 VTK
+
+# Work in Progress
+applications/solvers/BigLeafSimpleFoam/
+applications/solvers/windDrivenRainFoam/
