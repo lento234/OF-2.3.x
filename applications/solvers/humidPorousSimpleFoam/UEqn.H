@@ -1,4 +1,4 @@
-    // Momentum predictor
+    // Solve the momentum equation
 
     tmp<fvVectorMatrix> UEqn
     (
