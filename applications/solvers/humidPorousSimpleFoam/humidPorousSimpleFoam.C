@@ -48,17 +48,17 @@ Implementation
 
 int main(int argc, char *argv[])
 {
+    #include "setRootCase.H"
+
     // Pre-computation info
     printSolverName();
 
-    #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
     #include "createFields.H"
     #include "createFvOptions.H"
     #include "initContinuityErrs.H"
     // #include "readGravitationalAcceleration.H" // buoyancy term
-
 
     simpleControl simple(mesh);
 
