@@ -10,6 +10,9 @@
       - fvm::laplacian(alphaEff, T)
      ==
         fvOptions(T)
+        //    - fvm::SuSp(a*mag(U), T) // vegetation drag source term
+        // + Sh(U,T)
+        //+ vegetation->Sh(U,T)
     );
 
     TEqn.relax();

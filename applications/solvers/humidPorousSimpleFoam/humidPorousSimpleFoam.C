@@ -42,17 +42,12 @@ Implementation
 #include "fvIOoptionList.H"
 #include "fixedFluxPressureFvPatchScalarField.H" // added
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// Main program:
-#include "printData.H"
+#include "vegetationModel.H"  // added
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
-
-    // Pre-computation info
-    printSolverName();
-
     #include "createTime.H"
     #include "createMesh.H"
     #include "createFields.H"
@@ -62,8 +57,10 @@ int main(int argc, char *argv[])
 
     simpleControl simple(mesh);
 
-    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    // Vegetation model
+    vegetationModel vegetation(a,Cdf);
 
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
 
     while (simple.loop())
@@ -72,6 +69,7 @@ int main(int argc, char *argv[])
 
         // --- Pressure-velocity SIMPLE corrector with decoupled temperature eq.
         {
+
             #include "UEqn.H"
             #include "TEqn.H" // added
             #include "pEqn.H"
