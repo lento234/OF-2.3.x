@@ -37,6 +37,7 @@ Description
 #include "simpleControl.H"
 #include "fvIOoptionList.H"
 
+#include "vegetationModel.H" // added vegetation model
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -44,12 +45,13 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
-    #include "readPorosityProperties.H"
     #include "createFields.H"
     #include "createFvOptions.H"
     #include "initContinuityErrs.H"
 
     simpleControl simple(mesh);
+
+    vegetationModel vegetation(U, a); // Vegetation model
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -74,9 +76,8 @@ int main(int argc, char *argv[])
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
             << nl << endl;
     }
-
+    
     Info<< "End\n" << endl;
-
     return 0;
 }
 
