@@ -46,7 +46,7 @@ SourceFiles
 // #include "fvc.H"
 // #include "fvMatrices.H"
 // #include "incompressible/transportModel/transportModel.H"
-// #include "IOdictionary.H"
+#include "IOdictionary.H"
 // #include "Switch.H"
 // #include "bound.H"
 // #include "autoPtr.H"
@@ -60,44 +60,68 @@ namespace Foam {
 \*---------------------------------------------------------------------------*/
 
 class vegetationModel
+:
+    public IOdictionary
+
 {
 
-    protected:
-        // Model coefficients and Fields
-        volScalarField a_;
-        dimensionedScalar Cdf_;
+private:
+    // disallow copy construct
+    vegetationModel(const vegetationModel&);
 
-    public:
-        // Constructor
+    // disallow default bitwise assignment
+    void operator=(const vegetationModel&);
+
+protected:
+    dictionary vegetationProperties_;
+    // Model coefficients and fields
+    dimensionedScalar Cdf_; // leaf drag coefficient
+    volScalarField a_;      // leaf area density
+
+public:
+    // runtime type info
+    TypeName("vegetationModel");
+
+    // constructors
         vegetationModel
         (
-            const volScalarField& a,
-            const dimensionedScalar& Cdf
+            const volVectorField& U,
+            const volScalarField& a
         );
 
-        // Destructor
+    // destructor
         virtual ~vegetationModel()
         {}
 
-        // Member Functions
+    // Member Functions
+
+        // return leaf area density
         tmp<volScalarField> a() const
         {
             return a_;
         }
 
+        // return leaf drag coefficient
         dimensionedScalar Cdf() const
         {
             return Cdf_;
         }
 
-        // Momentum source
+        // return vegetation properties dictionary
+        dictionary vegetationProperties() const
+        {
+            return vegetationProperties_;
+        }
+
+        // return vegetation momentum source
         virtual tmp<fvVectorMatrix> Su(volVectorField& U) const;
 
-
+        // read vegetationProperties dictionary
+        virtual bool read();
 };
 
 
-}
+} // end namepsace Foam
 
 #endif
 

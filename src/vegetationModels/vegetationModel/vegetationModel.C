@@ -25,31 +25,60 @@ License
 
 #include "vegetationModel.H"
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 
-    vegetationModel::vegetationModel
-    (
-        const volScalarField& a,
-        const dimensionedScalar& Cdf
-    ):
-        a_(a),
-        Cdf_(Cdf)
-        {
-            Info << "Defined custom vegetation model" << endl;
-        }
+defineTypeNameAndDebug(vegetationModel, 0);
 
-    // Return momentum source term
-    tmp<fvVectorMatrix> vegetationModel::Su(volVectorField& U) const
-    {
-        return
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+vegetationModel::vegetationModel
+(
+    const volVectorField& U,
+    const volScalarField& a
+):
+    IOdictionary
+    (
+        IOobject
         (
-            -fvm::SuSp(Cdf_*a_*mag(U),U)
-        );
+            "vegetationProperties",
+            U.time().constant(),
+            U.db(),
+            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::NO_WRITE
+        )
+    ),
+    vegetationProperties_(*this),
+    Cdf_
+    (
+        vegetationProperties_.lookup("Cdf")
+    ),
+    a_(a)
+    {
+        Info << "Defined custom vegetation model" << endl;
     }
 
-    // TODO: Return temperature source term
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+// return momentum source term
+tmp<fvVectorMatrix> vegetationModel::Su(volVectorField& U) const
+{
+    return
+    (
+        - fvm::SuSp(0.5*Cdf_*a_*mag(U), U)
+    );
 }
+
+// return temperature source term
+
+bool vegetationModel::read()
+{
+    return true;
+}
+
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+} // end namespace Foam
 
 // ************************************************************************* //
