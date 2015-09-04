@@ -38,11 +38,11 @@ SourceFiles
 #ifndef vegetationModel_H
 #define vegetationModel_H
 
-#include "RASModel.H"
+// #include "RASModel.H"
 // #include "incompressible/turbulenceModel/turbulenceModel.H"
 // #include "volFields.H"
 // #include "surfaceFields.H"
-// #include "fvm.H"
+#include "fvm.H"
 // #include "fvc.H"
 // #include "fvMatrices.H"
 // #include "incompressible/transportModel/transportModel.H"
