@@ -49,10 +49,23 @@ vegetationModel::vegetationModel
         )
     ),
     vegetationProperties_(*this),
+    C_
+    (
+        vegetationProperties_.lookup("C")
+    ),
     Cdf_
     (
         vegetationProperties_.lookup("Cdf")
     ),
+    l_
+    (
+        vegetationProperties_.lookup("l")
+    ),
+    Tl_
+    (
+        vegetationProperties_.lookup("Tl")
+    ),
+    UMin_("UMin", dimVelocity, SMALL),
     a_(a)
     {
         Info << "Defined custom vegetation model" << endl;
@@ -66,6 +79,24 @@ tmp<fvVectorMatrix> vegetationModel::Su(volVectorField& U) const
     return
     (
         - fvm::SuSp(0.5*Cdf_*a_*mag(U), U)
+    );
+}
+
+tmp<fvScalarMatrix> vegetationModel::Sh(volVectorField& U, volScalarField& T) const
+{
+    // Calculate magnitude of velocity and bounding above Umin
+    volScalarField magU("magU", mag(U));
+    bound(magU, UMin_);
+
+    // Calculating aerodynamic boundary layer resistance
+    volScalarField ra("ra", C_*pow(l_/magU, 0.5));
+
+    Info << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WIP !!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+
+    return
+    (
+        //fvm::SuSp((2*a_*(T-Tl_)/ra)/T,T)
+        fvm::SuSp((2*a_*(Tl_-T)/ra)/T,T)
     );
 }
 

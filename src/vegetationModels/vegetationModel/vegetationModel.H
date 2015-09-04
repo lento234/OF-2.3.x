@@ -48,7 +48,7 @@ SourceFiles
 // #include "incompressible/transportModel/transportModel.H"
 #include "IOdictionary.H"
 // #include "Switch.H"
-// #include "bound.H"
+#include "bound.H"
 // #include "autoPtr.H"
 // #include "runTimeSelectionTables.H"
 
@@ -75,8 +75,12 @@ private:
 protected:
     dictionary vegetationProperties_;
     // Model coefficients and fields
+    dimensionedScalar C_; // proportionality factor of ra
     dimensionedScalar Cdf_; // leaf drag coefficient
-    volScalarField a_;      // leaf area density
+    dimensionedScalar l_; // characteristic length of leaf
+    dimensionedScalar Tl_; // temperature of leaf
+    dimensionedScalar UMin_; //- Lower limit of U
+    volScalarField a_; // leaf area density
 
 public:
     // runtime type info
@@ -95,16 +99,34 @@ public:
 
     // Member Functions
 
-        // return leaf area density
-        tmp<volScalarField> a() const
+        // return proportiality factor
+        dimensionedScalar C() const
         {
-            return a_;
+            return C_;
         }
 
         // return leaf drag coefficient
         dimensionedScalar Cdf() const
         {
             return Cdf_;
+        }
+
+        // return characteristic length of leaf
+        dimensionedScalar l() const
+        {
+            return l_;
+        }
+
+        // return temperature of leaf
+        dimensionedScalar Tl() const
+        {
+            return Tl_;
+        }
+
+        // return leaf area density
+        tmp<volScalarField> a() const
+        {
+            return a_;
         }
 
         // return vegetation properties dictionary
@@ -115,6 +137,9 @@ public:
 
         // return vegetation momentum source
         virtual tmp<fvVectorMatrix> Su(volVectorField& U) const;
+
+        // return vegetation energy source
+        virtual tmp<fvScalarMatrix> Sh(volVectorField& U, volScalarField& T) const;
 
         // read vegetationProperties dictionary
         virtual bool read();

@@ -7,8 +7,6 @@
       ==
       fvOptions(U)
        + vegetation.Su(U) // vegetation momentum source
-      //- fvm::SuSp(0.5*Cdf*a*mag(U), U) // vegetation drag source term
-      //   - fvm::SuSp(Cdf*a*mag(U), U) // vegetation drag source term
     );
 
     UEqn().relax();

@@ -42,8 +42,7 @@ Implementation
 #include "fvIOoptionList.H"
 #include "fixedFluxPressureFvPatchScalarField.H" // added
 
-#include "vegetationModel.H"  // added
-
+#include "vegetationModel.H"  // vegetation model added
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 int main(int argc, char *argv[])
 {
@@ -57,9 +56,8 @@ int main(int argc, char *argv[])
 
     simpleControl simple(mesh);
 
-    // Vegetation model
-    vegetationModel vegetation(a,Cdf);
-
+    vegetationModel vegetation(U, a); // Vegetation model
+    
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
 
@@ -71,7 +69,7 @@ int main(int argc, char *argv[])
         {
 
             #include "UEqn.H"
-            #include "TEqn.H" // added
+            #include "TEqn.H"
             #include "pEqn.H"
         }
 

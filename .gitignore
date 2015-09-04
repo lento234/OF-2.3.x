@@ -1,5 +1,5 @@
 # Folders
-cases/
+cases/*
 tutorials/
 lnInclude/
 platforms/
@@ -31,5 +31,4 @@ linux*Gcc*/
 VTK
 
 # Work in Progress
-applications/solvers/BigLeafSimpleFoam/
-applications/solvers/windDrivenRainFoam/
+!cases/humidPorousSimpleFoam/cubeTree

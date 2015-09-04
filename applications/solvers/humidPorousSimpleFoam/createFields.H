@@ -64,12 +64,8 @@
     scalar pRefValue = 0.0;
     setRefCell(p, mesh.solutionDict().subDict("SIMPLE"), pRefCell, pRefValue);
 
-    //singlePhaseTransportModel laminarTransport(U, phi);
     #include "readTransportProperties.H" // added
-
-    #include "readPorosityProperties.H" // moved to here
-
-
+    
     autoPtr<incompressible::RASModel> turbulence
     (
         incompressible::RASModel::New(U, phi, laminarTransport)
