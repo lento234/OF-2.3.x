@@ -25,11 +25,13 @@ Class
     Foam::vegetationModel
 
 Description
+    Vegetation model
+
+Author
+    Lento Manickathan. manickathan@arch.ethz.ch
 
 SourceFiles
-    vegetationModelI.H
     vegetationModel.C
-    vegetationModelIO.C
 
 \*---------------------------------------------------------------------------*/
 
