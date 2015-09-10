@@ -61,11 +61,23 @@ vegetationModel::vegetationModel
     (
         vegetationProperties_.lookup("l")
     ),
+    rs_
+    (
+        vegetationProperties_.lookup("rs")
+    ),
     Tl_
     (
         vegetationProperties_.lookup("Tl")
     ),
     UMin_("UMin", dimVelocity, SMALL),
+    ql_
+    (
+        vegetationProperties_.lookup("ql")
+    ),
+    lambda_
+    (
+        vegetationProperties_.lookup("lambda")
+    ),
     a_(a)
     {
         Info << "Defined custom vegetation model" << endl;
@@ -73,6 +85,56 @@ vegetationModel::vegetationModel
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+// return aerodynamic resistance
+tmp<volScalarField> vegetationModel::ra(volVectorField& U) const
+{
+    // Calculate magnitude of velocity and bounding above Umin
+    volScalarField magU("magU", mag(U));
+    bound(magU, UMin_);
+
+    // calculate aerodynamic resistance
+    return tmp<volScalarField>
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "ra",
+                U.time().timeName(),
+                U.mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            C_*pow(l_/magU, 0.5)
+        )
+    );
+
+}
+
+// return sensible heat
+tmp<fvScalarMatrix> vegetationModel::Qs(volVectorField& U, volScalarField& T) const
+{
+    return
+    (
+        fvm::SuSp((2*a_*(Tl_-T)/ra(U))/T,T)
+    );
+}
+
+// return tranpiration rate
+tmp<fvScalarMatrix> vegetationModel::E(volVectorField& U, volScalarField& T, volScalarField& q) const
+{
+    return fvm::SuSp((a_*(ql_-q)/(ra(U)+rs_))/q,q);
+}
+
+
+// return latent heat
+tmp<fvScalarMatrix> vegetationModel::Ql(volVectorField& U, volScalarField& T, volScalarField& q) const
+{
+    return lambda_*E(U,T,q);
+}
+
+
+// -----------------------------------------------------------------------------
 // return momentum source term
 tmp<fvVectorMatrix> vegetationModel::Su(volVectorField& U) const
 {
@@ -84,23 +146,18 @@ tmp<fvVectorMatrix> vegetationModel::Su(volVectorField& U) const
 
 tmp<fvScalarMatrix> vegetationModel::Sh(volVectorField& U, volScalarField& T) const
 {
-    // Calculate magnitude of velocity and bounding above Umin
-    volScalarField magU("magU", mag(U));
-    bound(magU, UMin_);
-
-    // Calculating aerodynamic boundary layer resistance
-    volScalarField ra("ra", C_*pow(l_/magU, 0.5));
-
-    Info << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WIP !!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-
-    return
-    (
-        //fvm::SuSp((2*a_*(T-Tl_)/ra)/T,T)
-        fvm::SuSp((2*a_*(Tl_-T)/ra)/T,T)
-    );
+    return Qs(U,T);
 }
 
-// return temperature source term
+
+// return specific humidity source term
+tmp<fvScalarMatrix> vegetationModel::Sq(volVectorField& U, volScalarField& T, volScalarField& q) const
+{
+    return E(U,T,q);
+}
+
+
+// -----------------------------------------------------------------------------
 
 bool vegetationModel::read()
 {
@@ -113,3 +170,19 @@ bool vegetationModel::read()
 } // end namespace Foam
 
 // ************************************************************************* //
+
+// return temp source term
+// tmp<fvScalarMatrix> vegetationModel::Sh(volVectorField& U, volScalarField& T) const
+// {
+//     // Calculate magnitude of velocity and bounding above Umin
+//     volScalarField magU("magU", mag(U));
+//     bound(magU, UMin_);
+//
+//     // calculate aerodynamic resitance
+//     volScalarField ra("ra", C_*pow(l_/magU, 0.5));
+//
+//     return
+//     (
+//         fvm::SuSp((2*a_*(Tl_-T)/ra)/T,T)
+//     );
+// }

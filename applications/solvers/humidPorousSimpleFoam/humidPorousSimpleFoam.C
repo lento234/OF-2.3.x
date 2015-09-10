@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     simpleControl simple(mesh);
 
     vegetationModel vegetation(U, a); // Vegetation model
-    
+
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
 
@@ -68,13 +68,20 @@ int main(int argc, char *argv[])
         // --- Pressure-velocity SIMPLE corrector with decoupled temperature eq.
         {
 
-            #include "UEqn.H"
-            #include "TEqn.H"
-            #include "pEqn.H"
+            #include "UEqn.H" // momentum transport eqn
+            #include "TEqn.H" // temperature transport eqn
+            #include "pEqn.H" // divergence free velocity field
         }
 
         // Solve for turbulence
         turbulence->correct();
+
+        // Solve passive scalar transport
+        {
+            #include "qEqn.H" // specific humidity transport eqn
+            // #include "cEqn.H" // CO2 concentration transport eqn
+        }
+
 
         runTime.write();
 

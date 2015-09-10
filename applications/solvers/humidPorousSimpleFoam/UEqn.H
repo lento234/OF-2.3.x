@@ -5,8 +5,8 @@
         fvm::div(phi, U)
       + turbulence->divDevReff(U)
       ==
-      fvOptions(U)
-       + vegetation.Su(U) // vegetation momentum source
+        fvOptions(U)
+      + vegetation.Su(U) // vegetation momentum source
     );
 
     UEqn().relax();

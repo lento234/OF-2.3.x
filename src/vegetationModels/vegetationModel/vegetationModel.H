@@ -73,13 +73,20 @@ private:
     void operator=(const vegetationModel&);
 
 protected:
+    // -----------------------------------------------
     dictionary vegetationProperties_;
-    // Model coefficients and fields
+    // -----------------------------------------------
+    // Model coefficients
     dimensionedScalar C_; // proportionality factor of ra
     dimensionedScalar Cdf_; // leaf drag coefficient
     dimensionedScalar l_; // characteristic length of leaf
+    dimensionedScalar rs_; // stomatal resistance
     dimensionedScalar Tl_; // temperature of leaf
     dimensionedScalar UMin_; //- Lower limit of U
+    dimensionedScalar ql_; //- saturated humidity at leaf
+    dimensionedScalar lambda_; // latent heat of vaporization
+    // -----------------------------------------------
+    // Model fields
     volScalarField a_; // leaf area density
 
 public:
@@ -99,6 +106,7 @@ public:
 
     // Member Functions
 
+        // -----------------------------------------------
         // return proportiality factor
         dimensionedScalar C() const
         {
@@ -135,12 +143,33 @@ public:
             return vegetationProperties_;
         }
 
+
+        // -----------------------------------------------
+
+        // return aerodynamic resistance
+        virtual tmp<volScalarField> ra(volVectorField& U) const;
+        // return sensible heat
+        virtual tmp<fvScalarMatrix> Qs(volVectorField& U, volScalarField& T) const;
+
+        // return tranpiration rate
+        virtual tmp<fvScalarMatrix> E(volVectorField& U, volScalarField& T, volScalarField& q) const;
+
+        // return latent heat
+        virtual tmp<fvScalarMatrix> Ql(volVectorField& U, volScalarField& T, volScalarField& q) const;
+
+
+        // -----------------------------------------------
         // return vegetation momentum source
         virtual tmp<fvVectorMatrix> Su(volVectorField& U) const;
 
         // return vegetation energy source
         virtual tmp<fvScalarMatrix> Sh(volVectorField& U, volScalarField& T) const;
 
+        // return vegetation specific humidity source
+        virtual tmp<fvScalarMatrix> Sq(volVectorField& U, volScalarField& T, volScalarField& q) const;
+
+
+        // -----------------------------------------------
         // read vegetationProperties dictionary
         virtual bool read();
 };

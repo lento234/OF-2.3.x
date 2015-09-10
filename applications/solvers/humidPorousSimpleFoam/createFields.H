@@ -65,7 +65,7 @@
     setRefCell(p, mesh.solutionDict().subDict("SIMPLE"), pRefCell, pRefValue);
 
     #include "readTransportProperties.H" // added
-    
+
     autoPtr<incompressible::RASModel> turbulence
     (
         incompressible::RASModel::New(U, phi, laminarTransport)
@@ -79,6 +79,36 @@
         IOobject
         (
             "alphat",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+    // specific humidity
+    Info<< "Reading field q\n" << endl;
+    volScalarField q
+    (
+        IOobject
+        (
+            "q",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+    // kinematic turbulent scalar diffusivity
+    Info<< "Reading field Dqt\n" << endl;
+    volScalarField Dqt
+    (
+        IOobject
+        (
+            "Dqt",
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ,
