@@ -43,6 +43,7 @@ Implementation
 #include "fixedFluxPressureFvPatchScalarField.H" // added
 
 #include "vegetationModel.H"  // vegetation model added
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 int main(int argc, char *argv[])
 {
@@ -56,10 +57,12 @@ int main(int argc, char *argv[])
 
     simpleControl simple(mesh);
 
-    vegetationModel vegetation(U, a); // Vegetation model
+    vegetationModel vegetation(U, LAD, LAI, T); // Vegetation model
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
+
+    // vegetation.testing(U, T, q);
 
     while (simple.loop())
     {
@@ -76,18 +79,21 @@ int main(int argc, char *argv[])
         // Solve for turbulence
         turbulence->correct();
 
+        // Update leaf temperature
+        vegetation.update_Tl(U, T, q);
+
         // Solve passive scalar transport
         {
             #include "qEqn.H" // specific humidity transport eqn
             // #include "cEqn.H" // CO2 concentration transport eqn
         }
 
-
         runTime.write();
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
             << nl << endl;
+
     }
 
     Info<< "\nEnd\n" << endl;

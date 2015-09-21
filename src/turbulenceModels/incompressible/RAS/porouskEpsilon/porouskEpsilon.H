@@ -114,7 +114,7 @@ protected:
 
             volScalarField k_;
             volScalarField epsilon_;
-            volScalarField a_;
+            volScalarField LAD_;
             volScalarField nut_;
 
 public:
@@ -128,7 +128,7 @@ public:
         porouskEpsilon
         (
             const volVectorField& U,
-            //const volScalarField& a,
+            //const volScalarField& LAD,
             const surfaceScalarField& phi,
             transportModel& transport,
             const word& turbulenceModelName = turbulenceModel::typeName,
@@ -179,10 +179,10 @@ public:
             return epsilon_;
         }
 
-        //- Return the turbulence kinetic energy dissipation rate
-        virtual tmp<volScalarField> a() const
+        //- return LAD
+        virtual tmp<volScalarField> LAD() const
         {
-            return a_;
+            return LAD_;
         }
 
         //- Return the Reynolds stress tensor

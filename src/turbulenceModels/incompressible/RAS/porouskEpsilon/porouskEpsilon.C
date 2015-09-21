@@ -171,11 +171,11 @@ porouskEpsilon::porouskEpsilon
         ),
         autoCreateEpsilon("epsilon", mesh_)
     ),
-    a_
+    LAD_
     (
         IOobject
         (
-            "a",
+            "LAD",
             runTime_.timeName(),
             mesh_,
             IOobject::MUST_READ,
@@ -325,8 +325,8 @@ void porouskEpsilon::correct()
      ==
         C1_*G*epsilon_/k_
       - fvm::Sp(C2_*epsilon_/k_, epsilon_)
-      + fvm::SuSp(betaP_*C4_*Cdf_*a_*pow(mag(U_),3)/k_,epsilon_)
-      - fvm::SuSp(betaD_*C5_*Cdf_*a_*mag(U_),epsilon_)
+      + fvm::SuSp(betaP_*C4_*Cdf_*LAD_*pow(mag(U_),3)/k_,epsilon_)
+      - fvm::SuSp(betaD_*C5_*Cdf_*LAD_*mag(U_),epsilon_)
     );
 
     epsEqn().relax();
@@ -346,8 +346,8 @@ void porouskEpsilon::correct()
      ==
         G
       - fvm::Sp(epsilon_/k_, k_)
-      + fvm::SuSp(betaP_*Cdf_*a_*pow(mag(U_),3)/k_, k_)
-      - fvm::SuSp(betaD_*Cdf_*a_*mag(U_), k_)
+      + fvm::SuSp(betaP_*Cdf_*LAD_*pow(mag(U_),3)/k_, k_)
+      - fvm::SuSp(betaD_*Cdf_*LAD_*mag(U_), k_)
     );
 
     kEqn().relax();
