@@ -38,6 +38,7 @@ SourceFiles
 #ifndef vegetationModel_H
 #define vegetationModel_H
 
+#include <typeinfo>
 // #include "RASModel.H"
 // #include "incompressible/turbulenceModel/turbulenceModel.H"
 // #include "volFields.H"
@@ -76,6 +77,9 @@ protected:
     // -----------------------------------------------
     dictionary vegetationProperties_;
     // -----------------------------------------------
+    const Time& runTime_;       // time
+    const fvMesh& mesh_;        // mesh
+    // -----------------------------------------------
     // Model coefficients
     dimensionedScalar cpa_;     // specific heat of air at constant pressure
     dimensionedScalar C_;       // proportionality factor of ra
@@ -86,13 +90,24 @@ protected:
     dimensionedScalar Rg0_;     // global radiation at top of canopy
     dimensionedScalar rhoa_;    // denisty of air
     dimensionedScalar rs_;      // stomatal resistance
+    dimensionedScalar TlMin_;   // lower limit of T
     dimensionedScalar UMin_;    // lower limit of U
     dimensionedScalar lambda_;  // latent heat of vaporization
     // -----------------------------------------------
     // Model fields
     volScalarField LAD_;    // leaf area density
     volScalarField LAI_;    // leaf area index
+    volScalarField E_;      // transpiration rate
+    volScalarField qsat_;   // saturated specific humidity
+    volScalarField Ql_;     // latent heat flux
+    volScalarField ra_;     // aerodynamic resistance
+    volScalarField rhosat_; // saturated density field
+    volVectorField Rg_;     // global radiation
+    volScalarField Rn_;     // global radiation density in volume
+    volScalarField Sq_;     // humidity source term
+    volVectorField Su_;     // momentum source term
     volScalarField Tl_;     // temperature of leaf
+
 
 public:
     // runtime type info
@@ -116,33 +131,45 @@ public:
         // -----------------------------------------------
 
         // return proportiality factor
-        dimensionedScalar C() const
-        {
-            return C_;
-        }
+        // dimensionedScalar C() const
+        // {
+        //     return C_;
+        // }
 
         // return leaf drag coefficient
-        dimensionedScalar Cdf() const
-        {
-            return Cdf_;
-        }
+        // dimensionedScalar Cdf() const
+        // {
+        //     return Cdf_;
+        // }
 
         // return characteristic length of leaf
-        dimensionedScalar l() const
+        // dimensionedScalar l() const
+        // {
+        //     return l_;
+        // }
+
+        // return leaf area density
+        // tmp<volScalarField> LAD() const
+        // {
+        //     return LAD_;
+        // }
+
+        // return radiation density inside vegetation
+        tmp<volScalarField> Rn() const
         {
-            return l_;
+            return Rn_;
         }
 
         // return leaf area density
-        tmp<volScalarField> LAD() const
-        {
-            return LAD_;
-        }
+        // tmp<volScalarField> LAD() const
+        // {
+        //     return LAD_;
+        // }
 
-        dimensionedScalar rs() const
-        {
-            return rs_;
-        }
+        // dimensionedScalar rs() const
+        // {
+        //     return rs_;
+        // }
 
         // return vegetation properties dictionary
         dictionary vegetationProperties() const
@@ -153,48 +180,60 @@ public:
         // -----------------------------------------------
 
         // return transpiration rate
-        virtual tmp<volScalarField> E(volVectorField& U, volScalarField& T, volScalarField& q) const;
+        // virtual tmp<volScalarField> E(volVectorField& U, volScalarField& T, volScalarField& q) const;
 
         // return latent heat
-        virtual tmp<volScalarField> Ql(volVectorField& U, volScalarField& T, volScalarField& q) const;
+        // virtual tmp<volScalarField> Ql(volVectorField& U, volScalarField& T, volScalarField& q) const;
 
         // return sensible heat
-        virtual tmp<volScalarField> Qs(volVectorField& U, volScalarField& T) const;
+        // virtual tmp<volScalarField> Qs(volVectorField& U, volScalarField& T) const;
 
-        // return aerodynamic resistance
-        virtual tmp<volScalarField> ra(volVectorField& U) const;
+
 
         // return saturated density of water vapour
-        virtual tmp<volScalarField> rhosat(volScalarField& T) const;
+        virtual double calc_rhosat(double& T);
+        // virtual tmp<volScalarField> rhosat(volScalarField& T) const;
 
         // return empirical global radiation
-        virtual tmp<volScalarField> Rg(volVectorField& U) const;
+        //virtual tmp<volScalarField> Rg(volVectorField& U) const;
+        // virtual tmp<volVectorField> Rg();
 
         // return net radiation density in volume
-        virtual tmp<volScalarField> Rn(volVectorField& U) const;
+        // virtual tmp<volScalarField> Rn();
 
         // return saturated specific humidity of water vapour
-        virtual tmp<volScalarField> qsat(volScalarField& T) const;
+        // virtual double calc_qsat(double& rhosat);
+        // virtual tmp<volScalarField> qsat(volScalarField& T) const;
 
 
         // -----------------------------------------------
         // source terms
 
         // return vegetation energy source
-        virtual tmp<fvScalarMatrix> Sh(volVectorField& U, volScalarField& T) const;
+        // virtual tmp<fvScalarMatrix> Sh(volVectorField& U, volScalarField& T) const;
 
         // return vegetation momentum source
-        virtual tmp<fvVectorMatrix> Su(volVectorField& U) const;
+        // virtual tmp<fvVectorMatrix> Su(volVectorField& U) const;
+        virtual tmp<volVectorField> Su(volVectorField& U);
 
         // return vegetation specific humidity source
-        virtual tmp<fvScalarMatrix> Sq(volVectorField& U, volScalarField& T, volScalarField& q) const;
+        virtual tmp<volScalarField> Sq();
+        // virtual tmp<fvScalarMatrix> Sq(volVectorField& U, volScalarField& T, volScalarField& q) const;
 
         // -----------------------------------------------
 
-        virtual void update_Tl(volVectorField&U, volScalarField& T, volScalarField& q);
+        // calc radiation
+        virtual void radiation();
+
+        // calc aerodynamic, stomatal resistances
+        virtual void resistance(volVectorField& U);
+
+        // solve all
+        virtual void solve(volVectorField&U, volScalarField& T, volScalarField& q);
 
         // testing functions
-        virtual void testing(volVectorField& U, volScalarField& T, volScalarField& q);
+        // virtual void testing(volVectorField& U, volScalarField& T, volScalarField& q);
+
 
         // read vegetationProperties dictionary
         virtual bool read();

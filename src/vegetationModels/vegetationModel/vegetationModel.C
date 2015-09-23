@@ -51,6 +51,8 @@ vegetationModel::vegetationModel
         )
     ),
     vegetationProperties_(*this),
+    runTime_(U.time()),
+    mesh_(U.mesh()),
     cpa_
     (
         vegetationProperties_.lookup("cpa")
@@ -87,6 +89,7 @@ vegetationModel::vegetationModel
     (
         vegetationProperties_.lookup("rs")
     ),
+    TlMin_("TlMin", dimTemperature, SMALL),
     UMin_("UMin", dimVelocity, SMALL),
     lambda_
     (
@@ -94,235 +97,553 @@ vegetationModel::vegetationModel
     ),
     LAD_(LAD),
     LAI_(LAI),
-    Tl_(
+    E_
+    (
         IOobject
         (
-            "Tl",
-            T.time().timeName(),
-            T.mesh(),
+            "E",
+            runTime_.timeName(),
+            mesh_,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
-        T.mesh(),
+        mesh_,
+        dimensionedScalar("0", dimensionSet(1,-3,-1,0,0,0,0), 0.0)
+    ),
+    qsat_
+    (
+        IOobject
+        (
+            "qsat",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimensionSet(0,0,0,0,0,0,0), 0.0)
+    ),
+    Ql_
+    (
+        IOobject
+        (
+            "Ql",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimensionSet(1,-1,-3,0,0,0,0), 0.0)
+    ),
+    ra_
+    (
+        IOobject
+        (
+            "ra",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimensionSet(0,-1,1,0,0,0,0), 0.0)
+    ),
+    rhosat_
+    (
+        IOobject
+        (
+            "rhosat",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimensionSet(1,-3,0,0,0,0,0), 0.0)
+    ),
+    Rg_
+    (
+        IOobject
+        (
+            "Rg",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedVector("0", dimensionSet(1,0,-3,0,0,0,0), vector::zero)
+    ),
+    Rn_
+    (
+        IOobject
+        (
+            "Rn",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimensionSet(1,-1,-3,0,0,0,0), 0.0)
+    ),
+    Sq_
+    (
+        IOobject
+        (
+            "Sq",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimensionSet(0,0,-1,0,0,0,0), 0.0)
+    ),
+    Su_
+    (
+        IOobject
+        (
+            "Su",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedVector("0", dimensionSet(0,1,-2,0,0,0,0), vector::zero)
+    ),
+    Tl_
+    (
+        IOobject
+        (
+            "Tl",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
         dimensionedScalar("0", dimensionSet(0,0,0,1,0,0,0), 0.0)
     )
     {
-        Info << "Defined custom vegetation model" << endl;
+        // Bounding parameters
+        bound(Tl_, TlMin_);
 
-        // Bounding Leaf temperature
-        dimensionedScalar TlMin("TlMin", dimensionSet(0,0,0,1,0,0,0), SMALL);
-        bound(Tl_, TlMin);
+        Info << "Defined custom vegetation model" << endl;
     }
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 
-// return tranpiration rate
-tmp<volScalarField> vegetationModel::E(volVectorField& U, volScalarField& T, volScalarField& q) const
+
+// calc saturated density of water vapour
+double vegetationModel::calc_rhosat(double& T)
 {
-    volScalarField Tleaf("Tleaf", Tl_);
-    return tmp<volScalarField>
-    (
-        new volScalarField("E", LAD_*rhoa_*(qsat(Tleaf)-q)/(ra(U)+rs_))
-    );
+    return 0.0022 * exp( 77.3450 + 0.0057*T - 7235.0/T) / pow(T, 9.2);
 }
 
-// return latent heat
-tmp<volScalarField> vegetationModel::Ql(volVectorField& U, volScalarField& T, volScalarField& q) const
+// // calc saturated specific humidity of water vapour
+// double vegetationModel::calc_qsat(double& rhosat)
+// {
+//     return rhosat/rhoa_.value();
+// }
+//
+// // calc tranpiration rate
+// double vegetationModel::calc_E(doublvolVectorField& U, volScalarField& T, volScalarField& q)
+// {
+//     return LAD_*rhoa_*(qsat(Tleaf)-q)/(ra(U)+rs_)
+//     volScalarField Tleaf("Tleaf", Tl_);
+//     return tmp<volScalarField>
+//     (
+//         new volScalarField("E", LAD_*rhoa_*(qsat(Tleaf)-q)/(ra(U)+rs_))
+//     );
+// }
+
+// solve radiation
+void vegetationModel::radiation()
 {
-    return tmp<volScalarField>
-    (
-        new volScalarField("Ql", lambda_*E(U,T,q))
-    );
+    // empirical global radiation = f(height) inside vegetation
+    forAll(LAD_, cellI)
+        if (LAD_[cellI] > 10*SMALL)
+            Rg_[cellI] = vector(0,0, Rg0_.value()*LAI_[cellI] * exp(kc_.value() *
+                                        (H_.value() - mesh_.C()[cellI].component(2))/H_.value()));
+
+    volTensorField gradRg = fvc::grad(Rg_);
+
+    // radiation density inside vegetation
+    forAll(LAD_, cellI)
+        if (LAD_[cellI] > 10*SMALL)
+            Rn_[cellI] = gradRg[cellI] && tensor(0,0,0,0,0,0,0,0,1);
+
 }
 
-// return sensible heat
-tmp<volScalarField> vegetationModel::Qs(volVectorField& U, volScalarField& T) const
-{
-    return tmp<volScalarField>
-    (
-        new volScalarField("Qs", 2.0*rhoa_*cpa_*LAD_*(Tl_-T)/ra(U))
-    );
-}
-
-// return aerodynamic resistance
-tmp<volScalarField> vegetationModel::ra(volVectorField& U) const
+// solve aerodynamic resistance
+void vegetationModel::resistance(volVectorField& U)
 {
     // Calculate magnitude of velocity and bounding above Umin
     volScalarField magU("magU", mag(U));
     bound(magU, UMin_);
 
-    return tmp<volScalarField>
-    (
-        new volScalarField("ra", C_*pow(l_/magU, 0.5))
-    );
+    forAll(LAD_, cellI)
+        if (LAD_[cellI] > 10*SMALL)
+            ra_[cellI] = C_.value()*pow(l_.value()/magU[cellI], 0.5);
 
 }
 
-// return saturated density of water vapour
-tmp<volScalarField> vegetationModel::rhosat(volScalarField& T) const
-{
-    volScalarField rhosat
-    (
-        IOobject
-        (
-            "rhosat",
-            T.time().timeName(),
-            T.mesh(),
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        T.mesh(),
-        dimensionedScalar("0", dimDensity, 0.0)
-    );
 
-    // Calculate saturated water vapour density
-    rhosat.internalField() = 0.0022* exp(  77.3450 + 0.0057*T.internalField()
-                                         - 7235.0/T.internalField()) / pow(T.internalField(), 9.2);
 
-    return tmp<volScalarField>
-    (
-        new volScalarField("rhosat", rhosat)
-    );
-}
+
+// return tranpiration rate
+// tmp<volScalarField> vegetationModel::E(volVectorField& U, volScalarField& T, volScalarField& q) const
+// {
+//     volScalarField Tleaf("Tleaf", Tl_);
+//     return tmp<volScalarField>
+//     (
+//         new volScalarField("E", LAD_*rhoa_*(qsat(Tleaf)-q)/(ra(U)+rs_))
+//     );
+// }
+
+// return latent heat
+// tmp<volScalarField> vegetationModel::Ql(volVectorField& U, volScalarField& T, volScalarField& q) const
+// {
+//     return tmp<volScalarField>
+//     (
+//         new volScalarField("Ql", lambda_*E(U,T,q))
+//     );
+// }
+
+// return sensible heat
+// tmp<volScalarField> vegetationModel::Qs(volVectorField& U, volScalarField& T) const
+// {
+//     return tmp<volScalarField>
+//     (
+//         new volScalarField("Qs", 2.0*rhoa_*cpa_*LAD_*(Tl_-T)/ra(U))
+//     );
+// }
+
+
+
+// tmp<volScalarField> vegetationModel::rhosat(volScalarField& T) const
+// {
+//     volScalarField rhosat
+//     (
+//         IOobject
+//         (
+//             "rhosat",
+//             T.time().timeName(),
+//             T.mesh(),
+//             IOobject::NO_READ,
+//             IOobject::NO_WRITE
+//         ),
+//         T.mesh(),
+//         dimensionedScalar("0", dimDensity, 0.0)
+//     );
+//
+//     // Calculate saturated water vapour density
+//     rhosat.internalField() = 0.0022* exp(  77.3450 + 0.0057*T.internalField()
+//                                          - 7235.0/T.internalField()) / pow(T.internalField(), 9.2);
+//
+//     return tmp<volScalarField>
+//     (
+//         new volScalarField("rhosat", rhosat)
+//     );
+// }
 
 // return empirical radiation
-tmp<volScalarField> vegetationModel::Rg(volVectorField& U) const
-{
-    return tmp<volScalarField>
-    (
-        new volScalarField("Rg", Rg0_*LAI_*exp(kc_*(H_ - U.mesh().C().component(2))/H_))
-    );
-}
+// tmp<volScalarField> vegetationModel::Rg() const
+// {
+//     volScalarField Rg
+//     (
+//         IOobject
+//         (
+//             "Rg",
+//             runTime_.timeName(),
+//             mesh_,
+//             IOobject::NO_READ,
+//             IOobject::AUTO_WRITE
+//         ),
+//         mesh_,
+//         dimensionedScalar("0", dimensionSet(1,0,-3,0,0,0,0), 0.0)
+//     );
+//
+//     forAll(Rg, cellI)
+//     {
+//         if (LAD_ > 10*SMALL)
+//             Rg[cellI] = Rg0_*LAI_*exp(kc_*(H_ - U.mesh().C().component(2))/H_)
+//     }
+//
+//     return tmp<volScalarField>
+//     (
+//         new volScalarField("Rg", Rg0_*LAI_*exp(kc_*(H_ - U.mesh().C().component(2))/H_))
+//     );
+// }
+
+// return empirical radiation
+// tmp<volVectorField> vegetationModel::Rg()
+// {
+//     forAll(LAD_, cellI)
+//     {
+//         if (LAD_[cellI] > 10*SMALL)
+//             Rg_[cellI] = vector(0,0, Rg0_.value()*LAI_[cellI] * exp(kc_.value() *
+//                                      (H_.value() - mesh_.C()[cellI].component(2))/H_.value()));
+//     }
+//
+//     return Rg_;
+// }
+
+
+
+// Info << "Rg: " << (fvc::grad(Rg_[cellI] & vector(0,0,1))) << endl;
+// Rn_[cellI] = fvc::grad(Rg_[cellI]) && tensor(0,0,0,0,0,0,0,0,1);
+
+// tmp<volScalarField> vegetationModel::Rg()
+// {
+//     forAll(LAD_, cellI)
+//     {
+//         if (LAD_[cellI] > 10*SMALL)
+//             Rg_[cellI] = Rg0_.value()*LAI_[cellI] * exp(kc_.value() *
+//                             (H_.value() - mesh_.C()[cellI].component(2))/H_.value());
+//     }
+//
+//     return Rg_;
+// }
 
 // return net radiation density in volume
-tmp<volScalarField> vegetationModel::Rn(volVectorField& U) const
-{
-    return tmp<volScalarField>
-    (
-        new volScalarField("Rn", fvc::grad(Rg(U)) & vector(0,0,1))
-    );
-}
+// tmp<volScalarField> vegetationModel::Rn()
+// {
+//     // double tmpRg;
+//     // forAll(LAD_, cellI)
+//     // {
+//     //     if (LAD_[cellI] > 10*SMALL)
+//     //     {
+//     //         // Radiation
+//     //         Rg_[cellI] = Rg0_.value()*LAI_[cellI] * exp(kc_.value() *
+//     //                         (H_.value() - mesh_.C()[cellI].component(2))/H_.value());
+//     //     }
+//     //         Rn_[cellI] = fvc::grad(Rg()) & vector(0,0,1);
+//     // }
+//     Rn_.internalField() = fvc::grad(Rg()) & vector(0,0,1);
+//     // return tmp<volScalarField>
+//     // (
+//         // new volScalarField("Rn", fvc::grad(Rg()) & vector(0,0,1))
+//     // );
+//     return Rn_;
+// }
 
 // return saturated specific humidity of water vapour
-tmp<volScalarField> vegetationModel::qsat(volScalarField& Tl) const
-{
-    volScalarField qsat
-    (
-        IOobject
-        (
-            "qsat",
-            Tl.time().timeName(),
-            Tl.mesh(),
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        Tl.mesh(),
-        dimensionedScalar("0", dimensionSet(0,0,0,0,0,0,0), 0.0)
-    );
-
-    // Calculate satura
-    qsat.internalField() = rhosat(Tl)/rhoa_;
-
-    return tmp<volScalarField>
-    (
-        new volScalarField("qsat", qsat)
-    );
-}
+// tmp<volScalarField> vegetationModel::qsat(volScalarField& Tl) const
+// {
+//     volScalarField qsat
+//     (
+//         IOobject
+//         (
+//             "qsat",
+//             Tl.time().timeName(),
+//             Tl.mesh(),
+//             IOobject::NO_READ,
+//             IOobject::NO_WRITE
+//         ),
+//         Tl.mesh(),
+//         dimensionedScalar("0", dimensionSet(0,0,0,0,0,0,0), 0.0)
+//     );
+//
+//     // Calculate satura
+//     qsat.internalField() = rhosat(Tl)/rhoa_;
+//
+//     return tmp<volScalarField>
+//     (
+//         new volScalarField("qsat", qsat)
+//     );
+// }
 
 // -----------------------------------------------------------------------------
 
 // return energy source term
-tmp<fvScalarMatrix> vegetationModel::Sh(volVectorField& U, volScalarField& T) const
-{
-    Info << "Qs : " << max(Qs(U,T)) << endl;
-    return fvm::SuSp((Qs(U,T)/(rhoa_*cpa_))/T,T);
-}
+// tmp<volScalarField> vegetationModel::Sh()
+// {
+//     forAll(LAD_, cellI)
+//         if (LAD_[cellI] > 10*SMALL)
+//             Sh_[cellI] = Qs_[cellI]/(rhoa_.value()*cpa_/value());
+//
+//     return Sh_;
+//     // return fvm::SuSp((Qs(U,T)/(rhoa_*cpa_))/T,T);
+// }
 
-// return momentum source term
-tmp<fvVectorMatrix> vegetationModel::Su(volVectorField& U) const
+// solve & return momentum source term (explicit)
+tmp<volVectorField> vegetationModel::Su(volVectorField& U)
 {
-    return fvm::SuSp(-0.5*Cdf_*LAD_*mag(U), U);
+    forAll(LAD_, cellI)
+        if (LAD_[cellI] > 10*SMALL)
+            Su_[cellI] = -0.5*Cdf_.value()*LAD_[cellI]*mag(U[cellI])*U[cellI];
+
+    return Su_;
 }
 
 // return specific humidity source term
-tmp<fvScalarMatrix> vegetationModel::Sq(volVectorField& U, volScalarField& T, volScalarField& q) const
+tmp<volScalarField> vegetationModel::Sq()
 {
-    //return E(U,T,q);
-    return fvm::SuSp((E(U,T,q)/rhoa_)/q,q);
+    forAll (LAD_, cellI)
+        if (LAD_[cellI] > 10*SMALL)
+            Sq_[cellI] = E_[cellI];
+
+    return Sq_;
 }
 
 // -----------------------------------------------------------------------------
 
-void vegetationModel::update_Tl(volVectorField& U, volScalarField& T, volScalarField& q)
+// solve vegetation model
+void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField& q)
 {
-    // net radiation
-    volScalarField tmp_Rn("tmp_Rn", Rn(U));
+    // solve radiation within vegetation
+    radiation();
 
-    // vegetation resistance
-    volScalarField tmp_ra("tmp_ra", ra(U));
+    // solve aerodynamic, stomatal resistance
+    resistance(U);
 
-    // bounding LAD
-    volScalarField tmp_LAD("tmp_LAD", LAD_);
-    dimensionedScalar LADMin("LADMin", dimensionSet(0,-1,0,0,0,0,0), SMALL);
-    bound(tmp_LAD, LADMin);
-
-    // Initial leaf temperature
-    forAll(tmp_LAD, cellI)
+    int maxIter = 10;
+    for (int i=0; i<maxIter; i++)
     {
-        if (tmp_LAD[cellI] > 100*SMALL)
-            Tl_.internalField()[cellI] = T.internalField()[cellI];
-    }
+        volScalarField new_Tl("new_Tl", Tl_);
 
-    // Info << "WIP <<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl;
-    // solve for leaf temperature
-    int i = 0; int maxIter = 10;
-    while (i < maxIter)
-    {
-        // Calculate latent heat flux.
-        volScalarField tmp_Ql("tmp_Ql", Ql(U, T, q));
+        forAll(LAD_, cellI)
+        {
+            if (LAD_[cellI] > 10*SMALL)
+            {
+                // Initial leaf temperature
+                if (i==0)
+                    Tl_[cellI] = T[cellI];
 
-        //Calculate new leaf temperature
-        volScalarField new_Tl("new_Tl", T + (tmp_Rn - tmp_Ql)*(tmp_ra/(2.0*rhoa_*cpa_*tmp_LAD)) );
+                // Calculate saturated density, specific humidity
+                rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
+                qsat_[cellI]   = rhosat_[cellI]/rhoa_.value();
 
-        // Determine errors
+                // Calculate transpiration rate
+                E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
+
+                // Calculate latent heat flux
+                Ql_[cellI] = lambda_.value()*E_[cellI];
+
+                // Calculate new leaf temperature
+                new_Tl[cellI] = T[cellI] + (Rn_[cellI] - Ql_[cellI])*(ra_[cellI]/(2.0*rhoa_.value()*cpa_.value()*LAD_[cellI]));
+            }
+        }
+
+        // Check rel. L-infinity error
         scalar maxError = gMax(mag(new_Tl.internalField()-Tl_.internalField()));
         scalar maxRelError = maxError/gMax(mag(new_Tl.internalField()));
+
         // Iteration info
-        Info << "Calculating leaf temp. Iteration i : " << i++
+        Info << "       Calculating leaf temp. Iteration i : " << i
              << ", max. error: " << maxError
              << ", max. rel. error: " << maxRelError << endl;;
 
+
         // update leaf temp.
-        //Tl_.internalField() = new_Tl.internalField();
-        forAll(tmp_LAD, cellI)
-        {
-            if (tmp_LAD[cellI] > 100*SMALL)
-                Tl_.internalField()[cellI] = new_Tl.internalField()[cellI];
-        }
+        Tl_.internalField() = new_Tl.internalField();
 
-        // convergence check
-        if (maxRelError < 1e-8)
-        {
-            Info << "Leaf temperature calculation CONVERGED !!"
-                 << ", max. rel. error: " << maxRelError << endl;
-            break;
-        }
+         // convergence check
+         if (maxRelError < 1e-8)
+         {
+             Info << "          Leaf temperature calculation CONVERGED !!"
+                  << ", max. rel. error: " << maxRelError << endl;
+             break;
+         }
 
-    }
-
-    if (i == maxIter)
-    {
-        Info << "WARNING!! Leaf temperature not converged !!" << endl;
+         if (i == maxIter-1)
+            Info << "           WARNING!! Leaf temperature NOT converged !!" << endl;
     }
 
 }
 
 
-void vegetationModel::testing(volVectorField& U, volScalarField& T, volScalarField& q)
-{
-    update_Tl(U, T, q);
-}
+// void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField& q)
+// {
+//     // net radiation
+//     volScalarField tmp_Rn("tmp_Rn", Rn(U));
+//
+//     // vegetation resistance
+//     volScalarField tmp_ra("tmp_ra", ra(U));
+//
+//     // bounding LAD
+//     volScalarField tmp_LAD("tmp_LAD", LAD_);
+//     dimensionedScalar LADMin("LADMin", dimensionSet(0,-1,0,0,0,0,0), SMALL);
+//     bound(tmp_LAD, LADMin);
+//
+//     // Initial leaf temperature
+//     // forAll(tmp_LAD, cellI)
+//     // {
+//     //     if (tmp_LAD[cellI] > SMALL)
+//     //         Tl[cellI] = T[cellI];
+//     // }
+//     Tl_.internalField() = T.internalField();
+//
+//     // Info << "WIP <<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl;
+//     // solve for leaf temperature
+//     int i = 0; int maxIter = 10;
+//     while (i < maxIter)
+//     {
+//         // Calculate latent heat flux.
+//         volScalarField tmp_Ql("tmp_Ql", Ql(U, T, q));
+//
+//         //Calculate new leaf temperature
+//         volScalarField new_Tl("new_Tl", T + (tmp_Rn - tmp_Ql)*(tmp_ra/(2.0*rhoa_*cpa_*tmp_LAD)) );
+//
+//         // Determine errors
+//         scalar maxError = gMax(mag(new_Tl.internalField()-Tl_.internalField()));
+//         scalar maxRelError = maxError/gMax(mag(new_Tl.internalField()));
+//         // Iteration info
+//         Info << "Calculating leaf temp. Iteration i : " << i++
+//              << ", max. error: " << maxError
+//              << ", max. rel. error: " << maxRelError << endl;;
+//
+//         // update leaf temp.
+//         Tl_.internalField() = new_Tl.internalField();
+//         // forAll(tmp_LAD, cellI)
+//         // {
+//         //     if (tmp_LAD[cellI] > 100*SMALL)
+//         //         Tl_.internalField()[cellI] = new_Tl.internalField()[cellI];
+//         // }
+//
+//         // convergence check
+//         if (maxRelError < 1e-8)
+//         {
+//             Info << "Leaf temperature calculation CONVERGED !!"
+//                  << ", max. rel. error: " << maxRelError << endl;
+//             break;
+//         }
+//
+//     }
+//
+//     // Cleanup Tl at region without leaf
+//     forAll(tmp_LAD, cellI)
+//     {
+//         if (tmp_LAD[cellI] <= 10*SMALL)
+//             Tl_[cellI] = gMin(Tl_);
+//     }
+//
+//     if (i == maxIter)
+//     {
+//         Info << "WARNING!! Leaf temperature not converged !!" << endl;
+//     }
+//
+//     Info << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Runtime time: " << runTime_.timeName() << endl;
+// }
+
+
+// void vegetationModel::testing(volVectorField& U, volScalarField& T, volScalarField& q)
+// {
+//     // volVectorField tmpRg("Rg", Rg());
+//     // volScalarField tmpRn("Rn", Rn());
+//
+//     // radiation();
+//
+//     // Info << ">>>>>>>> max Rg: " << gMax(tmpRg) << endl;
+//     // Info << ">>>>>>>> max Rn: " << gMax(tmpRn) << endl;
+//     Info << "Hi" << endl;
+// }
+
 
 bool vegetationModel::read()
 {
@@ -335,6 +656,11 @@ bool vegetationModel::read()
 } // end namespace Foam
 
 // ************************************************************************* //
+
+// void vegetationModel::testing(volVectorField& U, volScalarField& T, volScalarField& q)
+// {
+//     update_Tl(U, T, q);
+// }
 
 // return temp source term
 // tmp<fvScalarMatrix> vegetationModel::Sh(volVectorField& U, volScalarField& T) const
@@ -407,3 +733,104 @@ bool vegetationModel::read()
 // Info << "Info: " << max(tmp_ra) << endl;
 // Info << "Info: " << max(rhosat(T)) << endl;
 // Info << "Info: " << max(qsat(T)) << endl;
+
+
+
+
+
+    // Info << "Hi" << endl;
+
+    // Info << rhosat(T[0]) << endl;
+    // for (int i=0; i<20; i++)
+    // {
+    //     forAll(LAD_, cellI)
+    //     {
+    //         if (LAD_ > 10*SMALL)
+    //         {
+    //             // Initial leaf temperature
+    //             if i==0:
+    //                 Tl_[cellI] = T[cellI];
+    //
+    //             // Calculate latent heat flux.
+    //             // Ql_[cellI] = calcQl(U[cellI]);
+    //             Info <<
+    //
+    //             // Calculate new leaf temperature
+    //
+    //             // Check for convergence
+    //
+    //         }
+    //     }
+    // }
+
+
+    // Info << tempData << endl;
+    // net radiation
+    // volScalarField tmp_Rn("tmp_Rn", Rn(U));
+
+    // // vegetation resistance
+    // volScalarField tmp_ra("tmp_ra", ra(U));
+    //
+    // // bounding LAD
+    // volScalarField tmp_LAD("tmp_LAD", LAD_);
+    // dimensionedScalar LADMin("LADMin", dimensionSet(0,-1,0,0,0,0,0), SMALL);
+    // bound(tmp_LAD, LADMin);
+    //
+    // // Initial leaf temperature
+    // // forAll(tmp_LAD, cellI)
+    // // {
+    // //     if (tmp_LAD[cellI] > SMALL)
+    // //         Tl[cellI] = T[cellI];
+    // // }
+    // Tl_.internalField() = T.internalField();
+    //
+    // // Info << "WIP <<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl;
+    // // solve for leaf temperature
+    // int i = 0; int maxIter = 10;
+    // while (i < maxIter)
+    // {
+    //     // Calculate latent heat flux.
+    //     volScalarField tmp_Ql("tmp_Ql", Ql(U, T, q));
+    //
+    //     //Calculate new leaf temperature
+    //     volScalarField new_Tl("new_Tl", T + (tmp_Rn - tmp_Ql)*(tmp_ra/(2.0*rhoa_*cpa_*tmp_LAD)) );
+    //
+    //     // Determine errors
+    //     scalar maxError = gMax(mag(new_Tl.internalField()-Tl_.internalField()));
+    //     scalar maxRelError = maxError/gMax(mag(new_Tl.internalField()));
+    //     // Iteration info
+    //     Info << "Calculating leaf temp. Iteration i : " << i++
+    //          << ", max. error: " << maxError
+    //          << ", max. rel. error: " << maxRelError << endl;;
+    //
+    //     // update leaf temp.
+    //     Tl_.internalField() = new_Tl.internalField();
+    //     // forAll(tmp_LAD, cellI)
+    //     // {
+    //     //     if (tmp_LAD[cellI] > 100*SMALL)
+    //     //         Tl_.internalField()[cellI] = new_Tl.internalField()[cellI];
+    //     // }
+    //
+    //     // convergence check
+    //     if (maxRelError < 1e-8)
+    //     {
+    //         Info << "Leaf temperature calculation CONVERGED !!"
+    //              << ", max. rel. error: " << maxRelError << endl;
+    //         break;
+    //     }
+    //
+    // }
+    //
+    // // Cleanup Tl at region without leaf
+    // forAll(tmp_LAD, cellI)
+    // {
+    //     if (tmp_LAD[cellI] <= 10*SMALL)
+    //         Tl_[cellI] = gMin(Tl_);
+    // }
+    //
+    // if (i == maxIter)
+    // {
+    //     Info << "WARNING!! Leaf temperature not converged !!" << endl;
+    // }
+    //
+    // Info << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Runtime time: " << runTime_.timeName() << endl;

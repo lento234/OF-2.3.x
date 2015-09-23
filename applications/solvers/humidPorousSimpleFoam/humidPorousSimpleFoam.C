@@ -62,8 +62,6 @@ int main(int argc, char *argv[])
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
 
-    // vegetation.testing(U, T, q);
-
     while (simple.loop())
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
@@ -80,7 +78,9 @@ int main(int argc, char *argv[])
         turbulence->correct();
 
         // Update leaf temperature
-        vegetation.update_Tl(U, T, q);
+        vegetation.solve(U, T, q);
+        // vegetation.testing(U, T, q);
+
 
         // Solve passive scalar transport
         {
