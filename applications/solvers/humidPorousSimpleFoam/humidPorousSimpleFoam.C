@@ -79,8 +79,6 @@ int main(int argc, char *argv[])
 
         // Update leaf temperature
         vegetation.solve(U, T, q);
-        // vegetation.testing(U, T, q);
-
 
         // Solve passive scalar transport
         {
