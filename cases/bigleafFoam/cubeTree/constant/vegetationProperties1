@@ -31,11 +31,11 @@ H                   H       [ 0 1 0 0 0 0 0 ] 10.0; // max height of vegetation
 
 kc                  kc      [ 0 0 0 0 0 0 0 ] 0.75; // extinction coefficient of radiation
 
-l                   l       [ 0 1 0 0 0 0 0 ] 0.1; // characteristic length of leaf
+l                   l       [ 0 1 0 0 0 0 0 ] 0.01; // characteristic length of leaf
 
 lambda              lambda  [ 0 2 -2 0 0 0 0 ] 2500000; // latent heat of vaporization of water J/Kg
 
-Rg0                 Rg0     [1 0 -3 0 0 0 0] 100; // global radiation at top of canopy
+Rg0                 Rg0     [1 0 -3 0 0 0 0] 500; // global radiation at top of canopy
 
 rhoa                rhoa    [1 -3 0 0 0 0 0 ] 1.225; // density of air
 

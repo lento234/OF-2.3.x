@@ -11,31 +11,40 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "constant";
-    object      transportProperties;
+    object      RASProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "flowProperties"
 
-transportModel      Newtonian;
+//RASModel        porousrealizableKE; //realizableKE;//kEpsilon; //porouskEpsilon
+RASModel        porouskEpsilon;
+//RASModel        realizableKE;
+//RASModel        kEpsilon;
+//RASModel        kOmega;
 
-// Laminar viscosity of air
-nu                  nu [ 0 2 -1 0 0 0 0 ] 1.46e-5;
+turbulence      on;
 
-// Thermal expansion coefficient
-// beta                beta [0 0 0 -1 0 0 0] 3e-03;
+printCoeffs     on;
 
-// Reference temperature
-TRef                TRef [0 0 0 1 0 0 0] 293.15;
 
-// Laminar Prandtl number
-Pr                  Pr [0 0 0 0 0 0 0] 0.9;
+//porouskEpsilonCoeffs
+//porousrealizableKECoeffs
+kEpsilonCoeffs
+{
+    A0          4.0;
+    betaD       $betaD;
+    betaP       $betaP;
+    C1          1.44;
+    C2          1.9;
+    C4          0.9;
+    C5          0.9;
+    Cdf         $Cdf;
+    Cmu         $Cmu;
+    E           $E;
+    kappa       $kappa;
+    sigmaEps    1.2;
+    sigmaK      1.0;
+}
 
-// Turbulent Prandtl number
-Prt                 Prt [0 0 0 0 0 0 0] 0.7;
-
-// Laminar Schmidt number
-Sc                  Sc [0 0 0 0 0 0 0] 0.9;
-
-// Turbulent Schmidt number
-Sct                 Sct [0 0 0 0 0 0 0] 0.7;
 
 // ************************************************************************* //

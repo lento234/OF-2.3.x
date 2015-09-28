@@ -1,0 +1,48 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.4.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      funkySetFieldsDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+expressions
+(
+   zone_tree
+   {
+       field LAD;
+       expression "1";
+       condition  "(pos().x>=11.99) && (pos().x<=18.01) && (pos().y>=0) && (pos().y<=1) &&  (pos().z>=3.99) && (pos().z<9.99)";
+       keepPatches 1;
+   }
+
+   zone_tree
+   {
+       field LAI;
+       expression "1*(10.0 - pos().z)";
+       condition  "(pos().x>=11.99) && (pos().x<=18.01) && (pos().y>=0) && (pos().y<=1) && (pos().z>=3.99) && (pos().z<9.99)";
+       keepPatches 1;
+   }
+
+
+   zone_belowTree
+   {
+       field LAI;
+       expression "1*(10.0 - 4)";
+       condition  "(pos().x>=11.99) && (pos().x<=18.01) && (pos().y>=0) && (pos().y<=1) && (pos().z>=0.01) && (pos().z<3.99)";
+       keepPatches 1;
+   }
+
+
+);
+
+// ************************************************************************* //

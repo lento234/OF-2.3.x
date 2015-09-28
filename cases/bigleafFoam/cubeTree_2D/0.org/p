@@ -9,33 +9,45 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "constant";
-    object      transportProperties;
+    class       volScalarField;
+    object      p;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-transportModel      Newtonian;
+#include        "../constant/flowProperties"
 
-// Laminar viscosity of air
-nu                  nu [ 0 2 -1 0 0 0 0 ] 1.46e-5;
+dimensions      [0 2 -2 0 0 0 0];
 
-// Thermal expansion coefficient
-// beta                beta [0 0 0 -1 0 0 0] 3e-03;
+internalField   uniform $pressure;
 
-// Reference temperature
-TRef                TRef [0 0 0 1 0 0 0] 293.15;
+boundaryField
+{
+    inlet
+    {
+        type            zeroGradient;
+    }
 
-// Laminar Prandtl number
-Pr                  Pr [0 0 0 0 0 0 0] 0.9;
+    outlet
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
 
-// Turbulent Prandtl number
-Prt                 Prt [0 0 0 0 0 0 0] 0.7;
+    sky
+    {
+        type            zeroGradient;
+    }
 
-// Laminar Schmidt number
-Sc                  Sc [0 0 0 0 0 0 0] 0.9;
 
-// Turbulent Schmidt number
-Sct                 Sct [0 0 0 0 0 0 0] 0.7;
+    ground
+    {
+        type            zeroGradient;
+    }
+
+    frontAndBack
+    {
+        type            empty;
+    }
+}
 
 // ************************************************************************* //

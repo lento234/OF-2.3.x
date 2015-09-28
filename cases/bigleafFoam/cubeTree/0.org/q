@@ -14,16 +14,18 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+#include        "../constant/flowProperties"
+
 dimensions      [0 0 0 0 0 0 0];
 
-internalField   uniform 0.005;
+internalField   uniform $qRef;
 
 boundaryField
 {
     inlet
     {
 	    type            fixedValue;
-        value           uniform 0.005;
+        value           uniform $qRef;
     }
 
     outlet
@@ -34,20 +36,19 @@ boundaryField
     sky
     {
         type            fixedValue;
-        value           uniform 0.005;
+        value           uniform $qRef;
     }
 
 
     ground
     {
         type            fixedValue;
-        value           uniform 0.005;
+        value           uniform $qRef;
     }
 
     frontAndBack
     {
-        type            fixedValue;
-        value           uniform 0.005;
+        type            zeroGradient;
     }
 }
 

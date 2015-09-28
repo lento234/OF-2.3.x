@@ -10,22 +10,20 @@ FoamFile
     version     2.0;
     format      ascii;
     class       volScalarField;
-    object      T;
+    location    "0";
+    object      alphat;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include        "../constant/flowProperties"
+dimensions      [0 2 -1 0 0 0 0];
 
-dimensions      [0 0 0 1 0 0 0];
-
-internalField   uniform $TRef;
+internalField   uniform 0;
 
 boundaryField
 {
     inlet
     {
-	    type            fixedValue;
-        value           uniform $TRef;
+	    type            zeroGradient;
     }
 
     outlet
@@ -35,20 +33,19 @@ boundaryField
 
     sky
     {
-        type            fixedValue;
-        value           uniform $TRef;
+	    type            zeroGradient;
     }
-
 
     ground
     {
-        type            fixedValue;
-        value           uniform $TRef;
+        type            alphatJayatillekeWallFunction;
+        Prt             0.85;
+        value           uniform 0;
     }
 
     frontAndBack
     {
-        type            zeroGradient;
+        type            empty;
     }
 }
 

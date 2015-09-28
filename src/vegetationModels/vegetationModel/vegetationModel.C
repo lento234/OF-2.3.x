@@ -275,8 +275,9 @@ void vegetationModel::radiation()
 {
     // empirical global radiation = f(height) inside and below vegetation
     forAll(Rg_, cellI)
-        Rg_[cellI] = vector(0,0, Rg0_.value()*exp(-kc_.value()*LAI_[cellI]*
-                                    (H_.value() - mesh_.C()[cellI].component(2))/H_.value()));
+        Rg_[cellI] = vector(0,0, Rg0_.value()*exp(-kc_.value()*LAI_[cellI]));
+    //    Rg_[cellI] = vector(0,0, Rg0_.value()*exp(-kc_.value()*LAI_[cellI]*
+    //                                (H_.value() - mesh_.C()[cellI].component(2))/H_.value()));
     Rg_.correctBoundaryConditions();
 
     volTensorField gradRg = fvc::grad(Rg_);
@@ -312,7 +313,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
     resistance(U);
 
     // solve leaf temperature, iteratively.
-    int maxIter = 10;
+    int maxIter = 50;
     for (int i=1; i<=maxIter; i++)
     {
         volScalarField new_Tl("new_Tl", Tl_);
@@ -322,8 +323,8 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
             if (LAD_[cellI] > 10*SMALL)
             {
                 // Initial leaf temperature
-                // if (i==0)
-                //     Tl_[cellI] = T[cellI];
+                if (i==0)
+                    Tl_[cellI] = T[cellI];
 
                 // Calculate saturated density, specific humidity
                 rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
