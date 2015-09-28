@@ -1,0 +1,88 @@
+#!/bin/sh
+
+# Control variables
+meshGen=blockMesh
+solver=bigleafFoam
+sampleOptions=-latestTime
+
+# Constants
+numProcDefault=4
+
+if [ $1 ]; then
+    numProc=$1
+else
+    if [ $PBS_NP ]; then
+        numProc=$PBS_NP
+    else
+        numProc=$numProcDefault
+    fi
+fi
+
+echo "INFO:"
+echo "Num. Procs = $numProc"
+# ---------------------   PRE-PROCESSING
+
+# Mesh generation
+echo -n "Generating mesh..."
+# gmsh -3 mesh/mesh.geo > log.gmsh
+# gmshToFoam mesh/mesh.msh > log.meshgen
+$meshGen > log.meshgen
+echo "Done."
+
+# Copy initial conditions
+echo -n "Copying IC..."
+rm -rf 0
+cp -r 0.org 0
+echo "Done."
+
+
+# Mapping initial condition: U, p, T, epsilon, k....
+#echo -n "Mapping IC fields..."
+#mapFields 0.org/ -consistent -sourceTime 'latestTime' > log.mapfield
+#echo "Done."
+
+# Setting fields: LAD
+echo -n "Setting fields..."
+# setFields > log.setfield
+funkySetFields -time 0 > log.setfield
+echo "Done."
+
+# ---------------------   PROCESSING
+
+if [ $numProc -gt 1 ]; then
+
+    # Parallel computation
+    echo "Computation: Parallel."
+
+    # Deconstruct domain
+    echo -n "Deconstructing mesh..."
+    nx=$(($numProc/2))
+    pyFoamDecompose.py . $numProc --method="simple" --n="[$nx,2,1]" --delta="0.001" > log.decompose
+    echo "Done."
+
+    # Running solver
+    echo -n "Running solver..."
+    mpiexec -np $numProc foamExec $solver -parallel > log.solver
+    #mpiexec -np $numProc foamExec $solver -parallel
+    echo "Done."
+
+    # Reconstruct domain
+    echo -n "Reconstructing mesh..."
+    reconstructPar > log.reconstruct
+    echo "Done."
+
+
+else
+    # Serial computation."
+    echo "Computation: Serial."
+
+    # Running solver
+    echo "Running solver..."
+    foamExec $solver
+    echo "Done."
+fi
+
+# Post-processing
+#echo -n "Sampling..."
+#sample $sampleOptions > log.sample
+#echo "Done."

@@ -1,9 +1,19 @@
 # Folders
-cases/*
+cases/nupSimpleFoam
+cases/others
+cases/bigleafFoam/trash
 tutorials/
 lnInclude/
 platforms/
 linux*Gcc*/
+
+# mesh files
+boundary
+cellZones
+faces
+neighbour
+owner
+points
 
 # Compiled source
 *.o
@@ -31,4 +41,5 @@ linux*Gcc*/
 VTK
 
 # Work in Progress
-!cases/humidPorousSimpleFoam/cubeTree
+!cases/bigleafFoam/cubeTree
+

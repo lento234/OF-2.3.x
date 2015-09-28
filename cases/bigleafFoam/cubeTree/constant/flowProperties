@@ -1,0 +1,73 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      flowProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Fluid Parameters
+flowVelocity    (0 0 0);    // m/s
+pressure        0;          // kg/(m*s^2)
+z0              0.01;      // m/s
+
+// Turbulence properties
+ustar           1.266817076590347;   // m/s
+turbulentKE     0.48144765166227388; // m^2/s^2
+turbulentEpsilon 0.40462947921482473;   // m^2/s^3 // at h
+kappa           0.4187; //0.4; // standard
+Cmu             0.09;
+E               9.8;
+
+// Vegetation properties
+a               1; // LAD [-]
+betaP           1; // Production coeff.
+betaD           4; // Destruction coeff.
+Cdf             0.275; // 400 // Leaf Drag coeff.
+
+
+
+// ************************************************************************ //
+// rho             1.225;      // kg/m^3
+// nu              1.46e-5;    //1.385074375027704e-05; // m^2/s // nu = Ub*hb/Re // Re = 1.9e5
+// z0              uniform $y0; // m/s
+// windDirection   (1 0 0);
+// zDirection      (0 0 1);
+
+
+// Turbulence parameters
+// Cmu             0.09;   // standard
+// betaP           1; // Production coeff.
+// betaD           4; // Destruction coeff.
+// C4              0.9;
+// C5              0.9;
+
+
+// E               9.8;    // standard
+// C1              1.44;   // C_epsilon1
+// C2              1.9;    // standardKE: 1.92, realizableKE: 1.9
+// sigmaK          1.0;    // standard
+// sigmaEps        1.2;    // standardKE: 1.3, realizableKE: 1.2
+
+// Vegetation Dimension
+// hB              1.2; // m/s
+
+
+
+// Additional transport parameters: Temperature parameters
+// beta            3e-03;  // Thermal expansion coefficient
+// TRef            300;    // Reference temperature
+// Pr              0.9;    // Laminar Prandtl number
+// Prt             0.7;    // Turbulent Prandtl number
+
+
+// ************************************************************************* //

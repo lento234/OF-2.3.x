@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Directory and files to remove
+dirs="Decomposer.* PyFoam* logs postProcessing [1-9]* processor* 0"
+files="log* *.o* validation/*.pdf *.foam Decomposer* PyFoam* validation/PlyParser*"
+
+# Delete files
+for file in $files; do
+    if [ -f $file ]; then
+        echo -n "Removing $file ... "
+        rm $file
+        echo "Done."
+
+    fi
+done
+
+# Delete directories
+for dir in $dirs; do
+    if  [ -d $dir ]; then
+        echo -n "Removing directory $dir ... "
+        rm -r $dir
+        echo "Done."
+    fi
+done
