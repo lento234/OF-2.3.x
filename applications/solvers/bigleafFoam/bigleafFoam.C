@@ -22,13 +22,17 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    NUPSimpleFoam
+    bigleafFoam
 
 Description
-    Non-Uniform Porous SimpleFoam
-        Steady-state solver for incompressible, turbulent flow
-        past a non-uniform porous media.
+    Big Leaf non-Uniform porous SimpleFoam with mass transfer for humidity and
+    heat transfer (without buoyancy term). Steady-state incompressible solver
+    with turbulent flow past a non-uniform porous media with transpiration.
 
+Implementation
+    Name: Lento Manickathan, <manickathan@arch.ethz.ch>
+    Date: Aug, 2015
+    Affiliation: EMPA, ETHZ
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
@@ -36,10 +40,11 @@ Description
 #include "RASModel.H"
 #include "simpleControl.H"
 #include "fvIOoptionList.H"
+#include "fixedFluxPressureFvPatchScalarField.H" // added
 
-#include "vegetationModel.H" // added vegetation model
+#include "vegetationModel.H"  // vegetation model added
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
@@ -48,36 +53,49 @@ int main(int argc, char *argv[])
     #include "createFields.H"
     #include "createFvOptions.H"
     #include "initContinuityErrs.H"
+    // #include "readGravitationalAcceleration.H" // buoyancy term
 
     simpleControl simple(mesh);
 
-    vegetationModel vegetation(U, a); // Vegetation model
+    vegetationModel vegetation(U, LAD, LAI, T); // Vegetation model
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
     Info<< "\nStarting time loop\n" << endl;
 
     while (simple.loop())
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        // --- Pressure-velocity SIMPLE corrector
+        // --- Pressure-velocity SIMPLE corrector with decoupled temperature eq.
         {
-            #include "UEqn.H"
-            #include "pEqn.H"
+
+            #include "UEqn.H" // momentum transport eqn
+            #include "TEqn.H" // temperature transport eqn
+            #include "pEqn.H" // divergence free velocity field
         }
 
         // Solve for turbulence
         turbulence->correct();
+
+        // Update leaf temperature
+        vegetation.solve(U, T, q);
+
+        // Solve passive scalar transport
+        {
+            #include "qEqn.H" // specific humidity transport eqn
+            // #include "cEqn.H" // CO2 concentration transport eqn
+        }
 
         runTime.write();
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
             << nl << endl;
+
     }
-    
-    Info<< "End\n" << endl;
+
+    Info<< "\nEnd\n" << endl;
+
     return 0;
 }
 
