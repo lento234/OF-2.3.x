@@ -2,12 +2,16 @@
 
 # src files
 srcPath=(
-    turbulenceModels/incompressible/RAS
-    vegetationModels
+    src/turbulenceModels/incompressible/RAS
+    src/vegetationModels
+)
+
+utilPath=(
+    applications/utilities/postProcessing/velocityField/gradU
 )
 
 appPath=(
-    solvers/bigleafFoam
+    applications/solvers/bigleafFoam
 )
 
 parentDir=$(pwd)
@@ -16,35 +20,37 @@ parentDir=$(pwd)
 echo "-----------------------------------"
 echo "C O M P I L E    S R C   F I L E S"
 echo "----------------------------------"
-cd src
-srcParentDir=$(pwd)
 for i in "${srcPath[@]}"
   do
     cd $i
-    echo "Compiling..........$i"
+    echo "Compiling.....$i"
     wmake libso
-    cd $srcParentDir
-    echo "Done."
+    cd $parentDir
 done
-cd $parentDir
 echo ""
 
+# clean src
+echo "-------------------------------------"
+echo "C O M P I L E    U T I L    F I L E S"
+echo "-------------------------------------"
+for i in "${utilPath[@]}"
+  do
+    cd $i
+    echo "Compiling.....$i"
+    wmake
+    cd $parentDir
+done
+echo ""
 
 # clean apps
 echo "-----------------------------------------"
 echo "C O M P I L E    S O L V E R   F I L E S"
 echo "----------------------------------------"
-cd applications
-appParentDir=$(pwd)
 for i in "${appPath[@]}"
   do
     cd $i
-    echo "Compiling..........$i"
+    echo "Compiling.....$i"
     wmake
-    cd $appParentDir
-    echo "Done."
+    cd $parentDir
 done
-cd $parentDir
-echo ""
-
 echo "All done."
