@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# src files
+srcPath=(
+    turbulenceModels/incompressible/RAS
+    vegetationModels
+)
+
+appPath=(
+    solvers/bigleafFoam
+)
+
+parentDir=$(pwd)
+
+# clean src
+echo "------------------------------"
+echo "C L E A N    S R C   F I L E S"
+echo "------------------------------"
+cd src
+srcParentDir=$(pwd)
+for i in "${srcPath[@]}"
+  do
+    cd $i
+    echo "Cleaning..........$i"
+    wclean
+    cd $srcParentDir
+done
+cd $parentDir
+echo ""
+
+
+# clean apps
+echo "--------------------------------------"
+echo "C L E A N    S O L V E R    F I L E S"
+echo "-------------------------------------"
+cd applications
+appParentDir=$(pwd)
+for i in "${appPath[@]}"
+  do
+    cd $i
+    echo "Cleaning..........$i"
+    wclean
+    cd $appParentDir
+done
+cd $parentDir
+echo ""
