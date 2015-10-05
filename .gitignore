@@ -1,7 +1,8 @@
 # Folders
-cases/nupSimpleFoam
-cases/others
-cases/bigleafFoam/trash
+#cases/nupSimpleFoam
+#cases/others
+#cases/bigleafFoam/trash
+cases
 tutorials/
 lnInclude/
 platforms/
