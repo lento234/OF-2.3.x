@@ -8,6 +8,7 @@ srcPath=(
 
 utilPath=(
     applications/utilities/postProcessing/velocityField/gradU
+    applications/utilities/postProcessing/mesh/cellV
 )
 
 appPath=(

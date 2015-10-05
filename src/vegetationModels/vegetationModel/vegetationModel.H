@@ -89,7 +89,7 @@ protected:
     dimensionedScalar l_;       // characteristic length of leaf
     dimensionedScalar Rg0_;     // global radiation at top of canopy
     dimensionedScalar rhoa_;    // denisty of air
-    dimensionedScalar rs_;      // stomatal resistance
+    dimensionedScalar rsMin_;   // minimum stomatal resistance
     dimensionedScalar TlMin_;   // lower limit of T
     dimensionedScalar UMin_;    // lower limit of U
     dimensionedScalar lambda_;  // latent heat of vaporization
@@ -102,6 +102,7 @@ protected:
     volScalarField Ql_;     // latent heat flux
     volScalarField Qs_;     // sensible heat flux
     volScalarField ra_;     // aerodynamic resistance
+    volScalarField rs_;     // stomatal resistance
     volScalarField rhosat_; // saturated density field
     volVectorField Rg_;     // global radiation
     volScalarField Rn_;     // global radiation density in volume
@@ -147,7 +148,7 @@ public:
         virtual void radiation();
 
         // calc aerodynamic, stomatal resistances
-        virtual void resistance(volVectorField& U);
+        virtual void resistance(volVectorField& U, volScalarField& T);
 
         // solve all
         virtual void solve(volVectorField&U, volScalarField& T, volScalarField& q);

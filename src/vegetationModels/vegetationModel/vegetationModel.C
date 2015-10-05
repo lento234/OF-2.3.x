@@ -85,9 +85,9 @@ vegetationModel::vegetationModel
     (
         vegetationProperties_.lookup("rhoa")
     ),
-    rs_
+    rsMin_
     (
-        vegetationProperties_.lookup("rs")
+        vegetationProperties_.lookup("rsMin")
     ),
     TlMin_("TlMin", dimTemperature, SMALL),
     UMin_("UMin", dimVelocity, SMALL),
@@ -154,6 +154,19 @@ vegetationModel::vegetationModel
         IOobject
         (
             "ra",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimensionSet(0,-1,1,0,0,0,0), 0.0)
+    ),
+    rs_
+    (
+        IOobject
+        (
+            "rs",
             runTime_.timeName(),
             mesh_,
             IOobject::NO_READ,
@@ -291,16 +304,24 @@ void vegetationModel::radiation()
 }
 
 // solve aerodynamic resistance
-void vegetationModel::resistance(volVectorField& U)
+void vegetationModel::resistance(volVectorField& U, volScalarField& T)
 {
     // Calculate magnitude of velocity and bounding above Umin
     volScalarField magU("magU", mag(U));
     bound(magU, UMin_);
 
     forAll(LAD_, cellI)
+    {
         if (LAD_[cellI] > 10*SMALL)
+        {
+            //Aerodynamic resistance
             ra_[cellI] = C_.value()*pow(l_.value()/magU[cellI], 0.5);
+            // Stomatal resistance
+            rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]);
+        }
+    }
     ra_.correctBoundaryConditions();
+    rs_.correctBoundaryConditions();
 }
 
 // solve vegetation model
@@ -310,7 +331,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
     radiation();
 
     // solve aerodynamic, stomatal resistance
-    resistance(U);
+    resistance(U,T);
 
     // solve leaf temperature, iteratively.
     int maxIter = 50;
@@ -327,11 +348,13 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
                     Tl_[cellI] = T[cellI];
 
                 // Calculate saturated density, specific humidity
-                rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
+                // rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
+                rhosat_[cellI] = calc_rhosat(T[cellI]);
                 qsat_[cellI]   = rhosat_[cellI]/rhoa_.value();
 
                 // Calculate transpiration rate
-                E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
+                //E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
+                E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
 
                 // Calculate latent heat flux
                 Ql_[cellI] = lambda_.value()*E_[cellI];
@@ -375,11 +398,13 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
         if (LAD_[cellI] > 10*SMALL)
         {
             // Calculate saturated density, specific humidity
-            rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
-            qsat_[cellI]   = rhosat_[cellI]/rhoa_.value();
+            // rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
+            rhosat_[cellI] = calc_rhosat(T[cellI]);
+            qsat_[cellI] = rhosat_[cellI]/rhoa_.value();
 
             // Calculate transpiration rate
-            E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
+            // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
+            E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
 
             // Calculate latent heat flux
             Ql_[cellI] = lambda_.value()*E_[cellI];

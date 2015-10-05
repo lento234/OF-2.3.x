@@ -26,7 +26,7 @@ fields
 (
     E
     epsilon
-    gradU
+    // gradU
     k
     LAD
     LAI
@@ -37,6 +37,7 @@ fields
     Qs
     qsat
     ra
+    rs
     Rg
     rhosat
     Rn
@@ -46,7 +47,7 @@ fields
     T
     Tl
     U
-    vorticity
+    // vorticity
 );
 
 
