@@ -352,7 +352,6 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
 
                 // Calculate saturated density, specific humidity
                 rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
-                // rhosat_[cellI] = calc_rhosat(T[cellI]);
                 qsat_[cellI]   = rhosat_[cellI]/rhoa_.value();
 
                 // Calculate transpiration rate
@@ -400,8 +399,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
         if (LAD_[cellI] > 10*SMALL)
         {
             // Calculate saturated density, specific humidity
-            // rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
-            rhosat_[cellI] = calc_rhosat(T[cellI]);
+            rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
             qsat_[cellI] = rhosat_[cellI]/rhoa_.value();
 
             // Calculate transpiration rate
@@ -420,6 +418,12 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
     E_.correctBoundaryConditions();
     Ql_.correctBoundaryConditions();
     Qs_.correctBoundaryConditions();
+
+    // Iteration info
+    Info << " Vegetation model:  max. Rn = " << max(mag(Rn_))
+         << "; max. Ql = " << max(mag(Ql_))
+         << "; max. Qs = " << max(mag(Qs_))
+         << "; error: max. Esum = " << max(mag(Rn_.internalField() - Qs_.internalField()- Ql_.internalField())) << endl;
 
 }
 
