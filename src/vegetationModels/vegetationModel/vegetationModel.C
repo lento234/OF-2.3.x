@@ -331,30 +331,33 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
     radiation();
 
     // solve aerodynamic, stomatal resistance
-    resistance(U,T);
+    //resistance(U,T);
 
     // solve leaf temperature, iteratively.
-    int maxIter = 50;
+    int maxIter = 100;
     for (int i=1; i<=maxIter; i++)
     {
         volScalarField new_Tl("new_Tl", Tl_);
+
+        // Solve aerodynamc, stomatal resistance
+        resistance(U, new_Tl);
 
         forAll(LAD_, cellI)
         {
             if (LAD_[cellI] > 10*SMALL)
             {
                 // Initial leaf temperature
-                if (i==0)
-                    Tl_[cellI] = T[cellI];
+                // if (i==0)
+                //     Tl_[cellI] = T[cellI];
 
                 // Calculate saturated density, specific humidity
-                // rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
-                rhosat_[cellI] = calc_rhosat(T[cellI]);
+                rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
+                // rhosat_[cellI] = calc_rhosat(T[cellI]);
                 qsat_[cellI]   = rhosat_[cellI]/rhoa_.value();
 
                 // Calculate transpiration rate
                 //E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
-                E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
+                E_[cellI] = 2.0*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
 
                 // Calculate latent heat flux
                 Ql_[cellI] = lambda_.value()*E_[cellI];
@@ -370,9 +373,9 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
         scalar maxRelError = maxError/gMax(mag(new_Tl.internalField()));
 
         // Iteration info
-        Info << "       Calculating leaf temp. Iteration i : " << i
-             << ", max. error: " << maxError
-             << ", max. rel. error: " << maxRelError << endl;;
+        Info << " Vegetation model:  Solving for Tl. Iteration " << i
+             << "; max. error = " << maxError
+             << "; max. rel. error = " << maxRelError << endl;;
 
 
         // update leaf temp.
@@ -382,14 +385,13 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
          // convergence check
          if (maxRelError < 1e-8)
          {
-             Info << "          Leaf temperature calculation CONVERGED !!"
-                  << ", max. Leaf Temp: " << gMax(Tl_)
-                  << ", max. rel. error: " << maxRelError << endl;
+             Info << " Vegetation model: Converged. "
+                  << "; max. Tl = " << gMax(Tl_) << endl;
              break;
          }
 
          if (i == maxIter)
-            Info << "           WARNING!! Leaf temperature NOT converged !!" << endl;
+            Info << " Vegetation model: >>>>>>>>>>>>>>> N O T  C O N V E R G E D  !! <<<<<<<<<<<<<" << endl;
     }
 
     // Update sensible and latent heat flux
@@ -404,7 +406,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
 
             // Calculate transpiration rate
             // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
-            E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
+            E_[cellI] = 2.0*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
 
             // Calculate latent heat flux
             Ql_[cellI] = lambda_.value()*E_[cellI];
