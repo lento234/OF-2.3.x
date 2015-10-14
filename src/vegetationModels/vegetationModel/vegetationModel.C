@@ -317,6 +317,7 @@ void vegetationModel::resistance(volVectorField& U, volScalarField& T)
             //Aerodynamic resistance
             ra_[cellI] = C_.value()*pow(l_.value()/magU[cellI], 0.5);
             // Stomatal resistance
+            //rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]);
             rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]);
         }
     }
@@ -347,8 +348,8 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
             if (LAD_[cellI] > 10*SMALL)
             {
                 // Initial leaf temperature
-                // if (i==0)
-                //     Tl_[cellI] = T[cellI];
+                if (i==0)
+                    Tl_[cellI] = T[cellI];
 
                 // Calculate saturated density, specific humidity
                 rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
@@ -390,7 +391,8 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
          }
 
          if (i == maxIter)
-            Info << " Vegetation model: >>>>>>>>>>>>>>> N O T  C O N V E R G E D  !! <<<<<<<<<<<<<" << endl;
+            Info << " Vegetation model: >>>>>>>>>>>>>>> N O T  C O N V E R G E D  !! <<<<<<<<<<<<<"
+                 << "; max. Tl = " << gMax(Tl_) << endl;
     }
 
     // Update sensible and latent heat flux
