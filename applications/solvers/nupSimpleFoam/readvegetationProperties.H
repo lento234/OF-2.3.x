@@ -1,10 +1,10 @@
-    Info<< "Reading porosityProperties\n" << endl;
+    Info<< "Reading vegetationProperties\n" << endl;
 
-    IOdictionary porosityProperties
+    IOdictionary vegetationProperties
     (
         IOobject
         (
-            "porosityProperties",
+            "vegetationProperties",
             runTime.constant(),
             mesh,
             IOobject::MUST_READ_IF_MODIFIED,
@@ -15,5 +15,5 @@
     // Assign parameters: Drag coefficient
     dimensionedScalar Cdf
     (
-        porosityProperties.lookup("Cdf")
+        vegetationProperties.lookup("Cdf")
     );

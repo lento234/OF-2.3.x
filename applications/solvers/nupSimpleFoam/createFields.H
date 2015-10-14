@@ -28,12 +28,12 @@
     );
 
 
-    Info<< "Reading field a\n" << endl;
-    volScalarField a
+    Info<< "Reading field LAD\n" << endl;
+    volScalarField LAD
     (
         IOobject
         (
-            "a",
+            "LAD",
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ,
