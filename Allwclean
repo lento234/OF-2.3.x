@@ -56,7 +56,7 @@ for i in "${extPath[@]}"
   do
     cd $i
     echo "Cleaning.....$i"
-    wclean
+    ./Allwclean
     cd $parentDir
 done
 echo ""
