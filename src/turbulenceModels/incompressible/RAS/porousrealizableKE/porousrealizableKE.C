@@ -247,6 +247,14 @@ porousrealizableKE::porousrealizableKE
     nut_.correctBoundaryConditions();
 
     Info << "Defined custom realizableKE model for porous media" << endl;
+    Info << "C2     : " << C2_ << endl;
+    Info << "C4     : " << C4_ << endl;
+    Info << "C5     : " << C5_ << endl;
+    Info << "sigmak : " << sigmak_ << endl;
+    Info << "sigmaEps : " << sigmaEps_ << endl;
+    Info << "Cdf    : " << Cdf_ << endl;
+    Info << "betaP  : " << betaP_ << endl;
+    Info << "betaD  : " << betaD_ << endl;
 
     printCoeffs();
 
@@ -381,8 +389,8 @@ void porousrealizableKE::correct()
             C2_*epsilon_/(k_ + sqrt(nu()*epsilon_)),
             epsilon_
         )
-      + fvm::SuSp(betaP_*C4_*Cdf_*LAD_*pow(mag(U_),3)/k_,epsilon_)
-      - fvm::SuSp(betaD_*C5_*Cdf_*LAD_*mag(U_),epsilon_)
+      + fvm::Sp(betaP_*C4_*Cdf_*LAD_*pow(mag(U_),3)/k_,epsilon_)
+      - fvm::Sp(betaD_*C5_*Cdf_*LAD_*mag(U_),epsilon_)
     );
 
     epsEqn().relax();
@@ -402,8 +410,8 @@ void porousrealizableKE::correct()
      ==
         G
       - fvm::Sp(epsilon_/k_, k_)
-      + fvm::SuSp(betaP_*Cdf_*LAD_*pow(mag(U_),3)/k_, k_)
-      - fvm::SuSp(betaD_*Cdf_*LAD_*mag(U_), k_)
+      + fvm::Sp(betaP_*Cdf_*LAD_*pow(mag(U_),3)/k_, k_)
+      - fvm::Sp(betaD_*Cdf_*LAD_*mag(U_), k_)
     );
 
     kEqn().relax();
