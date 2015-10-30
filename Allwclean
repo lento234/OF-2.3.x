@@ -14,6 +14,10 @@ appPath=(
     applications/solvers/bigleafFoam
 )
 
+extPath=(
+    external/blockmeshdg
+)
+
 parentDir=$(pwd)
 
 # clean src
@@ -41,6 +45,19 @@ for i in "${utilPath[@]}"
     wclean
     cd $parentDir
     echo ".....Done."
+done
+echo ""
+
+# clean ext
+echo "-------------------------------------"
+echo "C L E A N I N G    E X T    F I L E S"
+echo "-------------------------------------"
+for i in "${extPath[@]}"
+  do
+    cd $i
+    echo "Cleaning.....$i"
+    wclean
+    cd $parentDir
 done
 echo ""
 

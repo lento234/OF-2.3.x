@@ -15,9 +15,13 @@ appPath=(
     applications/solvers/bigleafFoam
 )
 
+extPath=(
+    external/blockmeshdg
+)
+
 parentDir=$(pwd)
 
-# clean src
+# compile src
 echo "-----------------------------------"
 echo "C O M P I L E    S R C   F I L E S"
 echo "----------------------------------"
@@ -30,7 +34,7 @@ for i in "${srcPath[@]}"
 done
 echo ""
 
-# clean src
+# compile util
 echo "-------------------------------------"
 echo "C O M P I L E    U T I L    F I L E S"
 echo "-------------------------------------"
@@ -43,7 +47,20 @@ for i in "${utilPath[@]}"
 done
 echo ""
 
-# clean apps
+# compile ext
+echo "-----------------------------------"
+echo "C O M P I L E    E X T    F I L E S"
+echo "-----------------------------------"
+for i in "${extPath[@]}"
+  do
+    cd $i
+    echo "Compiling.....$i"
+    wmake
+    cd $parentDir
+done
+echo ""
+
+# compile solver
 echo "-----------------------------------------"
 echo "C O M P I L E    S O L V E R   F I L E S"
 echo "----------------------------------------"
