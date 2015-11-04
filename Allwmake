@@ -55,7 +55,7 @@ for i in "${extPath[@]}"
   do
     cd $i
     echo "Compiling.....$i"
-    Allwmake
+    ./Allwmake
     cd $parentDir
 done
 echo ""
