@@ -247,14 +247,6 @@ porousrealizableKE::porousrealizableKE
     nut_.correctBoundaryConditions();
 
     Info << "Defined custom realizableKE model for porous media" << endl;
-    Info << "C2     : " << C2_ << endl;
-    Info << "C4     : " << C4_ << endl;
-    Info << "C5     : " << C5_ << endl;
-    Info << "sigmak : " << sigmak_ << endl;
-    Info << "sigmaEps : " << sigmaEps_ << endl;
-    Info << "Cdf    : " << Cdf_ << endl;
-    Info << "betaP  : " << betaP_ << endl;
-    Info << "betaD  : " << betaD_ << endl;
 
     printCoeffs();
 
