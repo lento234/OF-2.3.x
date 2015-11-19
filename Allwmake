@@ -7,12 +7,13 @@ srcPath=(
 )
 
 utilPath=(
-    applications/utilities/postProcessing/velocityField/gradU
     applications/utilities/postProcessing/mesh/cellV
+    applications/utilities/postProcessing/velocityField/gradU
 )
 
 appPath=(
     applications/solvers/bigleafFoam
+    applications/solvers/bbbigleafFoam
 )
 
 extPath=(

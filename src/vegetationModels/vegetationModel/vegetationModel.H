@@ -81,13 +81,17 @@ protected:
     const fvMesh& mesh_;        // mesh
     // -----------------------------------------------
     // Model coefficients
+    dimensionedScalar a1_;     // stomatal resistance specific model parameters
+    dimensionedScalar a2_;     // stomatal resistance specific model parameters
+    dimensionedScalar a3_;     // stomatal resistance specific model parameters
     dimensionedScalar cpa_;     // specific heat of air at constant pressure
     dimensionedScalar C_;       // proportionality factor of ra
-    dimensionedScalar Cdf_;     // leaf drag coefficient
+    dimensionedScalar D0_;      // vapour pressure corresponding to minimal resistance
     dimensionedScalar H_;       // Height of vegetation
     dimensionedScalar kc_;      // extinction coefficient of radiation
     dimensionedScalar l_;       // characteristic length of leaf
     dimensionedScalar Rg0_;     // global radiation at top of canopy
+    dimensionedScalar Rl0_;     // long-wave radiation at top of canopy
     dimensionedScalar rhoa_;    // denisty of air
     dimensionedScalar rsMin_;   // minimum stomatal resistance
     dimensionedScalar TlMin_;   // lower limit of T
@@ -95,9 +99,10 @@ protected:
     dimensionedScalar lambda_;  // latent heat of vaporization
     // -----------------------------------------------
     // Model fields
+    volScalarField Cf_;     // vegetation drag coefficient
+    volScalarField E_;      // transpiration rate
     volScalarField LAD_;    // leaf area density
     volScalarField LAI_;    // leaf area index
-    volScalarField E_;      // transpiration rate
     volScalarField qsat_;   // saturated specific humidity
     volScalarField Ql_;     // latent heat flux
     volScalarField Qs_;     // sensible heat flux
@@ -120,9 +125,8 @@ public:
         vegetationModel
         (
             const volVectorField& U,
-            const volScalarField& LAD,
-            const volScalarField& LAI,
-            const volScalarField& T
+            const volScalarField& T,
+            const volScalarField& q
         );
 
     // destructor
@@ -148,7 +152,7 @@ public:
         virtual void radiation();
 
         // calc aerodynamic, stomatal resistances
-        virtual void resistance(volVectorField& U, volScalarField& T);
+        virtual void resistance(volVectorField& U, volScalarField& T, volScalarField& q);
 
         // solve all
         virtual void solve(volVectorField&U, volScalarField& T, volScalarField& q);

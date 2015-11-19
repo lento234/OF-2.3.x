@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
     simpleControl simple(mesh);
 
-    vegetationModel vegetation(U, LAD, LAI, T); // Vegetation model
+    vegetationModel vegetation(U, T, q); // Vegetation model
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;

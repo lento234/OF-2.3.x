@@ -94,7 +94,6 @@ protected:
             dimensionedScalar C5_;
             dimensionedScalar sigmak_;
             dimensionedScalar sigmaEps_;
-            dimensionedScalar Cdf_;
             dimensionedScalar betaP_;
             dimensionedScalar betaD_;
 
@@ -103,7 +102,7 @@ protected:
 
             volScalarField k_;
             volScalarField epsilon_;
-            volScalarField LAD_;
+            volScalarField Cf_;
             volScalarField nut_;
 
 

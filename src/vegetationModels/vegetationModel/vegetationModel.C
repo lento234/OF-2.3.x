@@ -35,9 +35,8 @@ defineTypeNameAndDebug(vegetationModel, 0);
 vegetationModel::vegetationModel
 (
     const volVectorField& U,
-    const volScalarField& LAD,
-    const volScalarField& LAI,
-    const volScalarField& T
+    const volScalarField& T,
+    const volScalarField& q
 ):
     IOdictionary
     (
@@ -53,6 +52,18 @@ vegetationModel::vegetationModel
     vegetationProperties_(*this),
     runTime_(U.time()),
     mesh_(U.mesh()),
+    a1_
+    (
+        vegetationProperties_.lookup("a1")
+    ),
+    a2_
+    (
+        vegetationProperties_.lookup("a2")
+    ),
+    a3_
+    (
+        vegetationProperties_.lookup("a3")
+    ),
     cpa_
     (
         vegetationProperties_.lookup("cpa")
@@ -61,9 +72,9 @@ vegetationModel::vegetationModel
     (
         vegetationProperties_.lookup("C")
     ),
-    Cdf_
+    D0_
     (
-        vegetationProperties_.lookup("Cdf")
+        vegetationProperties_.lookup("D0")
     ),
     H_
     (
@@ -81,6 +92,10 @@ vegetationModel::vegetationModel
     (
         vegetationProperties_.lookup("Rg0")
     ),
+    Rl0_
+    (
+        vegetationProperties_.lookup("Rl0")
+    ),
     rhoa_
     (
         vegetationProperties_.lookup("rhoa")
@@ -95,8 +110,18 @@ vegetationModel::vegetationModel
     (
         vegetationProperties_.lookup("lambda")
     ),
-    LAD_(LAD),
-    LAI_(LAI),
+    Cf_
+    (
+        IOobject
+        (
+            "Cf",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_
+    ),
     E_
     (
         IOobject
@@ -109,6 +134,30 @@ vegetationModel::vegetationModel
         ),
         mesh_,
         dimensionedScalar("0", dimensionSet(1,-3,-1,0,0,0,0), 0.0)
+    ),
+    LAD_
+    (
+        IOobject
+        (
+            "LAD",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_
+    ),
+    LAI_
+    (
+        IOobject
+        (
+            "LAI",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_
     ),
     qsat_
     (
@@ -298,27 +347,32 @@ void vegetationModel::radiation()
     // radiation density inside vegetation
     forAll(LAD_, cellI)
         if (LAD_[cellI] > 10*SMALL)
-            Rn_[cellI] = gradRg[cellI].component(8); //gradRg[cellI] && tensor(0,0,0,0,0,0,0,0,1);
+            Rn_[cellI] = gradRg[cellI].component(8) + 0.04*(Rl0_.value()/H_.value()); //gradRg[cellI] && tensor(0,0,0,0,0,0,0,0,1);
+            //Rn_[cellI] = gradRg[cellI].component(8);
     Rn_.correctBoundaryConditions();
 
 }
 
 // solve aerodynamic resistance
-void vegetationModel::resistance(volVectorField& U, volScalarField& T)
+void vegetationModel::resistance(volVectorField& U, volScalarField& T, volScalarField& q)
 {
     // Calculate magnitude of velocity and bounding above Umin
     volScalarField magU("magU", mag(U));
     bound(magU, UMin_);
-
+    double D;
     forAll(LAD_, cellI)
     {
         if (LAD_[cellI] > 10*SMALL)
         {
             //Aerodynamic resistance
+            // ra_[cellI] = C_.value()*pow(l_.value()/magU[cellI], 0.5);
             ra_[cellI] = C_.value()*pow(l_.value()/magU[cellI], 0.5);
+
             // Stomatal resistance
             //rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]);
-            rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]);
+            // rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]);
+            D = (calc_rhosat(T[cellI]) - q[cellI]*rhoa_.value())*T[cellI]/0.0022;
+            rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()))*(1.0 + a3_.value()*pow(D-D0_.value(),2));
         }
     }
     ra_.correctBoundaryConditions();
@@ -341,7 +395,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
         volScalarField new_Tl("new_Tl", Tl_);
 
         // Solve aerodynamc, stomatal resistance
-        resistance(U, new_Tl);
+        resistance(U, new_Tl, q);
 
         forAll(LAD_, cellI)
         {
@@ -356,8 +410,9 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
                 qsat_[cellI]   = rhosat_[cellI]/rhoa_.value();
 
                 // Calculate transpiration rate
-                //E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
-                E_[cellI] = 2.0*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
+                // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
+                // E_[cellI] = 2.0*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
+                E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
 
                 // Calculate latent heat flux
                 Ql_[cellI] = lambda_.value()*E_[cellI];
@@ -406,7 +461,8 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
 
             // Calculate transpiration rate
             // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
-            E_[cellI] = 2.0*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
+            // E_[cellI] = 2.0*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
+            E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
 
             // Calculate latent heat flux
             Ql_[cellI] = lambda_.value()*E_[cellI];
@@ -444,9 +500,9 @@ tmp<volScalarField> vegetationModel::Sh()
 // solve & return momentum source term (explicit)
 tmp<volVectorField> vegetationModel::Su(volVectorField& U)
 {
-    forAll(LAD_, cellI)
-        if (LAD_[cellI] > 10*SMALL)
-            Su_[cellI] = -0.5*Cdf_.value()*LAD_[cellI]*mag(U[cellI])*U[cellI];
+    forAll(Su_, cellI)
+        Su_[cellI] = -Cf_[cellI]*mag(U[cellI])*U[cellI]; // Cf = LAD*Cd
+    //Su_[cellI] = -0.5*Cf_[cellI]*mag(U[cellI])*U[cellI];
     Su_.correctBoundaryConditions();
     return Su_;
 }
