@@ -329,7 +329,14 @@ vegetationModel::vegetationModel
 // calc saturated density of water vapour
 double vegetationModel::calc_rhosat(double& T)
 {
-    return 0.0022 * exp( 77.3450 + 0.0057*T - 7235.0/T) / pow(T, 9.2);
+    //return 0.0022 * exp( 77.3450 + 0.0057*T - 7235.0/T) / pow(T, 9.2);
+    return exp( 77.3450 + 0.0057*T - 7235.0/T) / (pow(T, 9.2)*461.5);
+}
+
+// calc saturated water vapor pressure
+double vegetationModel::calc_psat(double& T)
+{
+    return exp( 77.3450 + 0.0057*T - 7235.0/T) / pow(T, 8.2);
 }
 
 // solve radiation
@@ -348,7 +355,7 @@ void vegetationModel::radiation()
     forAll(LAD_, cellI)
         if (LAD_[cellI] > 10*SMALL)
             Rn_[cellI] = gradRg[cellI].component(8) + 0.04*(Rl0_.value()/H_.value()); //gradRg[cellI] && tensor(0,0,0,0,0,0,0,0,1);
-            //Rn_[cellI] = gradRg[cellI].component(8);
+    //Rn_[cellI] = gradRg[cellI].component(8);
     Rn_.correctBoundaryConditions();
 
 }
@@ -368,11 +375,19 @@ void vegetationModel::resistance(volVectorField& U, volScalarField& T, volScalar
             // ra_[cellI] = C_.value()*pow(l_.value()/magU[cellI], 0.5);
             ra_[cellI] = C_.value()*pow(l_.value()/magU[cellI], 0.5);
 
+            // Vapor pressure deficit
+            D = (calc_psat(T[cellI]) - (q[cellI]*rhoa_.value()*T[cellI]*461.5))/1000.0; // kPa
+
             // Stomatal resistance
             //rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]);
             // rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]);
-            D = (calc_rhosat(T[cellI]) - q[cellI]*rhoa_.value())*T[cellI]/0.0022;
             rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()))*(1.0 + a3_.value()*pow(D-D0_.value(),2));
+
+            // if (D < D0_.value())
+            //     //Info << ">>>>>>>>>>>>>>>>>>>>>>>>> WARNING >>>>>>>>>>>>>>>>>>>> REVERSE PRESSURE" << endl;
+            //     rs_[cellI] = 1e16;
+            // else
+            //     rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()))*(1.0 + a3_.value()*pow(D-D0_.value(),2));
         }
     }
     ra_.correctBoundaryConditions();

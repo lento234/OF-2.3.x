@@ -148,6 +148,9 @@ public:
         // return saturated density of water vapour
         virtual double calc_rhosat(double& T);
 
+        // return saturated water vapour pressure
+        virtual double calc_psat(double& T);
+
         // calc radiation
         virtual void radiation();
 
