@@ -84,15 +84,16 @@ int main(int argc, char *argv[])
             #include "pEqn.H"
         }
 
+        // solve k, epsilon
         turbulence->correct();
-
-        // Update leaf temperature
-        vegetation.solve(U, T, q);
 
         // Solve passive scalar transport
         {
             #include "qEqn.H" // specific humidity transport eqn
         }
+
+        // Solve vegetation energy balance
+        vegetation.solve(U, T, q);
 
         runTime.write();
 
