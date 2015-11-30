@@ -101,6 +101,8 @@ protected:
     // Model fields
     volScalarField Cf_;     // vegetation drag coefficient
     volScalarField E_;      // transpiration rate
+    volScalarField ev_;     // water vapor pressure
+    volScalarField evsat_;  // saturated water vapor pressure
     volScalarField LAD_;    // leaf area density
     volScalarField LAI_;    // leaf area index
     volScalarField qsat_;   // saturated specific humidity
@@ -115,6 +117,7 @@ protected:
     volScalarField Sq_;     // humidity source term
     volVectorField Su_;     // momentum source term
     volScalarField Tl_;     // temperature of leaf
+    volScalarField VPD_;    // vapor pressure deficit
 
 
 public:
@@ -149,13 +152,13 @@ public:
         virtual double calc_rhosat(double& T);
 
         // return saturated water vapour pressure
-        virtual double calc_psat(double& T);
+        virtual double calc_evsat(double& T);
 
         // calc radiation
         virtual void radiation();
 
         // calc aerodynamic, stomatal resistances
-        virtual void resistance(volVectorField& U, volScalarField& T, volScalarField& q);
+        virtual void resistance(volScalarField& magU, volScalarField& T, volScalarField& q);
 
         // solve all
         virtual void solve(volVectorField&U, volScalarField& T, volScalarField& q);
