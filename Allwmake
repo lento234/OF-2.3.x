@@ -4,6 +4,7 @@
 srcPath=(
     src/turbulenceModels/incompressible/RAS
     src/vegetationModels
+    src/finiteVolume
 )
 
 utilPath=(
@@ -14,6 +15,7 @@ utilPath=(
 appPath=(
     applications/solvers/bigleafFoam
     applications/solvers/bbbigleafFoam
+    applications/solvers/transientbbbigleafFoam
 )
 
 extPath=(
