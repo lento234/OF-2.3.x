@@ -493,7 +493,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
         scalar maxRelError = maxError/gMax(mag(new_Tl.internalField()));
 
         // Iteration info
-        Info << "       Vegetation model:  Solving for Tl. Iteration " << i
+        Info << "      Vegetation model:  Solving for Tl. Iteration " << i
              << "; max. error = " << maxError
              << "; max. rel. error = " << maxRelError << endl;;
 
@@ -505,14 +505,12 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
          // convergence check
          if (maxRelError < 1e-8)
          {
-             Info << "      Vegetation model: Converged. "
-                  << "; max. Tl = " << gMax(Tl_) << endl;
+             Info << "      Vegetation model:  CONVERGED" << endl;
              break;
          }
 
          if (i == maxIter)
-            Info << "       Vegetation model: >>>>>>>>>>>>>>> N O T  C O N V E R G E D  !! <<<<<<<<<<<<<"
-                 << "; max. Tl = " << gMax(Tl_) << endl;
+             Info << "      Vegetation model:  >>>>>>>>>>>>>>> N O T  C O N V E R G E D  !! <<<<<<<<<<<<<" << endl;
     }
 
     // Final: Solve aerodynamc, stomatal resistance
@@ -546,10 +544,10 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
     Qs_.correctBoundaryConditions();
 
     // Iteration info
-    Info << "       Vegetation model:  max. Rn = " << max(mag(Rn_))
-         << "; max. Ql = " << max(mag(Ql_))
-         << "; max. Qs = " << max(mag(Qs_))
-         << "; error: max. Esum = " << max(mag(Rn_.internalField() - Qs_.internalField()- Ql_.internalField())) << endl;
+    // Info << "              Vegetation model:  max. Rn = " << max(mag(Rn_))
+    //      << "; max. Ql = " << max(mag(Ql_))
+    //      << "; max. Qs = " << max(mag(Qs_))
+    //      << "; error: max. Esum = " << max(mag(Rn_.internalField() - Qs_.internalField()- Ql_.internalField())) << endl;
 
 }
 
