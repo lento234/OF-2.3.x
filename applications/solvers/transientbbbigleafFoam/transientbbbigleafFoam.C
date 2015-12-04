@@ -36,7 +36,9 @@ Description
 #include "fvIOoptionList.H"
 #include "transientSimpleControl.H"
 #include "fixedFluxPressureFvPatchScalarField.H"
-#include "vegetationModel.H"  // vegetation model added
+#include "transientVegetationModel.H"  // vegetation model added
+
+#include <ctime>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -50,8 +52,9 @@ int main(int argc, char *argv[])
     #include "createFvOptions.H"
     #include "initContinuityErrs.H"
 
+    clock_t tstart;
 
-    vegetationModel vegetation(U, T, q); // Vegetation model
+    transientVegetationModel vegetation(U, T, Yv); // Vegetation model
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -61,12 +64,17 @@ int main(int argc, char *argv[])
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        int steadyStateIter = 0;
-
         transientSimpleControl transientSimple(mesh);
+
+        int steadyStateIter = 0;
 
         while (transientSimple.loop())
         {
+
+            Info << "\nTime = " << runTime.timeName()
+                 << ", Steady-state Iteration = " << ++steadyStateIter << endl;
+
+            tstart = std::clock();
 
             // Pressure-velocity SIMPLE corrector
             {
@@ -77,21 +85,26 @@ int main(int argc, char *argv[])
 
             // Solve passive scalar transport
             {
-                #include "qEqn.H" // specific humidity transport eqn
+                #include "YvEqn.H" // specific humidity transport eqn
             }
 
             // Solve vegetation energy balance
-            vegetation.solve(U, T, q);
+            vegetation.solve(U, T, Yv);
 
             // solve k, epsilon
             turbulence->correct();
 
-            runTime.write();
-
-            Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-                << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-                << nl << endl;
+            Info << "It took "<< (std::clock()-tstart) / (double)CLOCKS_PER_SEC <<" second(s)."<< endl;
         }
+
+        Info << "\nSteady-state solution converged in "
+             << steadyStateIter << " iterations." << endl;
+
+        runTime.write();
+
+        Info << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+             << nl << endl;
 
     }
 

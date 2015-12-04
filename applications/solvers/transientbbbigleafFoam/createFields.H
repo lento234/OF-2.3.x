@@ -118,12 +118,12 @@
     }
 
     // specific humidity
-    Info<< "Reading field q\n" << endl;
-    volScalarField q
+    Info<< "Reading field Yv\n" << endl;
+    volScalarField Yv
     (
         IOobject
         (
-            "q",
+            "Yv",
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ,
@@ -133,12 +133,12 @@
     );
 
     // kinematic turbulent scalar diffusivity
-    Info<< "Reading field Dqt\n" << endl;
-    volScalarField Dqt
+    Info<< "Reading field DYvt\n" << endl;
+    volScalarField DYvt
     (
         IOobject
         (
-            "Dqt",
+            "DYvt",
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ,

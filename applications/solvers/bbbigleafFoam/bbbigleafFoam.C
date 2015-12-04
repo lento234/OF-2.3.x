@@ -53,6 +53,8 @@ Description
 #include "fixedFluxPressureFvPatchScalarField.H"
 #include "vegetationModel.H"  // vegetation model added
 
+#include <ctime>
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -65,6 +67,8 @@ int main(int argc, char *argv[])
     #include "createFvOptions.H"
     #include "initContinuityErrs.H"
 
+    clock_t tstart;
+
     simpleControl simple(mesh);
 
     vegetationModel vegetation(U, T, q); // Vegetation model
@@ -76,6 +80,8 @@ int main(int argc, char *argv[])
     while (simple.loop())
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
+
+        tstart = std::clock();
 
         // Pressure-velocity SIMPLE corrector
         {
@@ -94,6 +100,8 @@ int main(int argc, char *argv[])
 
         // solve k, epsilon
         turbulence->correct();
+
+        Info << "It took "<< (std::clock()-tstart) / (double)CLOCKS_PER_SEC <<" second(s)."<< endl;
 
         runTime.write();
 

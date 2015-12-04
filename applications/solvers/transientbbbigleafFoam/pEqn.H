@@ -30,7 +30,7 @@
         )/(mesh.magSf().boundaryField()*rAUf.boundaryField())
     );
 
-    while (simple.correctNonOrthogonal())
+    while (transientSimple.correctNonOrthogonal())
     {
         fvScalarMatrix p_rghEqn
         (
@@ -41,7 +41,7 @@
 
         p_rghEqn.solve();
 
-        if (simple.finalNonOrthogonalIter())
+        if (transientSimple.finalNonOrthogonalIter())
         {
             // Calculate the conservative fluxes
             phi = phiHbyA - p_rghEqn.flux();

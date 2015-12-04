@@ -13,7 +13,7 @@
 
     fvOptions.constrain(UEqn());
 
-    if (simple.momentumPredictor())
+    if (transientSimple.momentumPredictor())
     {
         solve
         (
