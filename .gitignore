@@ -7,7 +7,6 @@ tutorials/
 lnInclude/
 platforms/
 linux*Gcc*/
-src/finiteVolume
 # mesh files
 boundary
 cellZones

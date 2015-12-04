@@ -1,0 +1,3 @@
+cfdTools/general/solutionControl/transientSimpleControl/transientSimpleControl.C
+
+LIB = $(FOAM_USER_LIBBIN)/libtransientSimpleControl
