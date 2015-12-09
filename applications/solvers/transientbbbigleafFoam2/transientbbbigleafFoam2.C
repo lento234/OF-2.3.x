@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    transientbbbigleafFoam
+    transientbbbigleafFoam2
 
 Description
     "Transient" steady-state solver for buoyant turbulent flow of incompressible
@@ -67,37 +67,61 @@ int main(int argc, char *argv[])
         transientSimpleControl transientSimple(mesh);
 
         int steadyStateIter = 0;
+        bool steadyStateConverged;
+
+
+        // Without vegetation term
 
         while (transientSimple.loop())
         {
-            tstart = std::clock(); // profiler
+            tstart = std::clock();
 
             Info << "\nTime = " << runTime.timeName()
-                 << ", Steady-state Iteration = " << ++steadyStateIter << endl;
+                 << ", Flow, Steady-state Iteration = " << ++steadyStateIter << endl;
 
-            // Pressure-velocity SIMPLE corrector
-            {
-                #include "UEqn.H"
-                #include "TEqn.H"
-                #include "pEqn.H"
-            }
-
-            // Solve passive scalar transport
-            {
-                #include "YvEqn.H" // specific humidity transport eqn
-            }
-
-            // Solve vegetation energy balance
-            vegetation.solve(U, T, Yv);
+            // Solve flow
+            #include "solveFlow.H"
 
             // solve k, epsilon
             turbulence->correct();
 
-            Info << "It took "<< (std::clock()-tstart) / (double)CLOCKS_PER_SEC
-                 << " second(s)."<< endl; // profiler
+            Info << "It took "<< (std::clock()-tstart) / (double)CLOCKS_PER_SEC <<" second(s)."<< endl;
+
+            if (steadyStateIter > 10000)
+            {
+                steadyStateConverged = false;
+                break;
+            }
         }
 
-        Info << "\nSteady-state solution converged in "
+        if (steadyStateConverged)
+            Info << "\nFlow: Steady-state solution converged in "
+                 << steadyStateIter << " iterations." << endl;
+
+        // With vegetation term
+
+        do
+        {
+            tstart = std::clock();
+
+            // Solve vegetation energy balance
+            vegetation.solve(U, T, Yv);
+
+            Info << "\nTime = " << runTime.timeName()
+                 << ", Flow + Vegetation, Steady-state Iteration = " << ++steadyStateIter << endl;
+            // Solve flow
+            #include "solveFlow.H"
+
+            // solve k, epsilon
+            turbulence->correct();
+
+            Info << "It took "<< (std::clock()-tstart) / (double)CLOCKS_PER_SEC <<" second(s)."<< endl;
+        } while (transientSimple.loop());
+
+        // Solve vegetation energy balance
+        vegetation.solve(U, T, Yv);
+
+        Info << "\nFlow + Vegetation: Steady-state solution converged in "
              << steadyStateIter << " iterations." << endl;
 
         runTime.write();

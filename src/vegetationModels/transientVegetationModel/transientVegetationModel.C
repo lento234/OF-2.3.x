@@ -501,8 +501,8 @@ void transientVegetationModel::solve(volVectorField& U, volScalarField& T, volSc
             if (LAD_[cellI] > 10*SMALL)
             {
                 // Initial leaf temperature
-                if (i==0)
-                    Tl_[cellI] = T[cellI];
+                // if (i==0)
+                    // Tl_[cellI] = T[cellI];
 
                 // Calculate saturated density, specific humidity
                 rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
