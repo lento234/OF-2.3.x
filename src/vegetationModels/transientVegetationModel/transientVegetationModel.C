@@ -93,7 +93,7 @@ transientVegetationModel::transientVegetationModel
         TimeDataEntry<scalar>
         (
             runTime_.time(),
-            "Rl0",
+            "Rg0",
             vegetationProperties_
         )
     ),
@@ -532,6 +532,8 @@ void transientVegetationModel::solve(volVectorField& U, volScalarField& T, volSc
 
         // Iteration info
         Info << "      Vegetation model:  Solving for Tl. Iteration " << i
+             << "; Rg0 = " << Rg0_.value(runTime_.value())
+             << "; Rl0 = " << Rl0_.value(runTime_.value())
              << "; max. error = " << maxError
              << "; max. rel. error = " << maxRelError << endl;;
 
