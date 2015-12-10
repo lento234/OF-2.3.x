@@ -93,6 +93,10 @@ int main(int argc, char *argv[])
             // solve k, epsilon
             turbulence->correct();
 
+            // check solution during runtime (will overwrite)
+            if ((steadyStateIter % 1000) == 0)
+                runTime.write();
+
             Info << "It took "<< (std::clock()-tstart) / (double)CLOCKS_PER_SEC
                  << " second(s)."<< endl; // profiler
         }
