@@ -368,17 +368,21 @@ transientVegetationModel::transientVegetationModel
         // Bounding parameters
         bound(Tl_, TlMin_);
 
-        Info << " Defined custom vegetation model" << endl;
-
+        // Extract value
+        a1 = a1_.value();
+        a2 = a2_.value();
+        a3 = a3_.value();
+        cpa = cpa_.value();
+        C = C_.value();
+        D0 = D0_.value();
         H = H_.value();
         kc = kc_.value();
-        C = C_.value();
         l = l_.value();
         rhoa = rhoa_.value();
         rsMin = rsMin_.value();
         lambda = lambda_.value();
-        cpa = cpa_.value();
 
+        Info << " Defined custom vegetation model" << endl;
     }
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -451,16 +455,20 @@ void transientVegetationModel::resistance(volScalarField& magU, volScalarField& 
 
             // Vapor pressure deficit - kPa
             // VPD_[cellI] = (calc_evsat(T[cellI]) - (q[cellI]*rhoa_.value()*T[cellI]*461.5))/1000.0; // kPa
-            VPD_[cellI] = pv_[cellI] - pvsat_[cellI];
+            // VPD_[cellI] = pv_[cellI] - pvsat_[cellI];
+            VPD_[cellI] = (pv_[cellI] - pvsat_[cellI]);
 
             // Stomatal resistance - type 1
-            rs_[cellI] = rsMin*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]); // type 1
-            // rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]); // type 1
-            // rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]);
+            // rs_[cellI] = rsMin*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]); // type 1
+            //rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]); // type 1
+            //rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]);
 
 
             // Stomatal resistance - type 2
+            rs_[cellI] = rsMin*((a1 + Rg0)/(a2 + Rg0))*(1.0 + a3*pow(VPD_[cellI]/1000.0-D0,2));
             // rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()))*(1.0 + a3_.value()*pow(VPD_[cellI]/1000.0-D0_.value(),2)); // type 2
+
+            // Stomatal resistance - type 2b
             // if ((VPD_[cellI]/1000.0) < D0_.value())
             //     rs_[cellI] = rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()));
             // else

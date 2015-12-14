@@ -40,6 +40,8 @@ points
 # Data files
 VTK
 
+trash/
+
 # Work in Progress
 !cases/bigleafFoam/cubeTree
 

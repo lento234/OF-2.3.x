@@ -120,7 +120,8 @@ protected:
     volScalarField Tl_;     // temperature of leaf
     volScalarField VPD_;    // vapor pressure deficit
 
-    double cpa, C, H, kc, l, lambda, Rg0, rhoa, Rl0, rsMin;
+    double a1, a2, a3, cpa, C, D0, H, kc, l, Rg0, Rl0, rhoa, rsMin, lambda;
+
 
 public:
     // runtime type info
