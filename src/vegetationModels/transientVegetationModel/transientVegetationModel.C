@@ -469,10 +469,10 @@ void transientVegetationModel::resistance(volScalarField& magU, volScalarField& 
             // rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()))*(1.0 + a3_.value()*pow(VPD_[cellI]/1000.0-D0_.value(),2)); // type 2
 
             // Stomatal resistance - type 2b
-            // if ((VPD_[cellI]/1000.0) < D0_.value())
-            //     rs_[cellI] = rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()));
-            // else
-            // rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()))*(1.0 + a3_.value()*pow(VPD_[cellI]/1000.0-D0_.value(),2));
+            if ((VPD_[cellI]/1000.0) < D0_.value())
+                rs_[cellI] = rsMin*((a1 + Rg0)/(a2 + Rg0));
+            else
+                rs_[cellI] = rsMin*((a1 + Rg0)/(a2 + Rg0))*(1.0 + a3*pow(VPD_[cellI]/1000.0-D0,2));
         }
     }
     pv_.correctBoundaryConditions();
