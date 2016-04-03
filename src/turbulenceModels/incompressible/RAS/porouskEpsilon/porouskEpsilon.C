@@ -96,7 +96,7 @@ porouskEpsilon::porouskEpsilon
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "C2",
+            "C5",
             coeffDict_,
             0.9
         )
@@ -117,15 +117,6 @@ porouskEpsilon::porouskEpsilon
             "sigmaEps",
             coeffDict_,
             1.3
-        )
-    ),
-    Cdf_
-    (
-        dimensioned<scalar>::lookupOrAddToDict
-        (
-            "Cdf",
-            coeffDict_,
-            0.0
         )
     ),
     betaP_
@@ -171,11 +162,11 @@ porouskEpsilon::porouskEpsilon
         ),
         autoCreateEpsilon("epsilon", mesh_)
     ),
-    LAD_
+    Cf_
     (
         IOobject
         (
-            "LAD",
+            "Cf",
             runTime_.timeName(),
             mesh_,
             IOobject::MUST_READ,
@@ -289,7 +280,6 @@ bool porouskEpsilon::read()
         C5_.readIfPresent(coeffDict());
         sigmak_.readIfPresent(coeffDict());
         sigmaEps_.readIfPresent(coeffDict());
-        Cdf_.readIfPresent(coeffDict());
         betaP_.readIfPresent(coeffDict());
         betaD_.readIfPresent(coeffDict());
 
@@ -325,8 +315,8 @@ void porouskEpsilon::correct()
      ==
         C1_*G*epsilon_/k_
       - fvm::Sp(C2_*epsilon_/k_, epsilon_)
-      + fvm::SuSp(betaP_*C4_*Cdf_*LAD_*pow(mag(U_),3)/k_,epsilon_)
-      - fvm::SuSp(betaD_*C5_*Cdf_*LAD_*mag(U_),epsilon_)
+      + fvm::SuSp(betaP_*C4_*Cf_*pow(mag(U_),3)/k_,epsilon_)
+      - fvm::SuSp(betaD_*C5_*Cf_*mag(U_),epsilon_)
     );
 
     epsEqn().relax();
@@ -346,8 +336,8 @@ void porouskEpsilon::correct()
      ==
         G
       - fvm::Sp(epsilon_/k_, k_)
-      + fvm::SuSp(betaP_*Cdf_*LAD_*pow(mag(U_),3)/k_, k_)
-      - fvm::SuSp(betaD_*Cdf_*LAD_*mag(U_), k_)
+      + fvm::SuSp(betaP_*Cf_*pow(mag(U_),3)/k_, k_)
+      - fvm::SuSp(betaD_*Cf_*mag(U_), k_)
     );
 
     kEqn().relax();

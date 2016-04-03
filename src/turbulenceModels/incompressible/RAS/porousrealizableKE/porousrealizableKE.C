@@ -140,7 +140,7 @@ porousrealizableKE::porousrealizableKE
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "C2",
+            "C5",
             coeffDict_,
             0.9
         )

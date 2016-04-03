@@ -2,6 +2,7 @@
 #cases/nupSimpleFoam
 #cases/others
 #cases/bigleafFoam/trash
+applications/solvers/liquidFoam/
 cases
 tutorials/
 lnInclude/

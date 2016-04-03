@@ -105,7 +105,6 @@ protected:
             dimensionedScalar C5_;
             dimensionedScalar sigmak_;
             dimensionedScalar sigmaEps_;
-            dimensionedScalar Cdf_;
             dimensionedScalar betaP_;
             dimensionedScalar betaD_;
 
@@ -114,7 +113,7 @@ protected:
 
             volScalarField k_;
             volScalarField epsilon_;
-            volScalarField LAD_;
+            volScalarField Cf_;
             volScalarField nut_;
 
 public:
@@ -180,9 +179,9 @@ public:
         }
 
         //- return LAD
-        virtual tmp<volScalarField> LAD() const
+        virtual tmp<volScalarField> Cf() const
         {
-            return LAD_;
+            return Cf_;
         }
 
         //- Return the Reynolds stress tensor

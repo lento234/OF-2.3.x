@@ -23,7 +23,6 @@ License
 
 Application
     bigleafFoam
-
 Description
     Big Leaf non-Uniform porous SimpleFoam with mass transfer for humidity and
     heat transfer (without buoyancy term). Steady-state incompressible solver
