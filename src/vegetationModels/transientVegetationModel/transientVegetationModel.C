@@ -447,11 +447,14 @@ void transientVegetationModel::resistance(volScalarField& magU, volScalarField& 
             // ra_[cellI] = C_.value()*pow(l_.value()/magU[cellI], 0.5);
 
             // Calculate vapor pressure
-            pv_[cellI] = Yv[cellI]*rhoa*T[cellI]*461.5;
+            pv_[cellI] = Yv[cellI]*rhoa*T[cellI]*461.5; // TODO: not correct
+            // TODO: not correct
+            // q = Yv[cellI]/(1-Yv[cellI]);
+            // pv_[cellI] = q*rhoa*T[cellI]*461.5;
             // ev_[cellI] = q[cellI]*rhoa_.value()*T[cellI]*461.5;
 
             // Calculate sat. vapor pressure
-            pvsat_[cellI] = calc_pvsat(T[cellI]);
+            pvsat_[cellI] = calc_pvsat(T[cellI]); // TODO: functiion of leaf temperature, not air.
 
             // Vapor pressure deficit - kPa
             // VPD_[cellI] = (calc_evsat(T[cellI]) - (q[cellI]*rhoa_.value()*T[cellI]*461.5))/1000.0; // kPa
@@ -515,7 +518,10 @@ void transientVegetationModel::solve(volVectorField& U, volScalarField& T, volSc
                 // Calculate saturated density, specific humidity
                 rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
                 // qsat_[cellI]   = rhosat_[cellI]/rhoa_.value();
-                Yvsat_[cellI]   = rhosat_[cellI]/rhoa;
+                Yvsat_[cellI]   = rhosat_[cellI]/rhoa; // TODO: Yvsat_ = qsat/(1+qsat)
+                // qsat_[cellI] = rhosat_[cellI]/rhoa_.value();
+                // Yvsat_[cellI] = qsat_[cellI]/(1+qsat_[cellI]);
+                // TODO: Yvsat_ = qsat/(1+qsat)
 
                 // Calculate transpiration rate
                 // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
@@ -572,13 +578,16 @@ void transientVegetationModel::solve(volVectorField& U, volScalarField& T, volSc
             // Calculate saturated density, specific humidity
             rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
             // qsat_[cellI] = rhosat_[cellI]/rhoa_.value();
-            Yvsat_[cellI] = rhosat_[cellI]/rhoa;
+            Yvsat_[cellI] = rhosat_[cellI]/rhoa; // TODO: not correct
+            // qsat_[cellI] = rhosat_[cellI]/rhoa_.value();
+            // Yvsat_[cellI] = qsat_[cellI]/(1+qsat_[cellI]);
+            // TODO: Yvsat_ = qsat/(1+qsat)
 
             // Calculate transpiration rate
             // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
             // E_[cellI] = 2.0*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
             // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]); // todo: implement switch for double or single side
-            E_[cellI] = LAD_[cellI]*rhoa*(Yvsat_[cellI]-Yv[cellI])/(ra_[cellI]+rs_[cellI]); // todo: implement switch for double or single side
+            E_[cellI] = LAD_[cellI]*rhoa*(Yvsat_[cellI]-Yv[cellI])/(ra_[cellI]+rs_[cellI]); // TODO: implement switch for double or single side
 
             // Calculate latent heat flux
             // Ql_[cellI] = lambda_.value()*E_[cellI];
