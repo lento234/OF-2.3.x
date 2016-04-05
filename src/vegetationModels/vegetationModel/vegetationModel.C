@@ -423,7 +423,7 @@ void vegetationModel::resistance(volScalarField& magU, volScalarField& T, volSca
             // Stomatal resistance - type 1
             // rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]); // type 1
             //rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]);
-            rs_[cellI] = rsMin_.value()*(31.0 + Rg_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rg_[cellI]);
+            rs_[cellI] = rsMin_.value()*(31.0 + Rg_[cellI].component(2))*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rg_[cellI].component(2));
 
 
             // Stomatal resistance - type 2
