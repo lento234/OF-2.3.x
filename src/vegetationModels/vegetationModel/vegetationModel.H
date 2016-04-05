@@ -87,6 +87,7 @@ protected:
     dimensionedScalar cpa_;     // specific heat of air at constant pressure
     dimensionedScalar C_;       // proportionality factor of ra
     dimensionedScalar D0_;      // vapour pressure corresponding to minimal resistance
+    dimensionedScalar nEvapSides_; // number of sides, leaf evaporates from
     dimensionedScalar H_;       // Height of vegetation
     dimensionedScalar kc_;      // extinction coefficient of radiation
     dimensionedScalar l_;       // characteristic length of leaf

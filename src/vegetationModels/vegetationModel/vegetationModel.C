@@ -76,6 +76,10 @@ vegetationModel::vegetationModel
     (
         vegetationProperties_.lookup("D0")
     ),
+    nEvapSides_
+    (
+        vegetationProperties_.lookup("nEvapSides")
+    ),
     H_
     (
         vegetationProperties_.lookup("H")
@@ -480,7 +484,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
                 // Calculate transpiration rate
                 // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
                 // E_[cellI] = 2.0*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
-                E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
+                E_[cellI] = nEvapSides_.value()*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
                 //E_[cellI] = 0.0; // No evapotranspiration
 
                 // Calculate latent heat flux
@@ -530,7 +534,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
             // Calculate transpiration rate
             // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
             // E_[cellI] = 2.0*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
-            E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]); // todo: implement switch for double or single side
+            E_[cellI] = nEvapSides_.value()*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]); // todo: implement switch for double or single side
             //E_[cellI] = 0.0; // no evapotranspiration
             // TODO: flag for no transpiration, one side, both side
 
