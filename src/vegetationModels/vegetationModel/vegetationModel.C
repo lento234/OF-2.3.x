@@ -399,7 +399,7 @@ void vegetationModel::radiation()
 }
 
 // solve aerodynamic resistance
-void vegetationModel::resistance(volScalarField& magU, volScalarField& T, volScalarField& q)
+void vegetationModel::resistance(volScalarField& magU, volScalarField& T, volScalarField& q, volScalarField& Tl)
 {
     // Calculate magnitude of velocity and bounding above Umin
     forAll(LAD_, cellI)
@@ -410,11 +410,13 @@ void vegetationModel::resistance(volScalarField& magU, volScalarField& T, volSca
             // ra_[cellI] = C_.value()*pow(l_.value()/magU[cellI], 0.5);
             ra_[cellI] = C_.value()*pow(l_.value()/magU[cellI], 0.5);
 
-            // Calculate vapor pressure
+            // Calculate vapor pressure of air
             ev_[cellI] = q[cellI]*rhoa_.value()*T[cellI]*461.5;
 
-            // Calculate sat. vapor pressure
-            evsat_[cellI] = calc_evsat(T[cellI]);
+            // Calculate sat. vapor pressure at leaf
+            //evsat_[cellI] = calc_evsat(T[cellI]); // TODO bug
+            evsat_[cellI] = calc_evsat(Tl[cellI]); // TODO bug
+
 
             // Vapor pressure deficit - kPa
             // VPD_[cellI] = (calc_evsat(T[cellI]) - (q[cellI]*rhoa_.value()*T[cellI]*461.5))/1000.0; // kPa
@@ -427,11 +429,11 @@ void vegetationModel::resistance(volScalarField& magU, volScalarField& T, volSca
 
 
             // Stomatal resistance - type 2
-            rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()))*(1.0 + a3_.value()*pow(VPD_[cellI]/1000.0-D0_.value(),2)); // type 2
-            //if ((VPD_[cellI]/1000.0) < D0_.value())
-            //    rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()));
-            //else
-            //    rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()))*(1.0 + a3_.value()*pow(VPD_[cellI]/1000.0-D0_.value(),2));
+            // rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()))*(1.0 + a3_.value()*pow(VPD_[cellI]/1000.0-D0_.value(),2)); // type 2
+            if ((VPD_[cellI]/1000.0) < D0_.value())
+               rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()));
+            else
+               rs_[cellI] = rsMin_.value()*((a1_.value() + Rg0_.value())/(a2_.value() + Rg0_.value()))*(1.0 + a3_.value()*pow(VPD_[cellI]/1000.0-D0_.value(),2));
         }
     }
     ev_.correctBoundaryConditions();
@@ -461,7 +463,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
     for (int i=1; i<=maxIter; i++)
     {
         // Solve aerodynamc, stomatal resistance
-        resistance(magU, new_Tl, q);
+        resistance(magU, T, q, new_Tl);
 
         forAll(LAD_, cellI)
         {
@@ -479,7 +481,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
                 // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
                 // E_[cellI] = 2.0*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
                 E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
-                // E_[cellI] = 0.0; // No evapotranspiration
+                //E_[cellI] = 0.0; // No evapotranspiration
 
                 // Calculate latent heat flux
                 Ql_[cellI] = lambda_.value()*E_[cellI];
@@ -497,8 +499,6 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
         // Iteration info
         Info << "      Vegetation model:  Solving for Tl. Iteration " << i
              << "; max. error = " << maxError
-             << "; max. rel. error = " << maxRelError << endl;;
-
 
         // update leaf temp.
         Tl_.internalField() = new_Tl.internalField();
@@ -531,7 +531,8 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
             // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
             // E_[cellI] = 2.0*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
             E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]); // todo: implement switch for double or single side
-            // E_[cellI] = 0.0; // no evapotranspiration
+            //E_[cellI] = 0.0; // no evapotranspiration
+            // TODO: flag for no transpiration, one side, both side
 
             // Calculate latent heat flux
             Ql_[cellI] = lambda_.value()*E_[cellI];

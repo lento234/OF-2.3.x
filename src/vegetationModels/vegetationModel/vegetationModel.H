@@ -158,7 +158,7 @@ public:
         virtual void radiation();
 
         // calc aerodynamic, stomatal resistances
-        virtual void resistance(volScalarField& magU, volScalarField& T, volScalarField& q);
+        virtual void resistance(volScalarField& magU, volScalarField& T, volScalarField& q, volScalarField& Tl);
 
         // solve all
         virtual void solve(volVectorField&U, volScalarField& T, volScalarField& q);
