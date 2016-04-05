@@ -498,7 +498,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
 
         // Iteration info
         Info << "      Vegetation model:  Solving for Tl. Iteration " << i
-             << "; max. error = " << maxError
+             << "; max. error = " << maxError;
 
         // update leaf temp.
         Tl_.internalField() = new_Tl.internalField();
@@ -516,7 +516,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
     }
 
     // Final: Solve aerodynamc, stomatal resistance
-    resistance(magU, new_Tl, q);
+    resistance(magU, T, q, new_Tl);
 
     // Final: Update sensible and latent heat flux
     forAll(LAD_, cellI)
