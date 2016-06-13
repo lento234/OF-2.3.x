@@ -392,6 +392,7 @@ void vegetationModel::radiation()
     Rg_.correctBoundaryConditions();
 
     volTensorField gradRg = fvc::grad(Rg_);
+    gradRg.correctBoundaryConditions();
 
     // radiation density inside vegetation
     forAll(LAD_, cellI)
@@ -462,9 +463,18 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
     //resistance(U,T);
     volScalarField new_Tl("new_Tl", Tl_);
 
+    // info
+    Info << "    max leaf temp tl=" << max(T.internalField()) 
+         << "k, iteration i=0" << endl;
+
+
+
+    scalar maxError, maxRelError;
+    int i;
+
     // solve leaf temperature, iteratively.
-    int maxIter = 100;
-    for (int i=1; i<=maxIter; i++)
+    int maxIter = 500;
+    for (i=1; i<=maxIter; i++)
     {
         // Solve aerodynamc, stomatal resistance
         resistance(magU, T, q, new_Tl);
@@ -474,8 +484,8 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
             if (LAD_[cellI] > 10*SMALL)
             {
                 // Initial leaf temperature
-                if (i==0)
-                    Tl_[cellI] = T[cellI];
+                if (i==1)
+                    Tl_[cellI] = T[cellI]*0. + 300.;//T[cellI];
 
                 // Calculate saturated density, specific humidity
                 rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
@@ -492,35 +502,43 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
 
                 // Calculate new leaf temperature
                 new_Tl[cellI] = T[cellI] + (Rn_[cellI] - Ql_[cellI])*(ra_[cellI]/(2.0*rhoa_.value()*cpa_.value()*LAD_[cellI]));
+
             }
         }
-        new_Tl.correctBoundaryConditions();
+
+        // info
+        Info << "    max leaf temp tl=" << gMax(new_Tl.internalField()) 
+             << " K, iteration i="   << i << endl;
 
         // Check rel. L-infinity error
-        scalar maxError = gMax(mag(new_Tl.internalField()-Tl_.internalField()));
-        scalar maxRelError = maxError/gMax(mag(new_Tl.internalField()));
-
-        // Iteration info
-        Info << "      Vegetation model:  Solving for Tl. Iteration " << i
-             << "; max. error = " << maxError;
+        maxError = gMax(mag(new_Tl.internalField()-Tl_.internalField()));
+        maxRelError = maxError/gMax(mag(new_Tl.internalField()));
 
         // update leaf temp.
-        Tl_.internalField() = new_Tl.internalField();
-        Tl_.boundaryField() = new_Tl.boundaryField();
+        //Tl_.internalField() = new_Tl.internalField();
+        //Tl_.boundaryField() = new_Tl.boundaryField();
+        forAll(Tl_, cellI)
+            Tl_[cellI] = 0.5*Tl_[cellI]+0.5*new_Tl[cellI];
 
          // convergence check
          if (maxRelError < 1e-8)
-         {
-             Info << "      Vegetation model:  CONVERGED" << endl;
              break;
-         }
-
-         if (i == maxIter)
-             Info << "      Vegetation model:  >>>>>>>>>>>>>>> N O T  C O N V E R G E D  !! <<<<<<<<<<<<<" << endl;
     }
+    Tl_.correctBoundaryConditions();
+
+    // Iteration info
+    Info << "Vegetation model:  Solving for Tl, Final residual = " << maxError
+         << ", Final relative residual = " << maxRelError 
+         << ", No Iterations " << i << endl;
+
+    Info << "temperature parameters: max Tl = " << gMax(Tl_)
+         << ", min T = " << gMin(T) << ", max T = " << gMax(T) << endl;
+
+    Info << "resistances: max rs = " << gMax(rs_)
+         << ", max ra = " << gMax(ra_) << endl;
 
     // Final: Solve aerodynamc, stomatal resistance
-    resistance(magU, T, q, new_Tl);
+    resistance(magU, T, q, Tl_);
 
     // Final: Update sensible and latent heat flux
     forAll(LAD_, cellI)
