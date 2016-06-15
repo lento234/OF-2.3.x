@@ -1,0 +1,3 @@
+cellIntegrate.C
+
+EXE = $(FOAM_APPBIN)/cellIntegrate

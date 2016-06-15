@@ -25,10 +25,9 @@ Application
     cellV
 
 Description
-    Calculates and writes the gradient of velocity field U.
+    Calculates and writes the volume of mesh cells.
 
-    The -noWrite option just outputs the max/min values without writing
-    the field.
+    The -noWrite option just outputs values without writing the field.
 
 \*---------------------------------------------------------------------------*/
 
@@ -57,7 +56,7 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
     );
 
     Info<< "    Calculating cell volume" << endl;
-    cellV.internalField() =  mesh.V();
+    cellV.internalField() = mesh.V();
 
     if (writeResults)
     {
