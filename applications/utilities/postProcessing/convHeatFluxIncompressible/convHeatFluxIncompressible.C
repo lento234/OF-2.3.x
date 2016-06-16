@@ -23,12 +23,12 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Application
-    convHeatFlux
+    convHeatFluxIncompressible
 
 Description
-    Calculates and writes the heat flux for all patches as the boundary field
-    of a volScalarField and also prints the integrated flux for all wall
-    patches.
+    Calculates and writes the convective heat flux for fluid domain and all
+    patches as the boundary field.
+    Prints the integrated flux for all (non-empty) patches.
     Based on wallHeatFlux with changes to allow it on incompressible flows
     Also removed a bug at the typeid checkline
 \*---------------------------------------------------------------------------*/

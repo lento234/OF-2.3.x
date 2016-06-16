@@ -22,10 +22,13 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    cellIntegrate
+    volIntegrate
 
 Description
-    Calculates the integral of the specified field over the specified patch.
+    Calculates the integral of the specified field over full fluid volume.
+
+Author
+    Lento Manickathan <lento.manickathan@gmail.com>
 
 \*---------------------------------------------------------------------------*/
 
