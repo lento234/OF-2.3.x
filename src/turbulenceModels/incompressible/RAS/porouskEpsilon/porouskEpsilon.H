@@ -96,6 +96,13 @@ protected:
 
     // Protected data
 
+        // Flag to turn model options on
+
+            Switch buoyancyProduction_;
+
+
+            word TName_;     
+
         // Model coefficients
 
             dimensionedScalar Cmu_;

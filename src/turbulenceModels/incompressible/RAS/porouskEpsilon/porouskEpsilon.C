@@ -101,6 +101,15 @@ porouskEpsilon::porouskEpsilon
             0.9
         )
     ),
+    Cb_
+    (
+        dimensioned<scalar>::lookupOrAddToDict
+        (
+            "Cb",
+            coeffDict_,
+            1.44
+        )
+    ),
     sigmak_
     (
         dimensioned<scalar>::lookupOrAddToDict
@@ -137,7 +146,14 @@ porouskEpsilon::porouskEpsilon
             0.0
         )
     ),
-
+    beta_
+    (
+     transport.lookup("beta")
+    ),
+    Prt_
+    (
+     transport.lookup("Prt")
+    ),
     k_
     (
         IOobject
@@ -195,6 +211,12 @@ porouskEpsilon::porouskEpsilon
 
     Info << "Defined custom kEpsilon model for porous media" << endl;
 
+    if (debug)
+    {
+        Info << "Buoyancy terms: beta : " << beta_
+             << " Prt : " << Prt_ << endl;
+    }
+
     printCoeffs();
 
 }
@@ -221,7 +243,6 @@ tmp<volSymmTensorField> porouskEpsilon::R() const
         )
     );
 }
-
 
 tmp<volSymmTensorField> porouskEpsilon::devReff() const
 {
@@ -292,6 +313,17 @@ bool porouskEpsilon::read()
 }
 
 
+// tmp<volScalarField> Gcoef() const
+// {
+//   const uniformDimensionedFields& g =
+//       this->mesh_.objectRegistry::template
+//       lookupObject<uniformDimensionedVectorField>("g")
+//
+//   return
+//       this->nut_
+// }
+
+
 void porouskEpsilon::correct()
 {
     RASModel::correct();
@@ -301,7 +333,11 @@ void porouskEpsilon::correct()
         return;
     }
 
+    // Velocity shear tensor P_k
+    // Currently assumed P_k = G
     volScalarField G(GName(), nut_*2*magSqr(symm(fvc::grad(U_))));
+    // missing term: (buoyancy)
+    // volScalarField G(GName())
 
     // Update epsilon and G at the wall
     epsilon_.boundaryField().updateCoeffs();
