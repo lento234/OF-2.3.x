@@ -50,7 +50,8 @@ void printIntegrate
 
         Info<< "    Integral of " << fieldHeader.name()
             << " over full fluid volume = "
-            << gSum(mesh.V()*field.internalField())
+            << gSum(mesh.V()*field.internalField()) << " "
+            << field.dimensions()*dimVolume
             << nl;
 
         done = true;
@@ -89,7 +90,7 @@ int main(int argc, char *argv[])
 
             // Give fluid volume
             Info<< "    Volume of fluid = "
-                << gSum(mesh.V()) << endl;
+                << gSum(mesh.V()) << " [m3]" << endl;
 
             // Read field and calc integral
             bool done = false;

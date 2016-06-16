@@ -68,7 +68,8 @@ int main(int argc, char *argv[])
         Info<< "\nWall heat fluxes " << endl;
         forAll(patchConvHeatFlux, patchi)
         {
-            if (!isA<emptyFvPatch>(mesh.boundary()[patchi]))
+            if ( (!isA<emptyFvPatch>(mesh.boundary()[patchi])) &&
+                 (mesh.magSf().boundaryField()[patchi].size() > 0) )
             {
                 Info<< mesh.boundary()[patchi].name()
                     << ": Total "

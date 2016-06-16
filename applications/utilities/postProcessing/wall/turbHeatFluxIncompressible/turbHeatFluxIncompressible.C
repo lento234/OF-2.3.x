@@ -100,9 +100,11 @@ int main(int argc, char *argv[])
 
       // grad T
       volVectorField gradT("gradT", fvc::grad(T));
+      gradT.correctBoundaryConditions();
 
       // turbulent heat flux  Qturb = alphaeff*rho*Cp*gradT
       volVectorField turbHeatFlux("turbHeatFlux", alphaEff*Cp*rho*gradT);
+      //turbHeatFlux.correctBoundaryConditions();
 
       // surface normal heat flux
       surfaceScalarField turbHeatFluxNormal = fvc::interpolate(turbHeatFlux) & mesh.Sf()/mesh.magSf();
@@ -113,8 +115,9 @@ int main(int argc, char *argv[])
       Info<< "\nWall heat fluxes " << endl;
       forAll(patchturbHeatFlux, patchi)
       {
-         if (typeid(mesh.boundary()[patchi]) != typeid(emptyFvPatch))
-         {
+          if ( (!isA<emptyFvPatch>(mesh.boundary()[patchi])) &&
+             (mesh.magSf().boundaryField()[patchi].size() > 0) )
+          {
               Info<< mesh.boundary()[patchi].name()
                   << ": Total "
                   << gSum
@@ -133,7 +136,7 @@ int main(int argc, char *argv[])
                     /gSum(mesh.magSf().boundaryField()[patchi])
                   << " [W/m2])"
                   << endl;
-          }
+        }
     }
     Info << endl;
 
