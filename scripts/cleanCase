@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Directory and files to remove
+dirs="Decomposer.* PyFoam* logs postProcessing [1-9]* processor* 0 *.analyzed"
+files="log* *.o* *.e* validation/*.pdf *.foam Decomposer* PyFoam* PlyParser*"
+
+# Delete files
+for file in $files; do
+    if [ -f $file ]; then
+        rm $file -v
+    fi
+done
+
+# Delete directories
+for dir in $dirs; do
+    if  [ -d $dir ]; then
+        rm -rv $dir
+    fi
+done
+
+cd constant/polyMesh
+rm -rv sets
+rm -rv boundary  cellZones  face*  neighbour  owner  point*
