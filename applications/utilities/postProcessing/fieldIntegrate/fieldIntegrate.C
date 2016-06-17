@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    volIntegrate
+    fieldIntegrate
 
 Description
     Calculates the integral of the specified field over full fluid volume.
@@ -98,43 +98,16 @@ int main(int argc, char *argv[])
             // Read field and calc integral
             bool done = false;
 
-            printIntegrate<volScalarField>
-            (
-                mesh,
-                fieldHeader,
-                done
-            );
-            printIntegrate<volVectorField>
-            (
-                mesh,
-                fieldHeader,
-                done
-            );
-
-            printIntegrate<volSphericalTensorField>
-            (
-               mesh,
-               fieldHeader,
-               done
-            );
-            printIntegrate<volSymmTensorField>
-            (
-               mesh,
-               fieldHeader,
-               done
-            );
-            printIntegrate<volTensorField>
-            (
-               mesh,
-               fieldHeader,
-               done
-            );
+            printIntegrate<volScalarField>(mesh,fieldHeader,done);
+            printIntegrate<volVectorField>(mesh,fieldHeader,done);
+            printIntegrate<volSphericalTensorField>(mesh,fieldHeader,done);
+            printIntegrate<volSymmTensorField>(mesh,fieldHeader,done);
+            printIntegrate<volTensorField>(mesh,fieldHeader,done);
 
             if (!done)
             {
                 FatalError
-                    << "Only possible to integrate "
-                    << "volFields and surfaceFields."
+                    << "Only possible to integrate volFields."
                     << " Field " << fieldName << " is of type "
                     << fieldHeader.headerClassName()
                     << nl << exit(FatalError);
