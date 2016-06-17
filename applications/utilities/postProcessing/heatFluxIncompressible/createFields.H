@@ -1,30 +1,16 @@
 
-    Info<< "\nReading field T" << endl;
-    volScalarField T
+    volScalarField alpha
     (
         IOobject
         (
-            "T",
+            "alpha",
             runTime.timeName(),
             mesh,
-            IOobject::MUST_READ,
+            IOobject::READ_IF_PRESENT,
             IOobject::AUTO_WRITE
         ),
-        mesh
-    );
-
-    Info << "\nReading field U" << endl;
-    volVectorField U
-    (
-        IOobject
-        (
-            "U",
-            runTime.timeName(),
-            mesh,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh
+        mesh,
+        dimensionedScalar("alpha", dimLength*dimLength/dimTime, 0)
     );
 
     Info << "\nCreating field alphaEff" << endl;
@@ -55,6 +41,34 @@
         ),
         mesh,
         dimensionedScalar("alphat", dimLength*dimLength/dimTime, 0)
+    );
+
+    Info<< "\nReading field T" << endl;
+    volScalarField T
+    (
+        IOobject
+        (
+            "T",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+    Info << "\nReading field U" << endl;
+    volVectorField U
+    (
+        IOobject
+        (
+            "U",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
     );
 
     #include "createPhi.H"
