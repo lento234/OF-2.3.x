@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
         forAll(patchConvHeatFlux, patchi)
         {
             if ( (!isA<emptyFvPatch>(mesh.boundary()[patchi])) &&
-                 (mesh.magSf().boundaryField()[patchi].size() > 0) )
+                 (mesh.boundary()[patchi].size() > 0) )
             {
                 Info<< mesh.boundary()[patchi].name()
                     << ": Total "
