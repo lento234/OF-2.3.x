@@ -58,10 +58,20 @@ Description
 int main(int argc, char *argv[])
 {
     timeSelector::addOptions();
+    #include "addRegionOption.H"
+
+    argList::addBoolOption
+    (
+      "print",
+      "print convective heat fluxes at the boundaries"
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
     instantList timeDirs = timeSelector::select0(runTime, args);
     #include "createMesh.H"
+
+    const bool printResults = args.optionFound("print");
 
     forAll(timeDirs, timeI)
     {
@@ -106,43 +116,45 @@ int main(int argc, char *argv[])
       volVectorField turbHeatFlux("turbHeatFlux", alphaEff*Cp*rho*gradT);
       //turbHeatFlux.correctBoundaryConditions();
 
-      // surface normal heat flux
-      surfaceScalarField turbHeatFluxNormal = fvc::interpolate(turbHeatFlux) & mesh.Sf()/mesh.magSf();
+      Info<< "\nWriting turbHeatFlux field" << nl << endl;
+      turbHeatFlux.write();
 
-      const surfaceScalarField::GeometricBoundaryField& patchturbHeatFlux =
-               turbHeatFluxNormal.boundaryField();
-
-      Info<< "\nWall heat fluxes " << endl;
-      forAll(patchturbHeatFlux, patchi)
+      if (printResults)
       {
-          if ( (!isA<emptyFvPatch>(mesh.boundary()[patchi])) &&
-               (mesh.boundary()[patchi].size() > 0) )
-          {
-              Info<< mesh.boundary()[patchi].name()
-                  << ": Total "
-                  << gSum
-                     (
-                         mesh.magSf().boundaryField()[patchi]
-                        *patchturbHeatFlux[patchi]
-                     )
-                  << " [W] over "
-                  << gSum(mesh.magSf().boundaryField()[patchi])
-                  << " [m2] ("
-                  << gSum
-                     (
-                         mesh.magSf().boundaryField()[patchi]
-                        *patchturbHeatFlux[patchi]
-                     )
-                    /gSum(mesh.magSf().boundaryField()[patchi])
-                  << " [W/m2])"
-                  << endl;
-        }
-    }
-    Info << endl;
+          // surface normal heat flux
+          surfaceScalarField turbHeatFluxNormal = fvc::interpolate(turbHeatFlux) & mesh.Sf()/mesh.magSf();
 
-    // export
-    gradT.write();
-    turbHeatFlux.write();
+          const surfaceScalarField::GeometricBoundaryField& patchturbHeatFlux =
+                   turbHeatFluxNormal.boundaryField();
+
+          Info<< "\nTurbulent heat fluxes at the boundaries" << endl;
+          forAll(patchturbHeatFlux, patchi)
+          {
+              if ( (!isA<emptyFvPatch>(mesh.boundary()[patchi])) &&
+                   (mesh.boundary()[patchi].size() > 0) )
+              {
+                  Info<< "    "
+                      << mesh.boundary()[patchi].name()
+                      << "\n        Total heat flux [W]  : "
+                      << gSum
+                         (
+                             mesh.magSf().boundaryField()[patchi]
+                            *patchturbHeatFlux[patchi]
+                         )
+                      << "\n        Total area [m2]      : "
+                      << gSum(mesh.magSf().boundaryField()[patchi])
+                      << "\n        Avg. heat flux [W/m2]: "
+                      << gSum
+                         (
+                             mesh.magSf().boundaryField()[patchi]
+                            *patchturbHeatFlux[patchi]
+                         )
+                        /gSum(mesh.magSf().boundaryField()[patchi])
+                      << endl;
+              }
+          }
+          Info << endl;
+        }
 
     }
 

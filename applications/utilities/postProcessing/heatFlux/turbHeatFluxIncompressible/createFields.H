@@ -1,5 +1,5 @@
 
-    Info<< "Reading field T\n" << endl;
+    Info<< "\nReading field T" << endl;
     volScalarField T
     (
         IOobject
@@ -13,7 +13,7 @@
         mesh
     );
 
-    Info << "Reading field U\n" << endl;
+    Info << "\nReading field U" << endl;
     volVectorField U
     (
         IOobject
@@ -27,7 +27,7 @@
         mesh
     );
 
-    Info << "Creating field alphaEff\n" << endl;
+    Info << "\nCreating field alphaEff" << endl;
     volScalarField alphaEff
     (
         IOobject
@@ -42,7 +42,7 @@
         dimensionedScalar("alphaEff", dimLength*dimLength/dimTime, 0)
     );
 
-    Info << "Creating field alphat\n" << endl;
+    Info << "\nCreating field alphat" << endl;
     volScalarField alphat
     (
         IOobject

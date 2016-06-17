@@ -1,5 +1,5 @@
 
-    Info<< "Reading field T\n" << endl;
+    Info<< "\nReading field T" << endl;
     volScalarField T
     (
         IOobject
@@ -13,7 +13,7 @@
         mesh
     );
 
-    Info << "Reading field U\n" << endl;
+    Info << "\nReading field U\n" << endl;
     volVectorField U
     (
         IOobject
