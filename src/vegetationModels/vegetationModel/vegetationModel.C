@@ -464,7 +464,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
     volScalarField new_Tl("new_Tl", Tl_);
 
     // info
-    Info << "    max leaf temp tl=" << max(T.internalField()) 
+    Info << "    max leaf temp tl=" << max(T.internalField())
          << "k, iteration i=0" << endl;
 
 
@@ -507,7 +507,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
         }
 
         // info
-        Info << "    max leaf temp tl=" << gMax(new_Tl.internalField()) 
+        Info << "    max leaf temp tl=" << gMax(new_Tl.internalField())
              << " K, iteration i="   << i << endl;
 
         // Check rel. L-infinity error
@@ -528,7 +528,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
 
     // Iteration info
     Info << "Vegetation model:  Solving for Tl, Final residual = " << maxError
-         << ", Final relative residual = " << maxRelError 
+         << ", Final relative residual = " << maxRelError
          << ", No Iterations " << i << endl;
 
     Info << "temperature parameters: max Tl = " << gMax(Tl_)
@@ -590,13 +590,14 @@ tmp<volScalarField> vegetationModel::Sh()
 }
 
 // solve & return momentum source term (explicit)
-tmp<volVectorField> vegetationModel::Su(volVectorField& U)
+tmp<fvVectorMatrix> vegetationModel::Su(volVectorField& U)
 {
-    forAll(Su_, cellI)
-        Su_[cellI] = -Cf_[cellI]*mag(U[cellI])*U[cellI]; // Cf = LAD*Cd
-    //Su_[cellI] = -0.5*Cf_[cellI]*mag(U[cellI])*U[cellI];
-    Su_.correctBoundaryConditions();
-    return Su_;
+    // forAll(Su_, cellI)
+    //     Su_[cellI] = -Cf_[cellI]*mag(U[cellI])*U[cellI]; // Cf = LAD*Cd
+    // //Su_[cellI] = -0.5*Cf_[cellI]*mag(U[cellI])*U[cellI];
+    // Su_.correctBoundaryConditions();
+    // return Su_;
+    return fvm::SuSp(-Cf_*mag(U), U);
 }
 
 // return specific humidity source term

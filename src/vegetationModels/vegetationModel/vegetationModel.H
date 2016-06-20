@@ -171,7 +171,7 @@ public:
         virtual tmp<volScalarField> Sh();
 
         // return vegetation momentum source
-        virtual tmp<volVectorField> Su(volVectorField& U);
+        virtual tmp<fvVectorMatrix> Su(volVectorField& U);
 
         // return vegetation specific humidity source
         virtual tmp<volScalarField> Sq();

@@ -101,15 +101,15 @@ porouskEpsilon::porouskEpsilon
             0.9
         )
     ),
-    Cb_
-    (
-        dimensioned<scalar>::lookupOrAddToDict
-        (
-            "Cb",
-            coeffDict_,
-            1.44
-        )
-    ),
+    // Cb_
+    // (
+    //     dimensioned<scalar>::lookupOrAddToDict
+    //     (
+    //         "Cb",
+    //         coeffDict_,
+    //         1.44
+    //     )
+    // ),
     sigmak_
     (
         dimensioned<scalar>::lookupOrAddToDict
@@ -146,14 +146,14 @@ porouskEpsilon::porouskEpsilon
             0.0
         )
     ),
-    beta_
-    (
-     transport.lookup("beta")
-    ),
-    Prt_
-    (
-     transport.lookup("Prt")
-    ),
+    // beta_
+    // (
+    //  transport.lookup("beta")
+    // ),
+    // Prt_
+    // (
+    //  transport.lookup("Prt")
+    // ),
     k_
     (
         IOobject
@@ -211,11 +211,11 @@ porouskEpsilon::porouskEpsilon
 
     Info << "Defined custom kEpsilon model for porous media" << endl;
 
-    if (debug)
-    {
-        Info << "Buoyancy terms: beta : " << beta_
-             << " Prt : " << Prt_ << endl;
-    }
+    // if (debug)
+    // {
+    //     Info << "Buoyancy terms: beta : " << beta_
+    //          << " Prt : " << Prt_ << endl;
+    // }
 
     printCoeffs();
 

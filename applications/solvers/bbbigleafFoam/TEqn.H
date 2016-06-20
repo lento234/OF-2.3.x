@@ -10,7 +10,7 @@
       - fvm::laplacian(alphaEff, T)
      ==
         fvOptions(T)
-      +  vegetation.Sh() // vegetation energy source term
+      + vegetation.Sh() // vegetation energy source term
     );
 
     TEqn.relax();

@@ -98,10 +98,10 @@ protected:
 
         // Flag to turn model options on
 
-            Switch buoyancyProduction_;
+            // Switch buoyancyProduction_;
 
 
-            word TName_;     
+            // word TName_;
 
         // Model coefficients
 

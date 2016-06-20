@@ -8,8 +8,13 @@ srcPath=(
 )
 
 utilPath=(
-    applications/utilities/postProcessing/mesh/cellV
-    applications/utilities/postProcessing/velocityField/gradU
+    applications/utilities/postProcessing/cellV
+    applications/utilities/postProcessing/fieldIntegrate
+    applications/utilities/postProcessing/fieldMinMax
+    applications/utilities/postProcessing/gradU
+    applications/utilities/postProcessing/heatFluxIncompressible
+    applications/utilities/postProcessing/moisture/qToYv
+    applications/utilities/postProcessing/moisture/YvToq
 )
 
 appPath=(
