@@ -584,7 +584,7 @@ tmp<volScalarField> vegetationModel::Sh()
 {
     forAll(LAD_, cellI)
         if (LAD_[cellI] > 10*SMALL)
-            Sh_[cellI] = Qs_[cellI]/(rhoa_.value()*cpa_.value());
+            Sh_[cellI] = (Qs_[cellI]-Ql_[cellI])/(rhoa_.value()*cpa_.value());
     Sh_.correctBoundaryConditions();
     return Sh_;
 }
