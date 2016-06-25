@@ -503,7 +503,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
 
                 // Calculate new leaf temperature
                 //new_Tl[cellI] = T[cellI] + (Rn_[cellI] - Ql_[cellI])*(ra_[cellI]/(2.0*rhoa_.value()*cpa_.value()*LAD_[cellI]));
-                new_Tl[cellI] = T[cellI] - (Rn_[cellI] + Ql_[cellI])*(ra_[cellI]/(2.0*rhoa_.value()*cpa_.value()*LAD_[cellI]));
+                new_Tl[cellI] = T[cellI] + (Rn_[cellI] + Ql_[cellI])*(ra_[cellI]/(2.0*rhoa_.value()*cpa_.value()*LAD_[cellI]));
 
             }
         }
