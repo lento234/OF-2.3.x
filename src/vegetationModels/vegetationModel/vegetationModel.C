@@ -422,10 +422,9 @@ void vegetationModel::resistance(volScalarField& magU, volScalarField& T, volSca
             //ev_[cellI] = q[cellI]*rhoa_.value()*T[cellI]*461.5;
             ev_[cellI] = p_*q[cellI]/(0.621945+q[cellI]);
 
-            // Calculate sat. vapor pressure at leaf
+            // Calculate sat. vapor pressure of air
             //evsat_[cellI] = calc_evsat(T[cellI]); // TODO bug
-            evsat_[cellI] = calc_evsat(Tl[cellI]);
-
+            evsat_[cellI] = calc_evsat(T[cellI]);
 
             // Vapor pressure deficit - kPa
             // VPD_[cellI] = (calc_evsat(T[cellI]) - (q[cellI]*rhoa_.value()*T[cellI]*461.5))/1000.0; // kPa
