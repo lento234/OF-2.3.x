@@ -368,13 +368,6 @@ vegetationModel::vegetationModel
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-
-// calc saturated water vapor pressure
-// double vegetationModel::calc_evsat(double& T)
-// {
-//     return exp( 77.3450 + 0.0057*T - 7235.0/T) / pow(T, 8.2);
-// }
-
 double vegetationModel::calc_evsat(double& T)
 {
     // saturated vapor pressure pws - ASHRAE 1.2
@@ -389,7 +382,6 @@ double vegetationModel::calc_evsat(double& T)
 // calc saturated density of water vapour
 double vegetationModel::calc_rhosat(double& T)
 {
-    //return 0.0022 * exp( 77.3450 + 0.0057*T - 7235.0/T) / pow(T, 9.2);
     return calc_evsat(T)/(461.5*T);
 }
 
@@ -399,8 +391,6 @@ void vegetationModel::radiation()
     // empirical global radiation = f(height) inside and below vegetation
     forAll(Rg_, cellI)
         Rg_[cellI] = vector(0,0, Rg0_.value()*exp(-kc_.value()*LAI_[cellI]));
-    //    Rg_[cellI] = vector(0,0, Rg0_.value()*exp(-kc_.value()*LAI_[cellI]*
-    //                                (H_.value() - mesh_.C()[cellI].component(2))/H_.value()));
     Rg_.correctBoundaryConditions();
 
     volTensorField gradRg = fvc::grad(Rg_);
@@ -410,7 +400,6 @@ void vegetationModel::radiation()
     forAll(LAD_, cellI)
         if (LAD_[cellI] > 10*SMALL)
             Rn_[cellI] = gradRg[cellI].component(8) + 0.04*(Rl0_.value()/H_.value()); //gradRg[cellI] && tensor(0,0,0,0,0,0,0,0,1);
-    //Rn_[cellI] = gradRg[cellI].component(8);
     Rn_.correctBoundaryConditions();
 
 }
@@ -418,7 +407,6 @@ void vegetationModel::radiation()
 // solve aerodynamic resistance
 void vegetationModel::resistance(volScalarField& magU, volScalarField& T, volScalarField& q, volScalarField& Tl)
 {
-
     const double p_ = 101325;
 
     // Calculate magnitude of velocity and bounding above Umin
@@ -441,7 +429,9 @@ void vegetationModel::resistance(volScalarField& magU, volScalarField& T, volSca
 
             // Vapor pressure deficit - kPa
             // VPD_[cellI] = (calc_evsat(T[cellI]) - (q[cellI]*rhoa_.value()*T[cellI]*461.5))/1000.0; // kPa
-            VPD_[cellI] = ev_[cellI] - evsat_[cellI];
+            //VPD_[cellI] = ev_[cellI] - evsat_[cellI];
+            VPD_[cellI] = evsat_[cellI] - ev_[cellI];
+
 
             // Stomatal resistance - type 1
             // rs_[cellI] = rsMin_.value()*(31.0 + Rn_[cellI])*(1.0+0.016*pow((T[cellI]-16.4-273.15),2))/(6.7+Rn_[cellI]); // type 1
@@ -486,7 +476,6 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
          << "k, iteration i=0" << endl;
 
 
-
     scalar maxError, maxRelError;
     int i;
 
@@ -503,7 +492,7 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
             {
                 // Initial leaf temperature
                 if (i==1)
-                    Tl_[cellI] = T[cellI]*0. + 300.;//T[cellI];
+                    Tl_[cellI];// = T[cellI];//*0. + 300.;//T[cellI];
 
                 // Calculate saturated density, specific humidity
                 rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
