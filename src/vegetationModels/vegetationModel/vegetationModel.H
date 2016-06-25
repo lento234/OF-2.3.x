@@ -79,6 +79,7 @@ protected:
     // -----------------------------------------------
     const Time& runTime_;       // time
     const fvMesh& mesh_;        // mesh
+
     // -----------------------------------------------
     // Model coefficients
     dimensionedScalar a1_;     // stomatal resistance specific model parameters

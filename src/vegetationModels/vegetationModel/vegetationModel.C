@@ -362,6 +362,7 @@ vegetationModel::vegetationModel
         // Bounding parameters
         bound(Tl_, TlMin_);
 
+
         Info << " Defined custom vegetation model" << endl;
     }
 
@@ -369,9 +370,20 @@ vegetationModel::vegetationModel
 
 
 // calc saturated water vapor pressure
+// double vegetationModel::calc_evsat(double& T)
+// {
+//     return exp( 77.3450 + 0.0057*T - 7235.0/T) / pow(T, 8.2);
+// }
+
 double vegetationModel::calc_evsat(double& T)
 {
-    return exp( 77.3450 + 0.0057*T - 7235.0/T) / pow(T, 8.2);
+    // saturated vapor pressure pws - ASHRAE 1.2
+    return exp( - 5.8002206e3/T
+                + 1.3914993
+                - 4.8640239e-2*T
+                + 4.1764768e-5*pow(T,2)
+                - 1.4452093e-8*pow(T,3)
+                + 6.5459673*log(T) );
 }
 
 // calc saturated density of water vapour
@@ -406,6 +418,9 @@ void vegetationModel::radiation()
 // solve aerodynamic resistance
 void vegetationModel::resistance(volScalarField& magU, volScalarField& T, volScalarField& q, volScalarField& Tl)
 {
+
+    const double p_ = 101325;
+
     // Calculate magnitude of velocity and bounding above Umin
     forAll(LAD_, cellI)
     {
@@ -416,11 +431,12 @@ void vegetationModel::resistance(volScalarField& magU, volScalarField& T, volSca
             ra_[cellI] = C_.value()*pow(l_.value()/magU[cellI], 0.5);
 
             // Calculate vapor pressure of air
-            ev_[cellI] = q[cellI]*rhoa_.value()*T[cellI]*461.5;
+            //ev_[cellI] = q[cellI]*rhoa_.value()*T[cellI]*461.5;
+            ev_[cellI] = p_*q[cellI]/(0.621945+q[cellI]);
 
             // Calculate sat. vapor pressure at leaf
             //evsat_[cellI] = calc_evsat(T[cellI]); // TODO bug
-            evsat_[cellI] = calc_evsat(Tl[cellI]); // TODO bug
+            evsat_[cellI] = calc_evsat(Tl[cellI]);
 
 
             // Vapor pressure deficit - kPa
@@ -453,6 +469,8 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
 {
     // solve radiation within vegetation
     radiation();
+
+    const double p_ = 101325;
 
     // Magnitude of velocity
     volScalarField magU("magU", mag(U));
@@ -489,7 +507,9 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
 
                 // Calculate saturated density, specific humidity
                 rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
-                qsat_[cellI]   = rhosat_[cellI]/rhoa_.value();
+                //qsat_[cellI]   = rhosat_[cellI]/rhoa_.value();
+                evsat_[cellI] = calc_evsat(Tl_[cellI]);
+                qsat_[cellI] = 0.621945*(evsat_[cellI]/(p_-evsat_[cellI])); // ASHRAE 1, eq.23
 
                 // Calculate transpiration rate
                 // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
@@ -549,7 +569,9 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
         {
             // Calculate saturated density, specific humidity
             rhosat_[cellI] = calc_rhosat(Tl_[cellI]);
-            qsat_[cellI] = rhosat_[cellI]/rhoa_.value();
+            // qsat_[cellI] = rhosat_[cellI]/rhoa_.value();
+            evsat_[cellI] = calc_evsat(Tl_[cellI]);
+            qsat_[cellI] = 0.621945*(evsat_[cellI]/(p_-evsat_[cellI])); // ASHRAE 1, eq.23
 
             // Calculate transpiration rate
             // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
