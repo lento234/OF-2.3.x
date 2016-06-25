@@ -499,11 +499,11 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
 
                 // Calculate latent heat flux
                 //Ql_[cellI] = lambda_.value()*E_[cellI];
-                Ql_[cellI] = - lambda_.value()*E_[cellI];
+                Ql_[cellI] = lambda_.value()*E_[cellI];
 
                 // Calculate new leaf temperature
                 //new_Tl[cellI] = T[cellI] + (Rn_[cellI] - Ql_[cellI])*(ra_[cellI]/(2.0*rhoa_.value()*cpa_.value()*LAD_[cellI]));
-                new_Tl[cellI] = T[cellI] + (Rn_[cellI] + Ql_[cellI])*(ra_[cellI]/(2.0*rhoa_.value()*cpa_.value()*LAD_[cellI]));
+                new_Tl[cellI] = T[cellI] + (Rn_[cellI] - Ql_[cellI])*(ra_[cellI]/(2.0*rhoa_.value()*cpa_.value()*LAD_[cellI]));
 
             }
         }
@@ -559,10 +559,10 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
             // TODO: flag for no transpiration, one side, both side
 
             // Calculate latent heat flux
-            Ql_[cellI] = - lambda_.value()*E_[cellI];
+            Ql_[cellI] = lambda_.value()*E_[cellI];
 
             // Calculate sensible heat flux
-            Qs_[cellI] = - 2.0*rhoa_.value()*cpa_.value()*LAD_[cellI]*(Tl_[cellI]-T[cellI])/ra_[cellI];
+            Qs_[cellI] = 2.0*rhoa_.value()*cpa_.value()*LAD_[cellI]*(Tl_[cellI]-T[cellI])/ra_[cellI];
         }
     }
     rhosat_.correctBoundaryConditions();
@@ -586,7 +586,7 @@ tmp<volScalarField> vegetationModel::Sh()
 {
     forAll(LAD_, cellI)
         if (LAD_[cellI] > 10*SMALL)
-            Sh_[cellI] = - (Qs_[cellI]+Ql_[cellI])/(rhoa_.value()*cpa_.value());
+            Sh_[cellI] = Qs_[cellI]/(rhoa_.value()*cpa_.value());
     Sh_.correctBoundaryConditions();
     return Sh_;
 }
