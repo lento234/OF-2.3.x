@@ -42,9 +42,9 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
 {
     bool writeResults = !args.optionFound("noWrite");
 
-    IOobject RHheader
+    IOobject qheader
     (
-        "RH",
+        "q",
         runTime.timeName(),
         mesh,
         IOobject::MUST_READ
@@ -75,10 +75,11 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
          transportProperties.lookup("p")
     );
 
-    if (RHheader.headerOk() && Theader.headerOk())
+
+    if (qheader.headerOk() && Theader.headerOk())
     {
-        Info<< "    Reading RH" << endl;
-        volScalarField RH(RHheader, mesh);
+        Info<< "    Reading q" << endl;
+        volScalarField q(qheader, mesh);
 
         Info<< "    Reading T" << endl;
         volScalarField T(Theader, mesh);
@@ -100,26 +101,26 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
                                          + c4*pow(T,2)
                                          + c5*pow(T,3)
                                          + c6*log(c7*T) ));
-                                         
-        // vapor pressure pw - ASHRAE 1.8
-        volScalarField pw("pw", (RH/100.0)*pws);
 
-        Info<< "    Calculating W" << endl;
-        volScalarField W("W", 0.621945*pw/(p-pw));
+        // vapor pressure pw - ASHRAE 1.8
+        volScalarField pw("pw", p*q/(0.621945+q));
+
+        Info<< "    Calculating RH" << endl;
+        volScalarField RH("RH", (pw/pws)*100);
 
         if (writeResults)
         {
-            W.write();
+            RH.write();
         }
         else
         {
-            Info<< "        Min W : " << min(W).value() << " [kg_w/kg_da]"
-                << "\n        Max W : "<< max(W).value() << " [kg_w/kg_da]" << endl;
+            Info<< "        Min W : " << min(RH).value() << " [kg_w/kg_da]"
+                << "\n        Max W : "<< max(RH).value() << " [kg_w/kg_da]" << endl;
         }
     }
     else
     {
-        Info<< "    No RH or No T" << endl;
+        Info<< "    No q or No T" << endl;
     }
 
     Info<< "\nEnd\n" << endl;

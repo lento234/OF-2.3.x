@@ -42,9 +42,9 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
 {
     bool writeResults = !args.optionFound("noWrite");
 
-    IOobject Wheader
+    IOobject RHheader
     (
-        "W",
+        "RH",
         runTime.timeName(),
         mesh,
         IOobject::MUST_READ
@@ -75,11 +75,10 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
          transportProperties.lookup("p")
     );
 
-
-    if (Wheader.headerOk() && Theader.headerOk())
+    if (RHheader.headerOk() && Theader.headerOk())
     {
-        Info<< "    Reading W" << endl;
-        volScalarField W(Wheader, mesh);
+        Info<< "    Reading RH" << endl;
+        volScalarField RH(RHheader, mesh);
 
         Info<< "    Reading T" << endl;
         volScalarField T(Theader, mesh);
@@ -103,24 +102,24 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
                                          + c6*log(c7*T) ));
 
         // vapor pressure pw - ASHRAE 1.8
-        volScalarField pw("pw", p*W/(0.621945+W));
+        volScalarField pw("pw", (RH/100.0)*pws);
 
-        Info<< "    Calculating RH" << endl;
-        volScalarField RH("RH", (pw/pws)*100);
+        Info<< "    Calculating q" << endl;
+        volScalarField q("q", 0.621945*pw/(p-pw));
 
         if (writeResults)
         {
-            RH.write();
+            q.write();
         }
         else
         {
-            Info<< "        Min W : " << min(RH).value() << " [kg_w/kg_da]"
-                << "\n        Max W : "<< max(RH).value() << " [kg_w/kg_da]" << endl;
+            Info<< "        Min q : " << min(q).value() << " [kg_w/kg_da]"
+                << "\n        Max q : "<< max(q).value() << " [kg_w/kg_da]" << endl;
         }
     }
     else
     {
-        Info<< "    No W or No T" << endl;
+        Info<< "    No RH or No T" << endl;
     }
 
     Info<< "\nEnd\n" << endl;
