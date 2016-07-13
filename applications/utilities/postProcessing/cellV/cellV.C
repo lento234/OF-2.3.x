@@ -41,11 +41,11 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
     bool writeResults = !args.optionFound("noWrite");
 
     Info<< "    Reading mesh" << endl;
-    volScalarField cellVolumes
+    volScalarField cellV
     (
         IOobject
         (
-            "cellVolumes",
+            "cellV",
             runTime.timeName(),
             mesh,
             IOobject::NO_READ
@@ -55,12 +55,12 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
         "zeroGradient"
     );
 
-    Info<< "    Calculating cell volume" << endl;
-    cellVolumes.internalField() = mesh.V();
+    Info<< "    Calculating cell volume: cellV" << endl;
+    cellV.internalField() = mesh.V();
 
     if (writeResults)
     {
-        cellVolumes.write();
+        cellV.write();
     }
 
     Info<< "\nEnd\n" << endl;

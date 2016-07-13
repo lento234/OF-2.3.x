@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 
         // calculate mean convective heat flux
         volVectorField convHeatFlux("convHeatFlux", rho*Cp*U*(T-TRef));
-        Info<< "\nWriting convHeatFlux field" << endl;    
+        Info<< "\nWriting convHeatFlux field" << endl;
         convHeatFlux.write();
 
 
