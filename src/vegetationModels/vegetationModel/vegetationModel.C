@@ -600,9 +600,12 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
 // return energy source term
 tmp<volScalarField> vegetationModel::Sh()
 {
-    forAll(LAD_, cellI)
-        if (LAD_[cellI] > 10*SMALL)
-            Sh_[cellI] = Qs_[cellI]/(rhoa_.value()*cpa_.value());
+    // forAll(LAD_, cellI)
+    //     if (LAD_[cellI] > 10*SMALL)
+    //         Sh_[cellI] = Qs_[cellI]/(rhoa_.value()*cpa_.value());
+    // Sh_.correctBoundaryConditions();
+    // return Sh_;
+    Sh_ = Qs_/(rhoa_*cpa_);
     Sh_.correctBoundaryConditions();
     return Sh_;
 }
@@ -621,9 +624,12 @@ tmp<fvVectorMatrix> vegetationModel::Su(volVectorField& U)
 // return specific humidity source term
 tmp<volScalarField> vegetationModel::Sq()
 {
-    forAll (LAD_, cellI)
-        if (LAD_[cellI] > 10*SMALL)
-            Sq_[cellI] = E_[cellI];
+    // forAll (LAD_, cellI)
+    //     if (LAD_[cellI] > 10*SMALL)
+    //         Sq_[cellI] = E_[cellI];
+    // Sq_.correctBoundaryConditions();
+    // return Sq_;
+    Sq_ = E_/rhoa_;
     Sq_.correctBoundaryConditions();
     return Sq_;
 }
