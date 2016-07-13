@@ -35,6 +35,7 @@ Description
 
 #include "calc.H"
 #include "fvc.H"
+#include "emptyFvPatch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -50,9 +51,9 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
         IOobject::MUST_READ
     );
 
-    IOobject Wheader
+    IOobject qheader
     (
-        "W",
+        "q",
         runTime.timeName(),
         mesh,
         IOobject::MUST_READ
@@ -75,9 +76,9 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
          transportProperties.lookup("Cpa")
     );
 
-    dimensionedScalar Cpw
+    dimensionedScalar Cpv
     (
-         transportProperties.lookup("Cpw")
+         transportProperties.lookup("Cpv")
     );
 
     dimensionedScalar lambda
@@ -85,46 +86,97 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
          transportProperties.lookup("lambda")
     );
 
+    // Fluid density
+    dimensionedScalar rho
+    (
+        transportProperties.lookup("rho")
+    );
+
+
     dimensionedScalar TRef
     (
          transportProperties.lookup("TRef")
     );
 
-    dimensionedScalar WRef
+    dimensionedScalar qRef
     (
-         transportProperties.lookup("WRef")
+         transportProperties.lookup("qRef")
     );
 
-    if (Wheader.headerOk() && Theader.headerOk())
+    if (qheader.headerOk() && Theader.headerOk())
     {
-        Info<< "    Reading W" << endl;
-        volScalarField W(Wheader, mesh);
+        Info<< "    Reading q" << endl;
+        volScalarField q(qheader, mesh);
 
         Info<< "    Reading T" << endl;
         volScalarField T(Theader, mesh);
 
         // specific enthalpy of dry air hda - ASHRAE 1.8
-        volScalarField hda("hda", Cpa*(T-TRef));
+        volScalarField hda("hda", rho*Cpa*T-rho*Cpa*TRef);
+
+        // specific enthalpy of dry vapor
+        volScalarField hdv("hdv", rho*q*(lambda + Cpv*T) - rho*qRef*(lambda + Cpv*TRef));
+
 
         // specific enthalpy for moist air hmoist - ASHRAE 1.8
-        volScalarField hmoist("hmoist", hda + (W-WRef)*(lambda + Cpw*(T-TRef)));
+        volScalarField hmoist("hmoist", hda + hdv);
 
         if (writeResults)
         {
             hda.write();
+            hdv.write();
             hmoist.write();
         }
         else
         {
-            Info<< "        Min hda    : " << min(hda).value() << " [kg_w/kg_da]"
-                << "\n        Max hda    : "<< max(hda).value() << " [kg_w/kg_da]" << endl;
-            Info<< "        Min hmoist : " << min(hmoist).value() << " [kg_w/kg_da]"
-                << "\n        Max hmoist : "<< max(hmoist).value() << " [kg_w/kg_da]" << endl;
+            Info<< "        Min hda    : " << min(hda).value() << " [J/m3]"
+                << "\n        Max hda    : "<< max(hda).value() << " [J/m3]" << endl;
+            Info<< "        Min hdv    : " << min(hdv).value() << " [J/m3]"
+                << "\n        Max hdv    : "<< max(hdv).value() << " [J/m3]" << endl;
+            Info<< "        Min hmoist : " << min(hmoist).value() << " [J/m3]"
+                << "\n        Max hmoist : "<< max(hmoist).value() << " [J/m3]" << endl;
         }
+
+
+        // print results
+       //
+      //   surfaceScalarField hdaBoundary =
+      //     fvc::interpolate(hda);
+       //
+      //   const surfaceScalarField::GeometricBoundaryField& patchhda =
+      //       hdaBoundary.boundaryField();
+      //   // const surfaceScalarField::GeometricBoundaryField& patchCondHeatFlux =
+      //   //     condHeatFluxNormal.boundaryField();
+      //   // const surfaceScalarField::GeometricBoundaryField& patchTurbHeatFlux =
+      //   //     turbHeatFluxNormal.boundaryField();
+      //   // const surfaceScalarField::GeometricBoundaryField& patchTotHeatFlux =
+      //   //     totHeatFluxNormal.boundaryField();
+       //
+      //   Info<< "\nHeat at the boundaries " << endl;
+      //   forAll(patchhda, patchi)
+      //   {
+      //       if ( (!isA<emptyFvPatch>(mesh.boundary()[patchi])) &&
+      //            (mesh.boundary()[patchi].size() > 0) )
+      //       {
+      //           Info<< "    "
+      //               << mesh.boundary()[patchi].name()
+      //               << "\n        Total area [m2]                   : "
+      //               << gSum(mesh.magSf().boundaryField()[patchi])
+      //               << "\n        Integral Energy [J] : "
+      //               << gSum
+      //                  (
+      //                      mesh.magSf().boundaryField()[patchi]
+      //                     *patchhda[patchi]
+      //                  )
+      //               << nl << endl;
+      //       }
+      //  }
+      //  Info << endl;
+
     }
     else
     {
-        Info<< "    No W or No T" << endl;
+        Info<< "    No q or No T" << endl;
     }
 
     Info<< "\nEnd\n" << endl;
