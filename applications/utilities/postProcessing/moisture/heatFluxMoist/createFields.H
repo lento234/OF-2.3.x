@@ -84,7 +84,37 @@
             IOobject::AUTO_WRITE
         ),
         mesh
-    );    
+    );
+
+    // kinematic turbulent scalar diffusivity
+    Info<< "Reading field Dqt\n" << endl;
+    volScalarField Dqt
+    (
+        IOobject
+        (
+            "Dqt",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+    Info << "\nCreating field DqEff" << endl;
+    volScalarField DqEff
+    (
+        IOobject
+        (
+            "DqEff",
+            runTime.timeName(),
+            mesh,
+            IOobject::READ_IF_PRESENT,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar("DqEff", dimLength*dimLength/dimTime, 0)
+    );
 
     #include "createPhi.H"
 

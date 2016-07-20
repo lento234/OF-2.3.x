@@ -107,6 +107,27 @@ int main(int argc, char *argv[])
             Info<< "\nRead effective heat conductivity alphaEff" << endl;
         }
 
+        if (!(IOobject("Dqt", runTime.timeName(), mesh).headerOk()))
+        {
+            Info<< "\nCalculating turbulent scalar diffusivity " << endl;
+            Dqt = turbulence->nut()/Sct;
+            Dqt.correctBoundaryConditions();
+        }
+        else
+        {
+            Info<< "\nRead turbulent heat conductivity alphat" << endl;
+        }
+        if (!(IOobject("DqEff", runTime.timeName(), mesh).headerOk()))
+        {
+            Info<< "\nCalculating effective heat conductivity " << endl;
+            DqEff=turbulence->nut()/Sc + Dqt;
+            DqEff.correctBoundaryConditions();
+        }
+        else
+        {
+            Info<< "\nRead effective scalar diffusivity DqEff" << endl;
+        }
+
         // calculate mean convective heat flux sensible
         volVectorField convHeatFluxSen("convHeatFluxSen", rho*Cp*U*(T-TRef));
         Info<< "\nWriting the sensible convective heat flux convHeatFluxSen field" << endl;
@@ -121,6 +142,10 @@ int main(int argc, char *argv[])
         volVectorField gradT("gradT", fvc::grad(T));
         gradT.correctBoundaryConditions();
 
+        // calculate gradient of water vapor
+        volVectorField gradq("gradq", fvc::grad(q));
+        gradq.correctBoundaryConditions();
+
         // // calculate laminar heat conductivity
         // volVectorField condHeatFlux("condHeatFlux", rho*Cp*alpha*gradT);
 
@@ -128,13 +153,16 @@ int main(int argc, char *argv[])
         // volVectorField turbHeatFlux("turbHeatFlux", rho*Cp*alphat*gradT);
 
         // calculate turbulent convective + laminar conductive heat flux
-        volVectorField turbHeatFlux("turbHeatFlux", rho*Cp*alphaEff*gradT);
+        volVectorField turbHeatFluxSen("turbHeatFluxSen", rho*Cp*alphaEff*gradT);
+
+        volVectorField turbHeatFluxLat("turbHeatFluxLat", rho*lambda*DqEff*gradq);
 
         // // calculate total heat flux
         // volVectorField totHeatFlux("totHeatFlux", convHeatFlux+condHeatFlux+turbHeatFlux);
 
         Info<< "\nWriting turbulent heat flux (laminar conductive + turbulent convective) turbHeatFlux field" << endl;
-        turbHeatFlux.write();
+        turbHeatFluxSen.write();
+        turbHeatFluxLat.write();
 
         // print results
         if (printResults || !printResults)
@@ -146,8 +174,11 @@ int main(int argc, char *argv[])
             surfaceScalarField convHeatFluxLatNormal =
               fvc::interpolate(convHeatFluxLat) & mesh.Sf()/mesh.magSf();
 
-            surfaceScalarField turbHeatFluxNormal =
-              fvc::interpolate(turbHeatFlux) & mesh.Sf()/mesh.magSf();
+            surfaceScalarField turbHeatFluxSenNormal =
+              fvc::interpolate(turbHeatFluxSen) & mesh.Sf()/mesh.magSf();
+
+            surfaceScalarField turbHeatFluxLatNormal =
+              fvc::interpolate(turbHeatFluxLat) & mesh.Sf()/mesh.magSf();
 
 
             const surfaceScalarField::GeometricBoundaryField& patchConvHeatFluxSen =
@@ -156,9 +187,11 @@ int main(int argc, char *argv[])
             const surfaceScalarField::GeometricBoundaryField& patchConvHeatFluxLat =
                 convHeatFluxLatNormal.boundaryField();
 
+            const surfaceScalarField::GeometricBoundaryField& patchTurbHeatFluxSen =
+                turbHeatFluxSenNormal.boundaryField();
 
-            const surfaceScalarField::GeometricBoundaryField& patchTurbHeatFlux =
-                turbHeatFluxNormal.boundaryField();
+            const surfaceScalarField::GeometricBoundaryField& patchTurbHeatFluxLat =
+                turbHeatFluxLatNormal.boundaryField();
 
             Info<< "\nHeat fluxes at the boundaries with TRef [K]: " << TRef.value()
                 << ", and qRef [kgv/kga]: " << qRef.value() << endl;
@@ -184,12 +217,18 @@ int main(int argc, char *argv[])
                                mesh.magSf().boundaryField()[patchi]
                               *patchConvHeatFluxLat[patchi]
                            )
-                        << "\n        Integral turbulent heat flux [W]  : "
+                        << "\n        Integral turbulent sensible heat flux [W]  : "
                         << gSum
                            (
                                mesh.magSf().boundaryField()[patchi]
-                              *patchTurbHeatFlux[patchi]
+                              *patchTurbHeatFluxSen[patchi]
                            )
+                        << "\n        Integral turbulent latent heat flux [W]  : "
+                        << gSum
+                          (
+                              mesh.magSf().boundaryField()[patchi]
+                             *patchTurbHeatFluxLat[patchi]
+                          )
                         << nl << endl;
                 }
            }

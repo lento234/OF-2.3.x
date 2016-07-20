@@ -19,3 +19,9 @@
 
   // Latent heat of vaporization
   dimensionedScalar lambda(laminarTransport.lookup("lambda"));
+
+  // Laminar Schmidt number
+  dimensionedScalar Sc(laminarTransport.lookup("Sc"));
+
+  // Turbulent Schmidt number
+  dimensionedScalar Sct(laminarTransport.lookup("Sct"));
