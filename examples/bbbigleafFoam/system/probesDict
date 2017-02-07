@@ -1,0 +1,74 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.4.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+    class           dictionary;
+    location        "system";
+    object          probesDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+fields
+(
+    // alphat
+    // Cf
+    // DYvt
+    // E
+    // epsilon
+    // k
+    // LAD
+    // LAI
+    // nut
+    // p
+    // phi
+    // p_rgh
+    // pv
+    // pvsat
+    // Ql
+    // Qs
+    // ra
+    // Rg
+    // rhosat
+    // Rn
+    // rs
+    // Sh
+    // Su
+    // SYv
+    // T
+    // Tl
+    // U
+    // VPD
+    // q
+    // Yvsat
+    q
+    Rgz
+    U
+    T
+    RH
+    magU
+);
+
+
+probeLocations
+(
+    // (-1.57 0 1.45)
+    // (0 0 1.3)
+    // (0 0 1.295)
+    // (0 0 1.075)
+    // (0 0 0.8)
+    // (0 0 0.86)
+    // (-1.57 0 0.0001)
+    // (-1.57 0 0.1)
+    (1.5 0 1)
+    (-1.5 0 1)
+    (0 0 0.25)
+);

@@ -1,0 +1,56 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.4.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      funkySetFieldsDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+expressions
+(
+    foliage_LAD
+    {
+      field LAD;
+      condition  "(pos().y>=-0.5) && (pos().y<=05) && (pos().x>=-0.5) && (pos().x<=0.5) && (pos().z>=0.5) && (pos().z<=1.5) ";
+      expression "10";
+      keepPatches 1;
+    }
+
+    zone_LAI
+    {
+        field LAI;
+        condition  "(pos().y>=-0.5) && (pos().y<=0.5) && (pos().x>=-0.5) && (pos().x<=0.5) && (pos().z>=0.5) && (pos().z<=1.5) ";
+        expression "10*(1.5-pos().z)";
+        keepPatches 1;
+    }
+
+    zone_LAI_below
+    {
+        field LAI;
+        condition  "(pos().y>=-0.5) && (pos().y<=0.5) && (pos().x>=-0.5) && (pos().x<=0.5) && (pos().z>=0.) && (pos().z<=0.5) ";
+        expression "10";
+        keepPatches 1;
+    }
+
+
+    zone_Cf_plant
+    {
+        field Cf;
+        condition  "(pos().y>=-0.5) && (pos().y<=0.5) && (pos().x>=-0.5) && (pos().x<=0.5) && (pos().z>=0.5) && (pos().z<1.5) ";
+        expression "2.0";
+        keepPatches 1;
+    }
+
+
+);
+
+// ************************************************************************* //

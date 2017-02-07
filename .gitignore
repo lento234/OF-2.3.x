@@ -15,7 +15,7 @@ faces
 neighbour
 owner
 points
-
+src/thermophysicalModels/
 # Compiled source
 *.o
 *.pyc
@@ -45,4 +45,3 @@ trash/
 
 # Work in Progress
 #!cases/bigleafFoam/cubeTree
-
