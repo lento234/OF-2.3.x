@@ -140,22 +140,32 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
 // return energy source term
 tmp<volScalarField> simplifiedVegetationModel::Sh()
 {
-    Sh_ = Qs_/(rhoa_*cpa_);
-    Sh_.correctBoundaryConditions();
+    // Sh_ = Qs_/(rhoa_*cpa_);
+
+    forAll(Cf_, cellI)
+      if (Cf_[cellI] > 10*SMALL)
+        Sh_[cellI] = Qs_.value()/(rhoa_.value()*cpa_.value());
+
     return Sh_;
 }
 
 // solve & return momentum source term (explicit)
 tmp<fvVectorMatrix> simplifiedVegetationModel::Su(volVectorField& U)
 {
+    Su_ = -Cf_*mag(U)*U;
+
     return fvm::SuSp(-Cf_*mag(U), U);
 }
 
 // return specific humidity source term
 tmp<volScalarField> simplifiedVegetationModel::Sq()
 {
-    Sq_ = E_/rhoa_;
-    Sq_.correctBoundaryConditions();
+    // Sq_ = E_/rhoa_;
+
+    forAll(Cf_, cellI)
+      if (Cf_[cellI] > 10*SMALL)
+        Sq_[cellI] = E_.value()/rhoa_.value();
+
     return Sq_;
 }
 
