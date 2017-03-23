@@ -23,6 +23,7 @@ appPath=(
     # applications/solvers/bigleafFoam
     applications/solvers/bbbigleafFoam
     # applications/solvers/transientbbbigleafFoam
+    applications/solvers/simplifiedVegetation
 )
 
 extPath=(

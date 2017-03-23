@@ -17,12 +17,15 @@ utilPath=(
     applications/utilities/postProcessing/moisture/heatFluxMoist  
     #applications/utilities/postProcessing/moisture/qToRH
     #applications/utilities/postProcessing/moisture/RHToq
+    applications/utilities/postProcessing/postAvg
 )
 
 appPath=(
-    # applications/solvers/bigleafFoam
     applications/solvers/bbbigleafFoam
-    # applications/solvers/transientbbbigleafFoam
+    #applications/solvers/bigleafFoam
+    #applications/solvers/nuSimpleFoam
+    #applications/solvers/transientbbbigleafFoam
+    applications/solvers/simplifiedVegetation
 )
 
 extPath=(
