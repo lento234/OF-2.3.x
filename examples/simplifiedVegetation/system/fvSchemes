@@ -30,7 +30,7 @@ gradSchemes
 divSchemes
 {
     default             none;
-    
+
     div(phi,U)          bounded Gauss linearUpwind grad(U);
 
     div(phi,k)          bounded Gauss linearUpwind grad(k);
@@ -39,14 +39,14 @@ divSchemes
     div(phi,q)          bounded Gauss linearUpwind grad(q);
 
     div((nuEff*dev(T(grad(U)))))    Gauss linear;
-    
+
 
     //div(phi,k)          Gauss limitedLinear 1;
     //div(phi,epsilon)    Gauss limitedLinear 1;
     //div(phi,T)          Gauss limitedLinear 1;
     //div(phi,q)          Gauss limitedLinear 1;
     //div((nuEff*dev(T(grad(U)))))    Gauss linear;
-    
+
     //div(phi,U)          bounded Gauss linearUpwindV grad(U);
     //div((nuEff*dev(T(grad(U)))))    Gauss linear;
     //div(phi,epsilon)    bounded Gauss upwind;
@@ -64,6 +64,8 @@ laplacianSchemes
 interpolationSchemes
 {
     default             linear;
+    LAD                 pointMVC;//, , cellPoint, , cellPointWallModified, pointMVC; //// cell cellPatchConstrained cellPointFace
+
 }
 
 snGradSchemes

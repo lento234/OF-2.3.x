@@ -9,46 +9,50 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "system";
-    object      controlDict;
+    class       volScalarField;
+    location    "0";
+    object      k;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-libs            (
-				             "libgroovyBC.so"
-                     "libporousIncompressibleRASModels.so"
-                );
+#include        "../constant/flowProperties"
 
-application     bbbigleafFoam;
+dimensions      [0 2 -2 0 0 0 0];
 
-startFrom       latestTime;
+internalField   uniform $turbulentKE;
 
-startTime       0;
+boundaryField
+{
 
-stopAt          endTime;
+    inlet
+    {
+        type            groovyBC;
+        variables       "zp=pos().z;";
+        valueExpression "pow($ustar,2)/pow($Cmu,0.5)";
+        value           uniform $turbulentKE;
+    }
 
-endTime         300000;
+    outlet
+    {
+        type            zeroGradient;
+    }
 
-deltaT          1;
+    sky
+    {
+        type            slip;
+    }
 
-writeControl    timeStep;
-
-writeInterval   10;
-
-purgeWrite      1;
-
-writeFormat     ascii;
-
-writePrecision  12;
-
-writeCompression on;
-
-timeFormat      general;
-
-timePrecision   10;
-
-runTimeModifiable true;
+    ground
+    {
+        type            kqRWallFunction;
+        value           uniform 0.0;
+    }
+    
+    frontAndBack
+    {
+        type            empty;
+    }
+}
 
 
 // ************************************************************************* //

@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.3.1                                 |
+|  \\    /   O peration     | Version:  2.3.0                                 |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -9,46 +9,45 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "system";
-    object      controlDict;
+    class       volScalarField;
+    object      q;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-libs            (
-				             "libgroovyBC.so"
-                     "libporousIncompressibleRASModels.so"
-                );
+// #include        "../constant/flowProperties"
 
-application     bbbigleafFoam;
+dimensions      [0 0 0 0 0 0 0];
 
-startFrom       latestTime;
+internalField   uniform 0.0160409;//@T=30deg, Rh=20: 0.00525658 // 40: 0.0106028 // 60: 0.0160409 // 0.0215733
 
-startTime       0;
+boundaryField
+{
+    inlet
+    {
+	       type            fixedValue;
+         value           uniform 0.0160409;//0.00621;
+    }
 
-stopAt          endTime;
+    outlet
+    {
+	       type            zeroGradient;
+    }
 
-endTime         300000;
+    sky
+    {
+          type            zeroGradient;
+    }
 
-deltaT          1;
+    ground
+    {
+          type            zeroGradient;
+    }
 
-writeControl    timeStep;
-
-writeInterval   10;
-
-purgeWrite      1;
-
-writeFormat     ascii;
-
-writePrecision  12;
-
-writeCompression on;
-
-timeFormat      general;
-
-timePrecision   10;
-
-runTimeModifiable true;
+    frontAndBack
+    {
+          type            empty;
+    }
+}
 
 
 // ************************************************************************* //

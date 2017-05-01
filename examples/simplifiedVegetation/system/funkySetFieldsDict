@@ -41,7 +41,24 @@ expressions
     //     keepPatches 1;
     // }
 
+    /*
+    zone_LAD_plant
+    {
+        field LAD;
+        condition  "(pos().y>=-0.5) && (pos().y<=0.5) && (pos().x>=-0.5) && (pos().x<=0.5) && (pos().z>=0.5) && (pos().z<1.5) ";
+        expression "10.0";
+        keepPatches 1;
+    }
+    */
+    zone_LAD_plant
+    {
+        field LAD;
+        condition  "sqrt(pow(pos().x - 0.,2) +  pow(pos().z - 1.,2)) <= 0.5";
+        expression "10.0";
+        keepPatches 1;
+    }
 
+    /*
     zone_Cf_plant
     {
         field Cf;
@@ -49,6 +66,7 @@ expressions
         expression "2.0";
         keepPatches 1;
     }
+    */
 
 
 );
