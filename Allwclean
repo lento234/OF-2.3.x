@@ -8,13 +8,15 @@ srcPath=(
 )
 
 utilPath=(
+    applications/utilities/rayTracing
+    applications/utilities/preProcessing/calcLAI
     applications/utilities/postProcessing/cellV
     applications/utilities/postProcessing/fieldIntegrate
     applications/utilities/postProcessing/fieldMinMax
     applications/utilities/postProcessing/gradU
     #applications/utilities/postProcessing/heatFluxIncompressible
     applications/utilities/postProcessing/moisture/hmoist
-    applications/utilities/postProcessing/moisture/heatFluxMoist  
+    applications/utilities/postProcessing/moisture/heatFluxMoist
     #applications/utilities/postProcessing/moisture/qToRH
     #applications/utilities/postProcessing/moisture/RHToq
     applications/utilities/postProcessing/postAvg
@@ -26,6 +28,7 @@ appPath=(
     #applications/solvers/nuSimpleFoam
     #applications/solvers/transientbbbigleafFoam
     applications/solvers/simplifiedVegetation
+    applications/solvers/buoyantBoussinesqVegetationSimpleFoam
 )
 
 extPath=(

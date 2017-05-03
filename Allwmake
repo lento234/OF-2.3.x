@@ -8,6 +8,8 @@ srcPath=(
 )
 
 utilPath=(
+    applications/utilities/rayTracing
+    applications/utilities/preProcessing/calcLAI
     applications/utilities/postProcessing/cellV
     applications/utilities/postProcessing/fieldIntegrate
     applications/utilities/postProcessing/fieldMinMax
@@ -24,6 +26,7 @@ appPath=(
     applications/solvers/bbbigleafFoam
     # applications/solvers/transientbbbigleafFoam
     applications/solvers/simplifiedVegetation
+    applications/solvers/buoyantBoussinesqVegetationSimpleFoam
 )
 
 extPath=(
