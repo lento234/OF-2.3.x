@@ -1,0 +1,123 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.4.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+    class           dictionary;
+    location        "system";
+    object          sampleDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+interpolationScheme cell; //cellPointFace;
+
+setFormat raw;
+
+surfaceFormat foamFile;
+
+fields
+(
+    E
+    epsilon
+    ev
+    evsat
+    // gradU
+    //cellV
+    RH
+    k
+    LAD
+    LAI
+    nut
+    p
+    w
+    Ql
+    Qs
+    wsat
+    ra
+    rs
+    Rg
+    rhosat
+    Rn
+    ST
+    Sw
+    Su
+    T
+    Tl
+    U
+    VPD
+);
+
+
+surfaces
+(
+
+    constantPlane
+    {
+        type            plane;    // always triangulated
+        basePoint       (0 0 0);
+        normalVector    (0 1 0);
+        interpolate     true;
+        triangulate     true;
+    }
+
+);
+
+sets
+(
+    xMidVegVbelow
+    {
+        type            face;//face;midPoint//midPointAndFace
+        axis            xyz;
+        start           (0 0 0);
+        end             (0 0 0.8);
+    }
+
+    xMidVegVabove
+    {
+        type            face;//face;midPoint//midPointAndFace
+        axis            xyz;
+        start           (0 0 0.8);
+        end             (0 0 11.3);
+    }
+
+    xMidVegH
+    {
+        type            face;
+        axis            xyz;
+        start           (-11.57 0 1.05);
+        end             (26.57 0 1.05);
+    }
+
+
+    front
+    {
+        type            face;
+        axis            xyz;
+        start           (-9.49 0 0);
+        end             (-9.49 0 11.5);
+    }
+
+    aft
+    {
+        type            face;
+        axis            xyz;
+        start           (25.49 0 0);
+        end             (25.49 0 11.5);
+    }
+
+    xMidVegV
+    {
+        type            face;//face;midPoint//midPointAndFace
+        axis            xyz;
+        start           (0 0 0.501);
+        end             (0 0 1.499);
+    }
+
+);
