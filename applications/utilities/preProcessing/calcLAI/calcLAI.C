@@ -22,10 +22,10 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    raytracing
+    calcLAI
 
 Description
-    raytracing by Lento Manickathan, April. // only vertical
+    calcLAI by Lento Manickathan, April
 
 \*---------------------------------------------------------------------------*/
 
@@ -152,7 +152,7 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
        /////////////// Define cartesian interpolation grid
 
        // Cartesian mesh resolution
-       point dp(0.1,0,0.1);
+       point dp(0.01,0,0.01);
 
        // Increase tolerance of cartesian grid
        pmin.x() -= dp.x();
