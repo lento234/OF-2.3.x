@@ -1,0 +1,83 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.4.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default             steadyState;
+}
+
+gradSchemes
+{
+    default             cellLimited Gauss linear 1;
+    //default             Gauss linear;
+    //grad(p)             Gauss linear;
+    //grad(U)             Gauss linear;
+}
+
+divSchemes
+{
+    default             none;
+
+    div(phi,U)          bounded Gauss linearUpwind grad(U);
+
+    div(phi,k)          bounded Gauss linearUpwind grad(k);
+    div(phi,epsilon)    bounded Gauss linearUpwind grad(epsilon);
+    div(phi,T)          bounded Gauss linearUpwind grad(T);
+    div(phi,w)          bounded Gauss linearUpwind grad(w);
+
+    div((nuEff*dev(T(grad(U)))))    Gauss linear;
+
+
+    //div(phi,k)          Gauss limitedLinear 1;
+    //div(phi,epsilon)    Gauss limitedLinear 1;
+    //div(phi,T)          Gauss limitedLinear 1;
+    //div(phi,q)          Gauss limitedLinear 1;
+    //div((nuEff*dev(T(grad(U)))))    Gauss linear;
+
+    //div(phi,U)          bounded Gauss linearUpwindV grad(U);
+    //div((nuEff*dev(T(grad(U)))))    Gauss linear;
+    //div(phi,epsilon)    bounded Gauss upwind;
+    //div(phi,k)          bounded Gauss upwind;
+    //div(phi,T)      bounded Gauss linearUpwind grad(T);//linear;
+    //div(phi,q)      bounded Gauss linearUpwind grad(q);//linear;
+}
+
+laplacianSchemes
+{
+     default             Gauss linear corrected;
+    //default             Gauss linear limited corrected 0.333;
+}
+
+interpolationSchemes
+{
+    default             linear;
+    LAD                 pointMVC;//, , cellPoint, , cellPointWallModified, pointMVC; //// cell cellPatchConstrained cellPointFace
+}
+
+snGradSchemes
+{
+    default             corrected;
+    //default             limited corrected 0.333;
+}
+
+fluxRequired
+{
+    default             no;
+    p_rgh;
+}
+
+
+// ************************************************************************* //

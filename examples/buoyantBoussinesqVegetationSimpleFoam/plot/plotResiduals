@@ -1,0 +1,18 @@
+#!/usr/bin/gnuplot
+
+set logscale y
+#set logscale x
+set format y "10^{%T}"
+set title "Residuals vs. Iteration"
+set ylabel 'Residual'
+set xlabel 'Iteration'
+plot "< zcat ../log.solver.gz | grep 'Solving for Ux' | cut -d' ' -f9 | tr -d ','" title 'Ux' with lines,\
+     "< zcat ../log.solver.gz | grep 'Solving for Uz' | cut -d' ' -f9 | tr -d ','" title 'Uz' with lines,\
+     "< zcat ../log.solver.gz | grep 'Solving for p_rgh' | cut -d' ' -f9 | tr -d ','" title 'p_{rgh}' with lines,\
+     "< zcat ../log.solver.gz | grep 'Solving for k'  | cut -d' ' -f9 | tr -d ','" title 'k' with lines,\
+     "< zcat ../log.solver.gz | grep 'Solving for epsilon' | cut -d' ' -f9 | tr -d ','" title 'epsilon' with lines,\
+     "< zcat ../log.solver.gz | grep 'Solving for q'  | cut -d' ' -f9 | tr -d ','" title 'q' with lines,\
+     "< zcat ../log.solver.gz | grep 'Solving for T,'  | cut -d' ' -f9 | tr -d ','" title 'T'  with lines,\
+     "< zcat ../log.solver.gz | grep 'Solving for Tl' | cut -d' ' -f10 | tr -d ','" title 'T_l' with lines
+pause 10
+reread
