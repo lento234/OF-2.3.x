@@ -22,45 +22,39 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::vegetationModel
+    Foam::modifiedVegetationModel
 
 Description
-    Vegetation model
+    Modified vegetation model
 
 Author
-    Lento Manickathan. manickathan@arch.ethz.ch
+    Lento Manickathan. mlento@ethz.ch
 
 SourceFiles
-    vegetationModel.C
+    modifiedVegetationModel.C
+
+Date
+  03/05/2017
+
+
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef vegetationModel_H
-#define vegetationModel_H
+#ifndef modifiedVegetationModel_H
+#define modifiedVegetationModel_H
 
-// #include <typeinfo>
-// #include "RASModel.H"
-// #include "incompressible/turbulenceModel/turbulenceModel.H"
-// #include "volFields.H"
-// #include "surfaceFields.H"
 #include "fvm.H"
-// #include "fvc.H"
-// #include "fvMatrices.H"
-// #include "incompressible/transportModel/transportModel.H"
 #include "IOdictionary.H"
-// #include "Switch.H"
 #include "bound.H"
-// #include "autoPtr.H"
-// #include "runTimeSelectionTables.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
 /*---------------------------------------------------------------------------*\
-                         Class vegetationModel Declaration
+                         Class modifiedVegetationModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class vegetationModel
+class modifiedVegetationModel
 :
     public IOdictionary
 
@@ -68,10 +62,10 @@ class vegetationModel
 
 private:
     // disallow copy construct
-    vegetationModel(const vegetationModel&);
+    modifiedVegetationModel(const modifiedVegetationModel&);
 
     // disallow default bitwise assignment
-    void operator=(const vegetationModel&);
+    void operator=(const modifiedVegetationModel&);
 
 protected:
     // -----------------------------------------------
@@ -101,13 +95,14 @@ protected:
     dimensionedScalar lambda_;  // latent heat of vaporization
     // -----------------------------------------------
     // Model fields
+    volScalarField cd_;     // vegetation drag coefficient
     volScalarField Cf_;     // vegetation drag coefficient
     volScalarField E_;      // transpiration rate
     volScalarField ev_;     // water vapor pressure
     volScalarField evsat_;  // saturated water vapor pressure
     volScalarField LAD_;    // leaf area density
     volScalarField LAI_;    // leaf area index
-    volScalarField qsat_;   // saturated specific humidity
+    volScalarField wsat_;   // saturated specific humidity
     volScalarField Ql_;     // latent heat flux
     volScalarField Qs_;     // sensible heat flux
     volScalarField ra_;     // aerodynamic resistance
@@ -115,8 +110,8 @@ protected:
     volScalarField rhosat_; // saturated density field
     volVectorField Rg_;     // global radiation
     volScalarField Rn_;     // global radiation density in volume
-    volScalarField Sh_;     // energy source term
-    volScalarField Sq_;     // humidity source term
+    volScalarField ST_;     // energy source term
+    volScalarField Sw_;     // humidity source term
     volVectorField Su_;     // momentum source term
     volScalarField Tl_;     // temperature of leaf
     volScalarField VPD_;    // vapor pressure deficit
@@ -124,18 +119,18 @@ protected:
 
 public:
     // runtime type info
-    TypeName("vegetationModel");
+    TypeName("modifiedVegetationModel");
 
     // constructors
-        vegetationModel
+        modifiedVegetationModel
         (
             const volVectorField& U,
             const volScalarField& T,
-            const volScalarField& q
+            const volScalarField& w
         );
 
     // destructor
-        virtual ~vegetationModel()
+        virtual ~modifiedVegetationModel()
         {}
 
     // Member Functions
@@ -160,22 +155,22 @@ public:
         virtual void radiation();
 
         // calc aerodynamic, stomatal resistances
-        virtual void resistance(volScalarField& magU, volScalarField& T, volScalarField& q, volScalarField& Tl);
+        virtual void resistance(volScalarField& magU, volScalarField& T, volScalarField& w, volScalarField& Tl);
 
         // solve all
-        virtual void solve(volVectorField&U, volScalarField& T, volScalarField& q);
+        virtual void solve(volVectorField&U, volScalarField& T, volScalarField& w);
 
         // -----------------------------------------------
         // source terms
 
         // return vegetation energy source
-        virtual tmp<volScalarField> Sh();
+        virtual tmp<volScalarField> ST();
 
         // return vegetation momentum source
         virtual tmp<fvVectorMatrix> Su(volVectorField& U);
 
         // return vegetation specific humidity source
-        virtual tmp<volScalarField> Sq();
+        virtual tmp<volScalarField> Sw();
 
         // -----------------------------------------------
 
