@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Generate blockMeshDict
+python generate_blockMeshDict.py
+
+# Generate msh
+# blockMesh
+blockMeshDG
+
+# mirror mesh
+# mirrorMesh
+
+# checkMesh
+checkMesh
+
+# Create baffle zones
+# topoSet
+
+# Create baffle
+# createBaffles -overwrite

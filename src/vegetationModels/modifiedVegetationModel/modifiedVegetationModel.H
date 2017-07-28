@@ -44,6 +44,7 @@ Date
 #define modifiedVegetationModel_H
 
 #include "fvm.H"
+#include "fvc.H"
 #include "IOdictionary.H"
 #include "bound.H"
 
@@ -93,6 +94,7 @@ protected:
     dimensionedScalar TlMin_;   // lower limit of T
     dimensionedScalar UMin_;    // lower limit of U
     dimensionedScalar lambda_;  // latent heat of vaporization
+    dimensionedScalar phi_;  // latent heat of vaporization
     // -----------------------------------------------
     // Model fields
     volScalarField cd_;     // vegetation drag coefficient

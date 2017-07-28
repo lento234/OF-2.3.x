@@ -117,8 +117,9 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
        // Mesh cell centers
        pointField pmeshC = mesh.C();
 
+       meshSearch ms(mesh);
 
-       /////////////// Determine rotated coordinate system mesh
+              /////////////// Determine rotated coordinate system mesh
        pointField pmeshCRot = transform(T,pmeshC);
 
 
@@ -152,7 +153,7 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
        /////////////// Define cartesian interpolation grid
 
        // Cartesian mesh resolution
-       point dp(0.1,0,0.1);
+       point dp(0.01,0,0.01);
 
        // Increase tolerance of cartesian grid
        pmin.x() -= dp.x();
@@ -195,7 +196,11 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
 
            if ( (ptemp > allBb.min()) && (ptemp < allBb.max()) )
            {
-             cellIndex = mesh.findCell(ptemp);
+             //cellIndex = mesh.findCell(ptemp); // fast
+             //cellIndex = ms.findCell(ptemp,-1,true); slow
+             //cellIndex = ms.findCell(ptemp,-1,false); slower
+             //cellIndex = ms.findCell(ptemp,0,true); // faster
+             cellIndex = ms.findNearestCell(ptemp,0,true); // fastest
 
              if (cellIndex != -1)
              {
@@ -209,6 +214,8 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
 
          }
        }
+
+
 
        // Info << "Info: " << LADInterp << endl;
 
@@ -266,7 +273,7 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
        }
 
 
-       Info << "It took "<< (std::clock()-tstart) / (double)CLOCKS_PER_SEC <<" second(s)."<< endl;
+        Info << "It took "<< (std::clock()-tstart) / (double)CLOCKS_PER_SEC <<" second(s)."<< endl;
 
         if (writeResults)
         {

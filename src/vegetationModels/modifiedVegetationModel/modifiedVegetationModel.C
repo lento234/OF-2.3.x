@@ -114,6 +114,10 @@ modifiedVegetationModel::modifiedVegetationModel
     (
         vegetationProperties_.lookup("lambda")
     ),
+    phi_
+    (
+        vegetationProperties_.lookup("phi")
+    ),
     cd_
     (
         IOobject
@@ -287,7 +291,7 @@ modifiedVegetationModel::modifiedVegetationModel
             "Rg",
             runTime_.timeName(),
             mesh_,
-            IOobject::NO_READ,
+            IOobject::NO_READ,//IOobject::MUST_READ,
             IOobject::AUTO_WRITE
         ),
         mesh_,
@@ -300,7 +304,7 @@ modifiedVegetationModel::modifiedVegetationModel
             "Rn",
             runTime_.timeName(),
             mesh_,
-            IOobject::NO_READ,
+            IOobject::NO_READ,//IOobject::MUST_READ,
             IOobject::AUTO_WRITE
         ),
         mesh_,
@@ -400,7 +404,7 @@ double modifiedVegetationModel::calc_rhosat(double& T)
 {
     return calc_evsat(T)/(461.5*T);
 }
-
+/*
 // solve radiation
 void modifiedVegetationModel::radiation()
 {
@@ -419,6 +423,37 @@ void modifiedVegetationModel::radiation()
     Rn_.correctBoundaryConditions();
 
 }
+*/
+
+//solve radiation
+void modifiedVegetationModel::radiation()
+{
+    // empirical global radiation = f(height) inside and below vegetation
+
+    // Solar angle
+    scalar PI = 3.14159265359;
+    scalar theta = PI*(phi_.value()/180);
+    vector solarAngleVector(cos(theta),0.0,sin(theta));
+
+    // Calculate solar radiation intensity
+    Rg_ = (Rg0_*exp(-kc_*LAI_))*solarAngleVector;
+
+    // Calculate net absorbed radiation
+    Rn_ = - fvc::div(Rg_);
+
+    /*
+    forAll(LAD_,cellI)
+    {
+      if (LAD_[cellI] < 10*SMALL)
+      {
+        Rn_[cellI] = 0.0;
+      }
+    }
+    */
+    //Rn_.correctBoundaryConditions();
+
+}
+
 
 // solve aerodynamic resistance
 void modifiedVegetationModel::resistance(volScalarField& magU, volScalarField& T, volScalarField& w, volScalarField& Tl)

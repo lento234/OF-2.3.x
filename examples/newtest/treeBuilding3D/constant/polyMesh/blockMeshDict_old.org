@@ -1,0 +1,226 @@
+
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.4.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+convertToMeters 1;
+
+vertices
+(
+		(-15 -20 0) // vertex #0
+		(-5 -20 0) // vertex #1
+		(5 -20 0) // vertex #2
+		(20 -20 0) // vertex #3
+		(-15 -10 0) // vertex #4
+		(-5 -10 0) // vertex #5
+		(5 -10 0) // vertex #6
+		(20 -10 0) // vertex #7
+		(-15 10 0) // vertex #8
+		(-5 10 0) // vertex #9
+		(5 10 0) // vertex #10
+		(20 10 0) // vertex #11
+		(-15 20 0) // vertex #12
+		(-5 20 0) // vertex #13
+		(5 20 0) // vertex #14
+		(20 20 0) // vertex #15
+		(-15 -20 5) // vertex #16
+		(-5 -20 5) // vertex #17
+		(5 -20 5) // vertex #18
+		(20 -20 5) // vertex #19
+		(-15 -10 5) // vertex #20
+		(-5 -10 5) // vertex #21
+		(5 -10 5) // vertex #22
+		(20 -10 5) // vertex #23
+		(-15 10 5) // vertex #24
+		(-5 10 5) // vertex #25
+		(5 10 5) // vertex #26
+		(20 10 5) // vertex #27
+		(-15 20 5) // vertex #28
+		(-5 20 5) // vertex #29
+		(5 20 5) // vertex #30
+		(20 20 5) // vertex #31
+		(-15 -20 10) // vertex #32
+		(-5 -20 10) // vertex #33
+		(5 -20 10) // vertex #34
+		(20 -20 10) // vertex #35
+		(-15 -10 10) // vertex #36
+		(-5 -10 10) // vertex #37
+		(5 -10 10) // vertex #38
+		(20 -10 10) // vertex #39
+		(-15 10 10) // vertex #40
+		(-5 10 10) // vertex #41
+		(5 10 10) // vertex #42
+		(20 10 10) // vertex #43
+		(-15 20 10) // vertex #44
+		(-5 20 10) // vertex #45
+		(5 20 10) // vertex #46
+		(20 20 10) // vertex #47
+		(-15 -20 20) // vertex #48
+		(-5 -20 20) // vertex #49
+		(5 -20 20) // vertex #50
+		(20 -20 20) // vertex #51
+		(-15 -10 20) // vertex #52
+		(-5 -10 20) // vertex #53
+		(5 -10 20) // vertex #54
+		(20 -10 20) // vertex #55
+		(-15 10 20) // vertex #56
+		(-5 10 20) // vertex #57
+		(5 10 20) // vertex #58
+		(20 10 20) // vertex #59
+		(-15 20 20) // vertex #60
+		(-5 20 20) // vertex #61
+		(5 20 20) // vertex #62
+		(20 20 20) // vertex #63
+);
+
+blocks
+(
+		hex (0 1 5 4 16 17 21 20)	(10 10 10) simpleGrading (1 1 1) // block #0
+		hex (1 2 6 5 17 18 22 21)	(30 10 10) simpleGrading (1 1 1) // block #1
+		hex (2 3 7 6 18 19 23 22)	(10 10 10) simpleGrading (1 1 1) // block #2
+		hex (4 5 9 8 20 21 25 24)	(10 30 10) simpleGrading (1 1 1) // block #3
+		hex (5 6 10 9 21 22 26 25)	(30 30 10) simpleGrading (1 1 1) // block #4
+		hex (6 7 11 10 22 23 27 26)	(10 30 10) simpleGrading (1 1 1) // block #5
+		hex (8 9 13 12 24 25 29 28)	(10 10 10) simpleGrading (1 1 1) // block #6
+		hex (9 10 14 13 25 26 30 29)	(30 10 10) simpleGrading (1 1 1) // block #7
+		hex (10 11 15 14 26 27 31 30)	(10 10 10) simpleGrading (1 1 1) // block #8
+		hex (16 17 21 20 32 33 37 36)	(10 10 30) simpleGrading (1 1 1) // block #9
+		hex (17 18 22 21 33 34 38 37)	(30 10 30) simpleGrading (1 1 1) // block #10
+		hex (18 19 23 22 34 35 39 38)	(10 10 30) simpleGrading (1 1 1) // block #11
+		hex (20 21 25 24 36 37 41 40)	(10 30 30) simpleGrading (1 1 1) // block #12
+		hex (21 22 26 25 37 38 42 41)	(30 30 30) simpleGrading (1 1 1) // block #13
+		hex (22 23 27 26 38 39 43 42)	(10 30 30) simpleGrading (1 1 1) // block #14
+		hex (24 25 29 28 40 41 45 44)	(10 10 30) simpleGrading (1 1 1) // block #15
+		hex (25 26 30 29 41 42 46 45)	(30 10 30) simpleGrading (1 1 1) // block #16
+		hex (26 27 31 30 42 43 47 46)	(10 10 30) simpleGrading (1 1 1) // block #17
+		hex (32 33 37 36 48 49 53 52)	(10 10 10) simpleGrading (1 1 1) // block #18
+		hex (33 34 38 37 49 50 54 53)	(30 10 10) simpleGrading (1 1 1) // block #19
+		hex (34 35 39 38 50 51 55 54)	(10 10 10) simpleGrading (1 1 1) // block #20
+		hex (36 37 41 40 52 53 57 56)	(10 30 10) simpleGrading (1 1 1) // block #21
+		hex (37 38 42 41 53 54 58 57)	(30 30 10) simpleGrading (1 1 1) // block #22
+		hex (38 39 43 42 54 55 59 58)	(10 30 10) simpleGrading (1 1 1) // block #23
+		hex (40 41 45 44 56 57 61 60)	(10 10 10) simpleGrading (1 1 1) // block #24
+		hex (41 42 46 45 57 58 62 61)	(30 10 10) simpleGrading (1 1 1) // block #25
+		hex (42 43 47 46 58 59 63 62)	(10 10 10) simpleGrading (1 1 1) // block #26
+);
+
+edges
+(
+);
+
+boundary
+(
+		ground
+		{
+				type wall;
+				faces
+				(
+						(0 1 5 4)
+						(1 2 6 5)
+						(2 3 7 6)
+						(4 5 9 8)
+						(5 6 10 9)
+						(6 7 11 10)
+						(8 9 13 12)
+						(9 10 14 13)
+						(10 11 15 14)
+				);
+		}
+		outlet
+		{
+				type patch;
+				faces
+				(
+						(3 7 23 19)
+						(7 11 27 23)
+						(11 15 31 27)
+						(19 23 39 35)
+						(23 27 43 39)
+						(27 31 47 43)
+						(35 39 55 51)
+						(39 43 59 55)
+						(43 47 63 59)
+				);
+		}
+		sky
+		{
+				type wall;
+				faces
+				(
+						(48 49 53 52)
+						(49 50 54 53)
+						(50 51 55 54)
+						(52 53 57 56)
+						(53 54 58 57)
+						(54 55 59 58)
+						(56 57 61 60)
+						(57 58 62 61)
+						(58 59 63 62)
+				);
+		}
+		inlet
+		{
+				type patch;
+				faces
+				(
+						(0 4 20 16)
+						(4 8 24 20)
+						(8 12 28 24)
+						(16 20 36 32)
+						(20 24 40 36)
+						(24 28 44 40)
+						(32 36 52 48)
+						(36 40 56 52)
+						(40 44 60 56)
+				);
+		}
+		front
+		{
+				type empty;
+				faces
+				(
+						(0 1 17 16)
+						(1 2 18 17)
+						(2 3 19 18)
+						(16 17 33 32)
+						(17 18 34 33)
+						(18 19 35 34)
+						(32 33 49 48)
+						(33 34 50 49)
+						(34 35 51 50)
+				);
+		}
+		back
+		{
+				type empty;
+				faces
+				(
+						(12 13 29 28)
+						(13 14 30 29)
+						(14 15 31 30)
+						(28 29 45 44)
+						(29 30 46 45)
+						(30 31 47 46)
+						(44 45 61 60)
+						(45 46 62 61)
+						(46 47 63 62)
+				);
+		}
+);
+
+mergePatchPairs
+(
+);
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
