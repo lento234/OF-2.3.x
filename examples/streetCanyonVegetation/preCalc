@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Copy initial conditions
+echo -n "Copying IC..."
+rm -rf 0
+cp -r 0.org 0
+echo "Done."
+
+# Setting fields: LAD
+echo "Setting LAD .... "
+funkySetFields -time 0
+echo "Done."
+
+# rotate mesh
+echo "rotating mesh .... "
+rotateMesh '(0 0 1)' '(0 1 0)'
+
+# Calculate Leaf area Index
+#echo "Setting LAI ...."
+#calcLAI3D
+#calcLAI3Dnew
+
+# faceAgglomerate
+echo "faceAgglomerate ..."
+faceAgglomerate
+
+# viewFactorsGenUpdated
+echo "viewFactorsGenUpdated ..."
+viewFactorsGenUpdated
+
+# calculated LAI
+echo "Calculating LAI ..."
+calcLAI
+
+echo "Done!"

@@ -50,6 +50,7 @@ expressions
         keepPatches 1;
     }
     */
+    /*
     zone_LAD_plant
     {
         field LAD;
@@ -57,8 +58,8 @@ expressions
         expression "10.0";
         keepPatches 1;
     }
+    */
 
-    /*
     zone_Cf_plant
     {
         field Cf;
@@ -66,7 +67,6 @@ expressions
         expression "2.0";
         keepPatches 1;
     }
-    */
 
 
 );
