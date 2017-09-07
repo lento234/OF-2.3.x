@@ -29,9 +29,9 @@ const label maxDynListLength = 10000;
             const point& fc = myFc[i];
             const vector& area = myArea[i];
 			const point& remFc = remoteFc[i];
-			
+
 			const vector& d = remFc - fc;
-           
+
 			start.append(fc + 0.0001*d);
 			startIndex.append(i);
             startArea.append(area);
@@ -43,14 +43,14 @@ const label maxDynListLength = 10000;
 				break;
 			}
 		}
-		
+
         List<pointIndexHit> hitInfo(startIndex.size());
         surfacesMesh.findLine(start, end, hitInfo);
-		
-		Info << "start: " << start << endl;
+
+		//Info << "start: " << start << endl;
         //Info << "startArea: " << startArea << endl;
-		Info << "end: " << end << endl;
-		
+		//Info << "end: " << end << endl;
+
         forAll (hitInfo, rayI)
         {
             if (!hitInfo[rayI].hit()) // if the ray did not hit any surface between start and end positions...

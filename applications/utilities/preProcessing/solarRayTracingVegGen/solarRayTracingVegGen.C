@@ -27,6 +27,7 @@ Application
 Description
     Aytac Kubilay, 2015, Empa
 	Based on viewFactorsGen
+    Modifed by Lento Manickathan, 2017
 
 \*---------------------------------------------------------------------------*/
 
@@ -308,6 +309,34 @@ int main(int argc, char *argv[])
        )
     );
 
+    scalarListIOList LAIboundaryList
+    (
+        IOobject
+        (
+            "LAIboundary",
+            runTime.constant(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        )
+    );
+
+     IOdictionary vegetationProperties
+     (
+         IOobject
+         (
+             "vegetationProperties",
+             runTime.constant(),
+             mesh,
+             IOobject::MUST_READ,
+             IOobject::NO_WRITE
+         )
+     );
+
+     scalar beta = vegetationProperties.lookupOrDefault("beta", 0.5);//(0-90)*(PI/180);
+
+     Info << "beta " << beta << endl;
+
     const label debug = viewFactorDict.lookupOrDefault<label>("debug", 0);
 
     volScalarField Qr
@@ -430,9 +459,9 @@ int main(int argc, char *argv[])
 		}
 		countAll ++;
     }
-    
+
     viewFactorsPatches.resize(count--);
-	Info << "howManyCoarseFacesPerPatch: " << howManyCoarseFacesPerPatch << endl;
+	//Info << "howManyCoarseFacesPerPatch: " << howManyCoarseFacesPerPatch << endl;
 
     List<labelField> sunskyMap__(Pstream::nProcs());
     sunskyMap__[Pstream::myProcNo()] = sunskyMap_;
@@ -710,7 +739,7 @@ int main(int argc, char *argv[])
 
     }
 
-    Info << "nVisibleFaceFacesList: " << nVisibleFaceFacesList << endl;
+    //Info << "nVisibleFaceFacesList: " << nVisibleFaceFacesList << endl;
 
 
     // Fill local view factor matrix
@@ -797,7 +826,7 @@ int main(int argc, char *argv[])
     			sunVisibleOrNot[vectorId][k] = nVisibleFaceFacesList[vectorId][faceNo];
 
     			cosPhi = (localCoarseSf[faceNo] & sunPos)/(mag(localCoarseSf[faceNo])*mag(sunPos) + SMALL);
-    			sunViewCoeff[vectorId][k] = nVisibleFaceFacesList[vectorId][faceNo]*mag(cosPhi) * IDN[vectorId];
+    			sunViewCoeff[vectorId][k] = nVisibleFaceFacesList[vectorId][faceNo]*mag(cosPhi) * IDN[vectorId] * Foam::exp(-beta*LAIboundaryList[vectorId][faceNo]); // beer-lambert law
 
     			cosPhi = (localCoarseSf[faceNo] & skyPos)/(mag(localCoarseSf[faceNo])*mag(skyPos) + SMALL);
     			radAngleBetween = Foam::acos( min(max(cosPhi, -1), 1) );
@@ -815,13 +844,16 @@ int main(int argc, char *argv[])
         k = 0;
         faceNo = 0;
     }
-	Info << "sunVisibleOrNot: " << sunVisibleOrNot << endl;
+
+  /*
+  Info << "sunVisibleOrNot: " << sunVisibleOrNot << endl;
 
 	Info << "localCoarseCf: " << localCoarseCf << endl;
 	Info << "localCoarseSf: " << localCoarseSf << endl;
 
 	Info << "sunViewCoeff: " << sunViewCoeff << endl;
 	Info << "skyViewCoeff: " << skyViewCoeff << endl;
+  */
 
 	sunVisibleOrNot.write();
 	sunViewCoeff.write();
