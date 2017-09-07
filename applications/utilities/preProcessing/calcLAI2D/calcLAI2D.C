@@ -22,10 +22,10 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    raytracing
+    calcLAI
 
 Description
-    raytracing by Lento Manickathan, April. // only vertical
+    calcLAI by Lento Manickathan, May
 
 \*---------------------------------------------------------------------------*/
 
@@ -54,19 +54,33 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
         IOobject::MUST_READ
     );
 
-    if (LADheader.headerOk())
+    IOobject LAIheader
+    (
+        "LAI",
+        runTime.timeName(),
+        mesh,
+        IOobject::MUST_READ
+    );
+
+
+    if (LADheader.headerOk() && LAIheader.headerOk())
     {
         Info<< "    Reading LAD" << endl;
         volScalarField LAD(LADheader, mesh);
 
+        Info<< "    Reading LAI" << endl;
+        volScalarField LAI(LAIheader, mesh);
+
+        /*
         Info<< "    Calculating LAI" << endl;
         volScalarField LAI(IOobject("LAI",
                                     runTime.timeName(),
                                     mesh,
-                                    IOobject::NO_READ,
+                                    IOobject::MUST_READ,
                                     IOobject::AUTO_WRITE),
                            mesh,
                            dimensionedScalar("0", dimensionSet(0,0,0,0,0,0,0), 0.0));
+       */
 
        IOdictionary vegetationProperties
        (
@@ -79,6 +93,12 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
                IOobject::NO_WRITE
            )
        );
+
+       if (gSum(LAD) < 10*SMALL)
+       {
+         Info << "\n\n\nNo vegetation !!\n\n\n" << endl;
+       }
+
 
        /////////////// tic
        clock_t tstart = std::clock();
@@ -117,9 +137,10 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
        // Mesh cell centers
        pointField pmeshC = mesh.C();
 
+       // Define search mesh
        meshSearch ms(mesh);
 
-              /////////////// Determine rotated coordinate system mesh
+       /////////////// Determine rotated coordinate system mesh
        pointField pmeshCRot = transform(T,pmeshC);
 
 
@@ -200,7 +221,7 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
              //cellIndex = ms.findCell(ptemp,-1,true); slow
              //cellIndex = ms.findCell(ptemp,-1,false); slower
              //cellIndex = ms.findCell(ptemp,0,true); // faster
-             cellIndex = ms.findNearestCell(ptemp,0,true); // fastest
+             cellIndex = ms.findNearestCell(ptemp,0,true); // fastest // most likely handels holes
 
              if (cellIndex != -1)
              {
@@ -214,8 +235,6 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
 
          }
        }
-
-
 
        // Info << "Info: " << LADInterp << endl;
 
@@ -272,8 +291,9 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
             }
        }
 
+       LAI.correctBoundaryConditions();
 
-        Info << "It took "<< (std::clock()-tstart) / (double)CLOCKS_PER_SEC <<" second(s)."<< endl;
+       Info << "It took "<< (std::clock()-tstart) / (double)CLOCKS_PER_SEC <<" second(s)."<< endl;
 
         if (writeResults)
         {

@@ -25,291 +25,805 @@ Application
     calcLAI
 
 Description
-    calcLAI by Lento Manickathan, May
+    calcLAI by Lento Manickathan
+
+Versions
+    May   - v1
+    July  - v2
+    Aug   - v3, v4
 
 \*---------------------------------------------------------------------------*/
 
-#include "calc.H"
-#include "fvc.H"
-#include "polyMesh.H"
+
+#include "argList.H"
+#include "fvMesh.H"
+#include "Time.H"
+#include "fvCFD.H"
+#include "volFields.H"
+#include "surfaceFields.H"
+#include "distributedTriSurfaceMesh.H"
+#include "cyclicAMIPolyPatch.H"
+#include "triSurfaceTools.H"
+#include "mapDistribute.H"
+
+#include "OFstream.H"
 #include "meshTools.H"
 #include "meshSearch.H"
-#include "treeDataFace.H"
-#include "treeDataCell.H"
-#include "interpolation.H"
+#include "plane.H"
+#include "uindirectPrimitivePatch.H"
+#include "DynamicField.H"
+#include "IFstream.H"
+#include "unitConversion.H"
 
-#include <ctime>
+//#include "mathematicalConstants.H"
+//#include "scalarMatrices.H"
+//#include "CompactListList.H"
+//#include "labelIOList.H"
+//#include "labelListIOList.H"
+#include "scalarListIOList.H"
+#include "scalarIOList.H"
+#include "vectorIOList.H"
+
+#include "singleCellFvMesh.H"
+#include "interpolation.H"
+//#include "IOdictionary.H"
+#include "fixedValueFvPatchFields.H"
+#include "wallFvPatch.H"
+#include "treeDataFace.H"
+//#include "fvIOoptionList.H"
+
+using namespace Foam;
+
+// calculate the end point for a ray hit check
+point calcEndPoint(point &start, point &n2, point &pminO, point &pmaxO)
+{
+  scalar ix = 0; scalar iy = 0; scalar iz = 0;
+
+  if (n2.x() > 0.0)
+    ix = (pmaxO.x() - start.x())/n2.x();
+  else if (n2.x() < 0.0)
+    ix = (pminO.x() - start.x())/n2.x();
+  else
+    ix = VGREAT;
+
+  if (n2.y() > 0.0)
+    iy = (pmaxO.y() - start.y())/n2.y();
+  else if (n2.y() < 0.0)
+    iy = (pminO.y() - start.y())/n2.y();
+  else iy = VGREAT;
+
+  if (n2.z() > 0.0)
+    iz = (pmaxO.z() - start.z())/n2.z();
+  else if (n2.z() < 0.0)
+    iz = (pminO.z() - start.z())/n2.z();
+  else
+    iz = VGREAT;
+
+  // closest edg direction
+  scalar i = min(ix, min(iy, iz));
+
+  return 0.9999*i*n2 + start;
+}
+
+
+// trilinear interpolation
+scalar interp3D(point &ptemp, pointField &pInterp, scalarField &valInterp, int &nx, int &ny) //point &dp,
+{
+
+  // point &dp, int &i0, int &j0, int &k0, int &nx, int &ny, int &nz)
+  point pmin = pInterp[0];
+  point dp   = pInterp[(nx*ny) + nx + 1] - pInterp[0];
+
+  // Offset from p min.
+  double xp = ptemp.x()-pmin.x();
+  double yp = ptemp.y()-pmin.y();
+  double zp = ptemp.z()-pmin.z();
+
+  // Determine index of lower bound
+  int i0 = floor(xp/dp.x());
+  int j0 = floor(yp/dp.y());
+  int k0 = max(0, floor(zp/dp.z())); // if (k0 < 0) k0 = 0;
+
+
+  // indices
+  int i000 = (nx*ny)*k0 + j0*nx + i0;
+  int i100 = (nx*ny)*k0 + j0*nx + i0+1;
+  int i010 = (nx*ny)*k0 + (j0+1)*nx + i0;
+  int i110 = (nx*ny)*k0 + (j0+1)*nx + i0+1;
+  int i001 = (nx*ny)*(k0+1) + j0*nx + i0;
+  int i101 = (nx*ny)*(k0+1) + j0*nx + i0+1;
+  int i011 = (nx*ny)*(k0+1) + (j0+1)*nx + i0;
+  int i111 = (nx*ny)*(k0+1) + (j0+1)*nx + i0+1;
+
+  point pInterp000 = pInterp[i000];
+
+  // Bilinear interpolation
+  double xd = (ptemp.x()-pInterp000.x())/dp.x();
+  double yd = (ptemp.y()-pInterp000.y())/dp.y();
+  double zd = (ptemp.z()-pInterp000.z())/dp.z();
+
+  // Interpolation in x-dir
+  double c00 = valInterp[i000]*(1-xd) + valInterp[i100]*xd;
+  double c01 = valInterp[i001]*(1-xd) + valInterp[i101]*xd;
+  double c10 = valInterp[i010]*(1-xd) + valInterp[i110]*xd;
+  double c11 = valInterp[i011]*(1-xd) + valInterp[i111]*xd;
+
+  // Interpolation in y-dir
+  double c0 = c00*(1.0-yd) + c10*yd;
+  double c1 = c01*(1.0-yd) + c11*yd;
+
+  // Interpolate in z-dir
+  return c0*(1.0-zd) + c1*zd;
+
+}
+
+
+triSurface triangulate
+(
+    const polyBoundaryMesh& bMesh,
+    const labelHashSet& includePatches,
+    const labelListIOList& finalAgglom,
+    labelList& triSurfaceToAgglom,
+    const globalIndex& globalNumbering,
+    const polyBoundaryMesh& coarsePatches
+)
+{
+    const polyMesh& mesh = bMesh.mesh();
+
+    // Storage for surfaceMesh. Size estimate.
+    DynamicList<labelledTri> triangles
+    (
+        mesh.nFaces() - mesh.nInternalFaces()
+    );
+
+    label newPatchI = 0;
+    label localTriFaceI = 0;
+
+    forAllConstIter(labelHashSet, includePatches, iter)
+    {
+        const label patchI = iter.key();
+        const polyPatch& patch = bMesh[patchI];
+        const pointField& points = patch.points();
+
+        label nTriTotal = 0;
+
+        forAll(patch, patchFaceI)
+        {
+            const face& f = patch[patchFaceI];
+
+            faceList triFaces(f.nTriangles(points));
+
+            label nTri = 0;
+
+            f.triangles(points, nTri, triFaces);
+
+            forAll(triFaces, triFaceI)
+            {
+                const face& f = triFaces[triFaceI];
+
+                triangles.append(labelledTri(f[0], f[1], f[2], newPatchI));
+
+                nTriTotal++;
+
+                triSurfaceToAgglom[localTriFaceI++] = globalNumbering.toGlobal
+                (
+                    Pstream::myProcNo(),
+                    finalAgglom[patchI][patchFaceI]
+                  + coarsePatches[patchI].start()
+                );
+            }
+        }
+
+        newPatchI++;
+    }
+
+    triSurfaceToAgglom.resize(localTriFaceI-1);
+
+    triangles.shrink();
+
+    // Create globally numbered tri surface
+    triSurface rawSurface(triangles, mesh.points());
+
+    // Create locally numbered tri surface
+    triSurface surface
+    (
+        rawSurface.localFaces(),
+        rawSurface.localPoints()
+    );
+
+    // Add patch names to surface
+    surface.patches().setSize(newPatchI);
+
+    newPatchI = 0;
+
+    forAllConstIter(labelHashSet, includePatches, iter)
+    {
+        const label patchI = iter.key();
+        const polyPatch& patch = bMesh[patchI];
+
+        surface.patches()[newPatchI].index() = patchI;
+        surface.patches()[newPatchI].name() = patch.name();
+        surface.patches()[newPatchI].geometricType() = patch.type();
+
+        newPatchI++;
+    }
+
+    return surface;
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
+
+int main(int argc, char *argv[])
 {
-    bool writeResults = !args.optionFound("noWrite");
+    // start timer
+    clock_t tstart = std::clock();
+    //clock_t tstartlocal = std::clock();
+    clock_t tstartStep;
 
-    IOobject LADheader
+    #include "addRegionOption.H"
+
+    Foam::argList::addOption
     (
-        "LAD",
-        runTime.timeName(),
-        mesh,
-        IOobject::MUST_READ
+         "writeFields",
+         "",
+         "write LAI volScalarFields of all time steps"
     );
 
-    IOobject LAIheader
+    #include "setRootCase.H"
+    #include "createTime.H"
+    #include "createNamedMesh.H"
+
+    volScalarField LAD
     (
-        "LAI",
-        runTime.timeName(),
-        mesh,
-        IOobject::MUST_READ
+      IOobject
+      (
+          "LAD",
+          runTime.timeName(),
+          mesh,
+          IOobject::MUST_READ,
+          IOobject::NO_WRITE
+      ),
+      mesh
     );
 
-
-    if (LADheader.headerOk() && LAIheader.headerOk())
+    // Check if vegetation is present
+    if (gSum(LAD) < 10*SMALL)
     {
-        Info<< "    Reading LAD" << endl;
-        volScalarField LAD(LADheader, mesh);
+        Info << "\n\n\n No vegetation !!!!!!!!!\n\nDon't waste my time d[-.-]b\n" << endl;
+        return 0;
+    }
 
-        Info<< "    Reading LAI" << endl;
-        volScalarField LAI(LAIheader, mesh);
+    wordList boundaryTypes = LAD.boundaryField().types();
 
-        /*
-        Info<< "    Calculating LAI" << endl;
-        volScalarField LAI(IOobject("LAI",
-                                    runTime.timeName(),
-                                    mesh,
-                                    IOobject::MUST_READ,
-                                    IOobject::AUTO_WRITE),
-                           mesh,
-                           dimensionedScalar("0", dimensionSet(0,0,0,0,0,0,0), 0.0));
-       */
-
-       IOdictionary vegetationProperties
+    // Read sunPosVector list
+    vectorIOList sunPosVector
+    (
+       IOobject
        (
-           IOobject
-           (
-               "vegetationProperties",
-               runTime.constant(),
-               mesh,
-               IOobject::MUST_READ,
-               IOobject::NO_WRITE
-           )
-       );
+            "sunPosVector",
+            runTime.constant(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+       )
+    );
 
-       if (gSum(LAD) < 10*SMALL)
-       {
-         Info << "\n\n\nNo vegetation !!\n\n\n" << endl;
-       }
+    scalarListIOList LAIList
+    (
+        IOobject
+        (
+            "LAI",
+            mesh.facesInstance(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        sunPosVector.size()
+    );
 
+    scalarListIOList LAIboundaryList
+    (
+        IOobject
+        (
+            "LAIboundary",
+            mesh.facesInstance(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        sunPosVector.size()
+    );
 
-       /////////////// tic
-       clock_t tstart = std::clock();
+    labelListIOList finalAgglom
+    (
+        IOobject
+        (
+            "finalAgglom",
+            mesh.facesInstance(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE,
+            false
+        )
+    );
 
+    singleCellFvMesh coarseMesh
+    (
+        IOobject
+        (
+            mesh.name(),
+            runTime.timeName(),
+            runTime,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh,
+        finalAgglom
+    );
 
-       /////////////// Define solar angle rotationTensor
-
-       // Define Solar angles
-       scalar PI = 3.14159265359;
-       dimensionedScalar theta = vegetationProperties.lookup("phi");//(0-90)*(PI/180);
-       scalar cosTheta = cos((theta.value()-90)*(PI/180));
-       scalar sinTheta = sin((theta.value()-90)*(PI/180));
-
-       Info <<  theta << endl; //.subDict("interpolationSchemes")
-       // Define rotation vectors
-       vector n1(1,0,0);
-       vector n2(cosTheta,0,sinTheta);
-       //vector n2(1,0,0);
-
-       // Define rotation matrix
-       tensor T(rotationTensor(n2,n1));
-       tensor Tinv(rotationTensor(n1,n2));
-
-       // Info << "T: " << T << endl;
-       // Info << "Tinv: " << Tinv << endl;
-
-
-       /////////////// Determine the properties of original coordinate systems
-
-       // Define mesh bounding box
-       treeBoundBox allBb(mesh.points());
-
-       // Define mesh centroid
-       // point pCentroid = allBb.max()-allBb.min();
-
-       // Mesh cell centers
-       pointField pmeshC = mesh.C();
-
-       // Define search mesh
-       meshSearch ms(mesh);
-
-       /////////////// Determine rotated coordinate system mesh
-       pointField pmeshCRot = transform(T,pmeshC);
-
-
-       /////////////// Determine bbox of vegetation (rotated coordinate system)
-
-       point pmin=gMax(pmeshCRot);
-       point pmax=gMin(pmeshCRot);
-       point ptemp;
-
-       forAll(LAD, cellI)
-       {
-            if (LAD[cellI] > 10*SMALL)
-            {
-                ptemp = pmeshCRot[cellI];
-                pmin = min(pmin,ptemp);
-                pmax = max(pmax,ptemp);
-            }
-       }
-
-       // Info << "Info: " << pmin << endl;
-       // Info << "Info: " << pmax << endl;
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // Global setup
 
 
-       /////////////// Interpolate from polyMesh to cartesian
+    // Mesh setup
+    int nMeshCells = mesh.cells().size();
 
-       // Define interpolator
-       dictionary interpolationDict = mesh.schemesDict().subDict("interpolationSchemes");
-       autoPtr<interpolation<scalar> > LAD_interpolator = interpolation<scalar>::New(interpolationDict, LAD);
+    // Define rotation vectors
+    vector n1(0,0,1); // original vector
+    n1 /= mag(n1);
 
+    // Define mesh bounding box
+    treeBoundBox allBb(mesh.points());
 
-       /////////////// Define cartesian interpolation grid
+    // Define search mesh
+    meshSearch ms(mesh);
 
-       // Cartesian mesh resolution
-       point dp(0.01,0,0.01);
+    // Mesh cell centers
+    pointField pmeshC = mesh.C();
 
-       // Increase tolerance of cartesian grid
-       pmin.x() -= dp.x();
-       pmin.z()  = gMin(pmeshCRot).z();
-       //pmin.z() -= 2*dp.z();
-       pmax.x() += dp.x();
-       pmax.z() += dp.z();
+    // mesh bounding box
+    point pminO = gMin(pmeshC);
+    point pmaxO = gMax(pmeshC);
 
-       // Mesh size
-       int nx = ceil((pmax.x()-pmin.x())/dp.x());
-       int nz = ceil((pmax.z()-pmin.z())/dp.z());
+    // Set up searching engine for obstacles (copied from Aytac)
+    #include "searchingEngine.H"
 
-       Info << "Info: " << nx << " " << nz << endl;
+    // Generate dummy data
+    scalarList zeroList_nMeshCells(nMeshCells, 0.0);
+    scalarList zeroList_nCoarseFaces(nCoarseFaces, 0.0);
 
+    ////// Determine BBOX of vegetation (original coordinate system)
+    point pmin = gMax(pmeshC);
+    point pmax = gMin(pmeshC);
+    int vegetationCell = 0;
 
-       // Generate cartesian grid, LAD and LAI field
-       pointField pInterp(nx*nz, point::zero);
-       scalarField LADInterp(nx*nz,pTraits<scalar>::zero);
-       scalarField LAIInterp(nx*nz,pTraits<scalar>::zero);
-       //DynamicList<int> cellIndexList;
-
-
-       Info << "Info: " << nx << " " << nz << endl;
-
-       int cellIndex;
-
-       /////////////// Interpolate LAD onto interpolation mesh
-
-       for (int k=0; k < nz; k++)
-       {
-         for (int i=0; i < nx; i++)
-         {
-           // x,y,z coordinates
-           pInterp[k*nx+i].x() = pmin.x() + i*dp.x();
-           pInterp[k*nx+i].z() = pmin.z() + k*dp.z();
-
-           // Intersecting cellIndex
-           //cellIndex = mesh.findCell(pInterp[k*nx+i]);
-           ptemp = transform(Tinv,pInterp[k*nx+i]);
-
-           if ( (ptemp > allBb.min()) && (ptemp < allBb.max()) )
-           {
-             //cellIndex = mesh.findCell(ptemp); // fast
-             //cellIndex = ms.findCell(ptemp,-1,true); slow
-             //cellIndex = ms.findCell(ptemp,-1,false); slower
-             //cellIndex = ms.findCell(ptemp,0,true); // faster
-             cellIndex = ms.findNearestCell(ptemp,0,true); // fastest // most likely handels holes
-
-             if (cellIndex != -1)
-             {
-               // cellIndexList.append(cellIndex);
-               // Interpolate onto scalar field
-               // LADInterp[k*nx+i] = LAD[cellIndex]; // nearest neighbour
-               LADInterp[k*nx+i] = LAD_interpolator->interpolate(pInterp[k*nx+i],cellIndex); // interpolate
-             }
-
-           }
-
-         }
-       }
-
-       // Info << "Info: " << LADInterp << endl;
-
-       /////////////// Integrate LAD
-
-       for (int i=0; i < nx; i++)
-       {
-         for (int k=(nz-2); k>=0; k--)
-         {
-           LAIInterp[k*nx+i] = LAIInterp[(k+1)*nx+i] + 0.5*(LADInterp[k*nx+i]+LADInterp[(k+1)*nx+i])*dp.z();
-         }
-       }
-
-       // Info << "Info: " << LAIInterp << endl;
-
-
-       /////////////// Interpolate LAI from cartesian to original grid
-
-       double xp,zp,xd,zd,c1,c2;
-       int i0, k0;
-
-       forAll(LAD, cellI)
-       {
-            //p = mesh.C()[cellI];
-            // Cell center point (rotated coordinate system)
-            ptemp = pmeshCRot[cellI];
-
-            //if (LAD[cellI] > 10*SMALL)
-            if ( (ptemp.x() >= pmin.x()) && (ptemp.x() <= pmax.x()) && (ptemp.z() >= pmin.z()) && (ptemp.z() <= pmax.z()) )
-            {
-
-                // Offset from p min.
-                xp = ptemp.x()-pmin.x();
-                zp = ptemp.z()-pmin.z();
-
-                // Determine index of lower bound
-                i0 = floor(xp/dp.x());
-                k0 = floor(zp/dp.z());
-
-                // Lowest point interpolation
-                // LAI[cellI] = LAIInterp[k0*nx+i0];
-
-                // Bilinear interpolation
-
-                xd = (ptemp.x()-pInterp[k0*nx+i0].x())/dp.x();
-                zd = (ptemp.z()-pInterp[k0*nx+i0].z())/dp.z();
-
-                c1 = LAIInterp[k0*nx+i0]*(1.0-xd) + LAIInterp[k0*nx+(i0+1)]*xd;
-                c2 = LAIInterp[(k0+1)*nx+i0]*(1.0-xd) + LAIInterp[(k0+1)*nx+(i0+1)]*xd;
-
-                LAI[cellI] =  c1*(1.0-zd) + c2*zd;
-
-
-            }
-       }
-
-       LAI.correctBoundaryConditions();
-
-       Info << "It took "<< (std::clock()-tstart) / (double)CLOCKS_PER_SEC <<" second(s)."<< endl;
-
-        if (writeResults)
-        {
-            LAI.write();
-        }
-        else
-        {
-            Info<< "        No write"  << endl;
-        }
-    }
-    else
+    point ptemp;
+    forAll(LAD, cellI)
     {
-        Info<< "    No LAD" << endl;
+        // where vegetation is present
+        if (LAD[cellI] > 10*SMALL)
+        {
+            ptemp = pmeshC[cellI];
+            pmin = min(pmin,ptemp);
+            pmax = max(pmax,ptemp);
+            vegetationCell = cellI;
+        }
     }
 
-    Info<< "\nEnd\n" << endl;
+    ////// Define LAD interpolator to arbitrary locations
+
+    // Read interpolation scheme
+    dictionary interpolationDict = mesh.schemesDict().subDict("interpolationSchemes");
+
+    // Define interpolator
+    autoPtr<interpolation<scalar> > LAD_interpolator = interpolation<scalar>::New(interpolationDict, LAD);
+
+
+    ////// Define cartesian interpolation grid
+
+    // Cartesian mesh resolution (determine from minimum cell size)
+    scalar minCellV = gMin(mesh.V());
+    scalar minCellL = Foam::pow(minCellV, 1.0/3.0);
+
+    // grid spacing
+    point dp(minCellL,minCellL,minCellL); //point dp(0.5, 0.5, 0.5);
+
+    // Extend the cartesian grid to include vegetation
+    pmin -= 5*dp;
+    pmax += 5*dp;
+
+    // Define cartesian grid size
+    int nx = ceil( (pmax.x()-pmin.x()) / dp.x()) + 1;
+    int ny = ceil( (pmax.y()-pmin.y()) / dp.y()) + 1;
+    int nz = ceil( (pmax.z()-pmin.z()) / dp.z()) + 1;
+
+    // Generate cartesian interpolation grid
+    // coordinates
+    pointField pInterp(nx*ny*nz, point::zero);
+    // interpolated LAD
+    scalarField LADInterp(nx*ny*nz,pTraits<scalar>::zero);
+
+    // Grid info
+    //Info << "Info: Mesh size: " << nx << "x" << ny << "x" << nz << " : " << pInterp.size() << endl;
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+    /////////////// (Step 2) Interpolate LAD onto cartesian interpolation mesh
+    //tstartlocal = std::clock();
+
+    int cellIndex;
+    int pIndex;
+
+    for (int k=0; k < nz; k++)
+    {
+      for (int j=0; j < ny; j++)
+      {
+        for (int i=0; i < nx; i++)
+        {
+          // index of node p
+          pIndex = (nx*ny)*k + j*nx + i;
+
+          // x,y,z coordinates in rotated coordinate system
+          pInterp[pIndex].x() = pmin.x() + i*dp.x();
+          pInterp[pIndex].y() = pmin.y() + j*dp.y();
+          pInterp[pIndex].z() = pmin.z() + k*dp.z();
+
+          // coordinate of point in original coordinate system
+          ptemp = pInterp[pIndex]; //ptemp = transform(Tinv, pInterp[pIndex]);
+
+          // Find intersecting cell
+          cellIndex = ms.findCell(ptemp,vegetationCell,true); // faster
+
+          // if point is inside domain
+          if (cellIndex != -1)
+            LADInterp[pIndex] = LAD_interpolator->interpolate(pInterp[pIndex],cellIndex);
+
+        }
+      }
+    }
+    // update maximum point
+    pmax = gMax(pInterp);
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Coarse mesh faces
+    #include "findCoarseMeshFaces.H"
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Status Info
+    Info << "Info: Time, Initialization took: "
+         << (std::clock()-tstart) / (double)CLOCKS_PER_SEC
+         <<" second(s)."<< endl;
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    // Iterate for each sun ray
+    //int iter = 0;
+
+    forAll(sunPosVector, vectorID)
+    {
+        // start clock
+        tstartStep = std::clock();
+
+        ////////////////////////////////////////////////////////////////////////
+        // Setup for each sun ray
+
+        // Reference
+        scalarList &LAI = LAIList[vectorID];
+        scalarList &LAIboundary = LAIboundaryList[vectorID];
+
+        // Initialize LAI
+        LAI = zeroList_nMeshCells;
+        LAIboundary = zeroList_nCoarseFaces;
+
+        // sunPosVector i
+        vector n2 = sunPosVector[vectorID];
+        //vector n2(1,1,1);
+        n2 /= mag(n2);
+
+        // only if sun is above the horizon
+        if (n2[1] > 0)
+        {
+            ////////////////////////////////////////////////////////////////////
+            // Setup
+            // tstartlocal = std::clock();
+
+            // Info << "Info: n2" << n2 << endl;
+
+            // Define rotation matrix
+            tensor T(rotationTensor(n2,n1));       // from n1 to n2
+            tensor Tinv(rotationTensor(n1,n2));    // from n2 back to n1
+
+            /////////////// (Step 1.d) Determine bbox of vegetation (rotated coordinate system)
+            // Calculated in the rotated coordinate system
+
+            // Mesh cell centers (rotated coordinate system)
+            pointField pmeshCRot = transform(T,pmeshC);
+
+            // Minimum point
+            point pmeshMinRot = gMin(pmeshCRot);
+
+            ////// Calculate BBOX of rotated vegetation
+            point pminRot = gMax(pmeshCRot);
+            point pmaxRot = gMin(pmeshCRot);
+
+            point ptemp;
+            forAll(LAD, cellI)
+            {
+                // where vegetation is present
+                if (LAD[cellI] > 10*SMALL)
+                {
+                    ptemp = pmeshCRot[cellI];
+                    pminRot = min(pminRot,ptemp);
+                    pmaxRot = max(pmaxRot,ptemp);
+                }
+            }
+
+            // Extend the rotated cartesian grid to include vegetation
+            pminRot -= 5*dp;
+            pmaxRot += 5*dp;
+
+            // Define rotated cartesian grid size
+            int nxRot = ceil( (pmaxRot.x()-pminRot.x()) / dp.x()) + 1;
+            int nyRot = ceil( (pmaxRot.y()-pminRot.y()) / dp.y()) + 1;
+            int nzRot = ceil( (pmaxRot.z()-pminRot.z()) / dp.z()) + 1;
+
+            // Generate rotated cartesian interpolation grid
+            // coordinates
+            pointField pInterpRot(nxRot*nyRot*nzRot, point::zero);
+            // interpolated LAD
+            scalarField LADInterpRot(nxRot*nyRot*nzRot,pTraits<scalar>::zero);
+            // interpolated LAI
+            scalarField LAIInterpRot(nxRot*nyRot*nzRot,pTraits<scalar>::zero);
+
+            // Grid info
+            // Info << "Info: vectorID " << vectorID << ", mesh size: " << nxRot << "x" << nyRot << "x" << nzRot << " : " << pInterpRot.size() << endl;
+
+            ////////////////////////////////////////////////////////////////////
+            // Interpolate onto rotated cartesian grid
+
+            for (int k=0; k < nzRot; k++)
+            {
+              for (int j=0; j < nyRot; j++)
+              {
+                for (int i=0; i < nxRot; i++)
+                {
+                  // index of node p
+                  pIndex = (nxRot*nyRot)*k + j*nxRot + i;
+
+                  // x,y,z coordinates in rotated coordinate system
+                  pInterpRot[pIndex].x() = pminRot.x() + i*dp.x();
+                  pInterpRot[pIndex].y() = pminRot.y() + j*dp.y();
+                  pInterpRot[pIndex].z() = pminRot.z() + k*dp.z();
+
+                  // coordinate of point in original coordinate system
+                  ptemp = transform(Tinv, pInterpRot[pIndex]);
+
+                  // If point is within the bbox of original cartesian grid
+                  if ( (ptemp.x() >= pmin.x()) && (ptemp.x() <= pmax.x()) &&
+                       (ptemp.y() >= pmin.y()) && (ptemp.y() <= pmax.y()) &&
+                       (ptemp.z() >= pmin.z()) && (ptemp.z() <= pmax.z()) )
+                     LADInterpRot[pIndex] = interp3D(ptemp, pInterp, LADInterp, nx, ny);
+
+                }
+              }
+            }
+            // update maximum point
+            pmaxRot = gMax(pInterpRot);
+
+            ////////////////////////////////////////////////////////////////////
+            // Integrate LAD on the rotated cartesian grid
+            // tstartlocal = std::clock();
+
+            int pIndexkp1;
+
+            for (int i=0; i < nxRot; i++)
+            {
+              for (int j=0; j < nyRot; j++)
+              {
+                for (int k=(nzRot-2); k>=0; k--)
+                {
+                  // lower and upper row index
+                  pIndex = (nxRot*nyRot)*k + j*nxRot + i;
+                  pIndexkp1 = (nxRot*nyRot)*(k+1) + j*nxRot + i;
+                  // trapezoidal integration
+                  LAIInterpRot[pIndex] = LAIInterpRot[pIndexkp1] + 0.5*(LADInterpRot[pIndex]+LADInterpRot[pIndexkp1])*dp.z();
+
+                }
+              }
+            }
+
+            ////////////////////////////////////////////////////////////////////
+            // Interpolate LAI from rotated cartesian grid onto original grid
+
+            int nCellsinVegetationBBOX = 0;
+            forAll(LAD, cellI)
+            {
+                // Cell center point (rotated coordinate system)
+                ptemp = pmeshCRot[cellI];
+
+                if ( (ptemp.x() > pminRot.x()) && (ptemp.x() < pmaxRot.x()) &&
+                     (ptemp.y() > pminRot.y()) && (ptemp.y() < pmaxRot.y()) &&
+                     (ptemp.z() > pmeshMinRot.z()) && (ptemp.z() < pmaxRot.z()) )
+                {
+                    nCellsinVegetationBBOX++;
+                }
+            }
+
+            DynamicField<point> startList(nCellsinVegetationBBOX);
+            DynamicField<point> endList(nCellsinVegetationBBOX);
+            List<pointIndexHit> pHitList(nCellsinVegetationBBOX);
+            DynamicField<label> insideCellIList(nCellsinVegetationBBOX);
+
+            forAll(LAD, cellI)
+            {
+                // Cell center point (rotated coordinate system)
+                ptemp = pmeshCRot[cellI];
+
+                if ( (ptemp.x() > pminRot.x()) && (ptemp.x() < pmaxRot.x()) &&
+                     (ptemp.y() > pminRot.y()) && (ptemp.y() < pmaxRot.y()) &&
+                     (ptemp.z() > pmeshMinRot.z()) && (ptemp.z() < pmaxRot.z()) )
+                {
+
+                    // Check if cell in building shadow shadow
+                    point starti = transform(Tinv, ptemp);
+                    point endi = calcEndPoint(starti, n2, pminO, pmaxO);
+                    startList.append(starti);
+                    endList.append(endi);
+                    insideCellIList.append(cellI);
+                }
+            }
+
+            surfacesMesh.findLine(startList, endList, pHitList);
+
+            // Updated LAI fields
+            forAll(pHitList, rayI)
+            {
+                label cellI = insideCellIList[rayI];
+
+                if (!pHitList[rayI].hit())
+                {
+                    ptemp = pmeshCRot[cellI];
+
+                    LAI[cellI] = interp3D(ptemp, pInterpRot, LAIInterpRot, nxRot, nyRot);
+                }
+                else if (LAD[cellI] > 10*SMALL)
+                {
+                    LAI[cellI] = -1; // large enough to ensure qr = exp(-LAI*k)  \approx 0
+                }
+            }
+
+            ////////////////////////////////////////////////////////////////////
+            // Interpolate LAI onto coarse mesh faces
+
+            int nFacesinVegetationBBOX = 0;
+            forAll(localCoarseCf, faceI)
+            {
+                // Cell center point (rotated coordinate system)
+                ptemp = transform(T, localCoarseCf[faceI]);
+
+                if ( (ptemp.x() > pminRot.x()) && (ptemp.x() < pmaxRot.x()) &&
+                     (ptemp.y() > pminRot.y()) && (ptemp.y() < pmaxRot.y()) &&
+                     (ptemp.z() < pmaxRot.z()) )
+                {
+                    nFacesinVegetationBBOX++;
+                }
+            }
+
+            DynamicField<point> coarseFaceStartList(nFacesinVegetationBBOX);
+            DynamicField<point> coarseFaceEndList(nFacesinVegetationBBOX);
+            List<pointIndexHit> coarseFacePHitList(nFacesinVegetationBBOX);
+            DynamicField<label> coarseFaceInsideFaceIList(nFacesinVegetationBBOX);
+
+            forAll(localCoarseCf, faceI)
+            {
+                // Cell center point (rotated coordinate system)
+                ptemp = transform(T, localCoarseCf[faceI]);
+
+                if ( (ptemp.x() > pminRot.x()) && (ptemp.x() < pmaxRot.x()) &&
+                     (ptemp.y() > pminRot.y()) && (ptemp.y() < pmaxRot.y()) &&
+                     (ptemp.z() > pmeshMinRot.z()) && (ptemp.z() < pmaxRot.z()) )
+                {
+
+                    // Check if cell in building shadow shadow
+                    point starti = localCoarseCf[faceI] + n2*0.0001;
+                    point endi = calcEndPoint(starti, n2, pminO, pmaxO);
+                    coarseFaceStartList.append(starti);
+                    coarseFaceEndList.append(endi);
+                    coarseFaceInsideFaceIList.append(faceI);
+                }
+            }
+
+            surfacesMesh.findLine(coarseFaceStartList, coarseFaceEndList, coarseFacePHitList);
+
+            // Updated LAI boundary fields
+            forAll(coarseFacePHitList, rayI)
+            {
+                label faceI = coarseFaceInsideFaceIList[rayI];
+
+                if (!coarseFacePHitList[rayI].hit())
+                {
+                    ptemp = transform(T, localCoarseCf[faceI]);
+
+                    LAIboundary[faceI] = interp3D(ptemp, pInterpRot, LAIInterpRot, nxRot, nyRot);
+                }
+            }
+
+            ////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
+            // Export --- temp.
+            if (args.optionFound("writeFields")==true)
+            {
+                Info << "Info: Exporting step " << vectorID << endl;
+
+                //word nameLAIi("LAI" + name(vectorID));
+
+                volScalarField LAIi
+                (
+                  IOobject
+                  (
+                     "LAI",
+                     runTime.timeName(),
+                     mesh,
+                     IOobject::NO_READ
+                  ),
+                  mesh,
+                  dimensionedScalar("0", dimensionSet(0,0,0,0,0,0,0), 0.0),
+                  boundaryTypes
+                );
+
+                forAll(LAIi, cellI)
+                {
+                    LAIi[cellI] = LAI[cellI];
+                }
+                LAIi.correctBoundaryConditions();
+                LAIi.write();
+                LAD.write();
+                runTime++;
+            }
+
+            //iter +=1;
+        }
+
+        ////////////////////////////////////////////////////////////////////////
+        // Status Info
+        Info << "Info: Time, solar ray vector " << vectorID
+             << " took: " << (std::clock()-tstartStep) / (double)CLOCKS_PER_SEC
+             << " second(s).\n"<< endl;
+
+        ////////////////////////////////////////////////////////////////////////
+        // if (iter >= 3)
+        //   break;
+
+    }
+
+    // Status Info
+    Info << "Info: Time, Total took: "
+         << (std::clock()-tstart) / (double)CLOCKS_PER_SEC
+         <<" second(s)."<< endl;
+
+
+    LAIList.write();
+    LAIboundaryList.write();
+
+    Info<< "End\n" << endl;
+    return 0;
+
 }
 
 
