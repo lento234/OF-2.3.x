@@ -1,0 +1,14 @@
+#!/bin/bash
+#BSUB -J case
+#BSUB -W 24:00
+#BSUB -n 24
+#BSUB -o log.cluster
+
+# Constants
+numProcCluster=24
+
+# request number of jobs threads
+export OMP_NUM_THREADS=$numProcCluster
+
+# run case
+./runCase $numProcCluster
