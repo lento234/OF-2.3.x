@@ -13,7 +13,6 @@ xvertices = np.array([-50, -15, -5, 5, 15, 100])
 yvertices = np.array([-50, -5, 5, 50])
 zvertices = np.array([0, 10, 30])
 
-
 # Blocks
 nx = np.array([30, 30, 50, 30, 30])
 ny = np.array([30, 50, 30])
@@ -23,11 +22,11 @@ nz = np.array([50, 30])
 xgrad = np.array([0.05,-5,1,-5,20])
 ygrad = np.array([0.05,-2,20])
 zgrad = np.array([-5,20])
-
 """
-nx = np.array([10, 10, 10, 30, 30])
-ny = np.array([10, 10, 10])
-nz = np.array([10, 10])
+
+nx = np.array([10, 10, 20, 10, 10])
+ny = np.array([10, 20, 10])
+nz = np.array([20, 10])
 
 # Resolutions
 xgrad = np.array([1,1,1,1,1])

@@ -33,9 +33,9 @@ betaP               betaP   [ 0 0 0 0 0 0 0 ] 1.0; // turbulent production coeff
 
 betaD               betaD   [ 0 0 0 0 0 0 0 ] 5.1; // turbulent destruction coeff
 
-H                   H       [ 0 1 0 0 0 0 0 ] 1.5; // location of canopy height
+//H                   H       [ 0 1 0 0 0 0 0 ] 1.5; // location of canopy height
 
-kc                  kc      [ 0 0 0 0 0 0 0 ] 0.78; // extinction coefficient of radiation
+beta                beta    [ 0 0 0 0 0 0 0 ] 0.78; // extinction coefficient of radiation
 
 l                   l       [ 0 1 0 0 0 0 0 ] 0.1; // characteristic length of leaf
 
@@ -45,16 +45,18 @@ rhoa                rhoa    [1 -3 0 0 0 0 0 ] 1.225; // density of air
 
 rsMin               rsMin   [ 0 -1 1 0 0 0 0 ] 150; // stomatal resistance ???
 
-Rg0                 Rg0     [1 0 -3 0 0 0 0] -800;//404; // global radiation at top of canopy
+//Rg0                 Rg0     [1 0 -3 0 0 0 0] -800;//404; // global radiation at top of canopy
 
-Rl0                 Rl0     [1 0 -3 0 0 0 0] 350; // long-wave radiation at top of canopy
+//Rl0                 Rl0     [1 0 -3 0 0 0 0] 350; // long-wave radiation at top of canopy
+
+beta                0.78; // extinction coefficient of radiation
+
+
 
 nEvapSides          nEvapSides [ 0 0 0 0 0 0 0 ] 1;
 
 //phi                 phi [ 0 0 0 0 0 0 0 ] 90;
 //beta                beta [ 0 0 0 0 0 0 0 ] 45;
 //beta                beta [ 0 0 0 0 0 0 0 ] 45;
-n2 (1 1 1);
-
 
 // ************************************************************************* //
