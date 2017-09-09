@@ -15,6 +15,8 @@
     }
     viewFactorsPatches.resize(count--);
 
+    //
+
     DynamicList<point> localCoarseCf(nCoarseFaces);
 
     forAll (viewFactorsPatches, i)
@@ -80,7 +82,11 @@
                     cf = cfFine;
                 }
             }
+
+            //point sf = coarseSf[faceI];
             localCoarseCf.append(cf);
+            //localCoarseSf.append(sf);
+            //localAgg.append(agglomI);
         }
     }
 
