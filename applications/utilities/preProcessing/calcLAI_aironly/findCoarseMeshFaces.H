@@ -11,7 +11,7 @@
         //const fvPatchScalarField& LADpI = LADb[patchI];
         const fvPatchScalarField& QrpI = Qrb[patchI];
 
-    		if ((isA<wallFvPatch>(vegMesh.boundary()[patchI])) && (pp.size() > 0))
+    		if ((isA<wallFvPatch>(mesh.boundary()[patchI])) && (pp.size() > 0))
         {
             //viewFactorsPatches[count] = LADpI.patch().index();
             viewFactorsPatches[count] = QrpI.patch().index();

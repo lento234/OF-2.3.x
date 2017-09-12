@@ -600,8 +600,8 @@ int main(int argc, char *argv[])
 
     // Determine rays between coarse face centres
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    DynamicList<label> rayStartFace(nCoarseFaces + 0.01*nCoarseFaces);
 
+    DynamicList<label> rayStartFace(nCoarseFaces + 0.01*nCoarseFaces);
     DynamicList<label> rayEndFace(rayStartFace.size());
 
 
@@ -833,11 +833,11 @@ int main(int argc, char *argv[])
     			degAngleBetween = radToDeg(radAngleBetween);
     			if (degAngleBetween > 90 && degAngleBetween <= 180){degAngleBetween=90 - (degAngleBetween-90);}
     			skyViewCoeff[vectorId][k] = (1-0.5*(degAngleBetween/90)) * Idif[vectorId];
-
     			k++;
     			j++;
     			faceNo++;
     		}
+
     	}
         i = 0;
         j = 0;
@@ -845,15 +845,15 @@ int main(int argc, char *argv[])
         faceNo = 0;
     }
 
-  /*
-  Info << "sunVisibleOrNot: " << sunVisibleOrNot << endl;
+  Info << "howManyCoarseFacesPerPatch: " << howManyCoarseFacesPerPatch << endl;
 
-	Info << "localCoarseCf: " << localCoarseCf << endl;
-	Info << "localCoarseSf: " << localCoarseSf << endl;
+  Info << "sunVisibleOrNot: " << sunVisibleOrNot.size() << endl;
 
-	Info << "sunViewCoeff: " << sunViewCoeff << endl;
-	Info << "skyViewCoeff: " << skyViewCoeff << endl;
-  */
+	Info << "localCoarseCf: " << localCoarseCf.size() << endl;
+	Info << "localCoarseSf: " << localCoarseSf.size() << endl;
+
+	Info << "sunViewCoeff: " << sunViewCoeff[0].size() << endl;
+	Info << "skyViewCoeff: " << skyViewCoeff[0].size() << endl;
 
 	sunVisibleOrNot.write();
 	sunViewCoeff.write();

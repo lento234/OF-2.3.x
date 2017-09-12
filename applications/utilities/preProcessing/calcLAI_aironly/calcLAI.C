@@ -45,7 +45,7 @@ Versions
 #include "cyclicAMIPolyPatch.H"
 #include "triSurfaceTools.H"
 #include "mapDistribute.H"
-#include "regionProperties.H"
+
 #include "OFstream.H"
 #include "meshTools.H"
 #include "meshSearch.H"
@@ -531,18 +531,6 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createNamedMesh.H"
 
-    // Read vegetation+air mesh
-    fvMesh vegMesh
-    (
-        IOobject
-        (
-            "vegetation",
-            runTime.timeName(),
-            runTime,
-            IOobject::MUST_READ
-        )
-    );
-
     volScalarField LAD
     (
       IOobject
@@ -569,11 +557,11 @@ int main(int argc, char *argv[])
       (
           "Qr",
           runTime.timeName(),
-          vegMesh,
+          mesh,
           IOobject::MUST_READ,
           IOobject::NO_WRITE
       ),
-      vegMesh
+      mesh
     );
 
     wordList boundaryTypes = LAD.boundaryField().types();
@@ -610,8 +598,8 @@ int main(int argc, char *argv[])
         IOobject
         (
             "LAIboundary",
-            vegMesh.facesInstance(),
-            vegMesh,
+            mesh.facesInstance(),
+            mesh,
             IOobject::NO_READ,
             IOobject::NO_WRITE,
             false
@@ -624,8 +612,8 @@ int main(int argc, char *argv[])
         IOobject
         (
             "finalAgglom",
-            vegMesh.facesInstance(),
-            vegMesh,
+            mesh.facesInstance(),
+            mesh,
             IOobject::MUST_READ,
             IOobject::NO_WRITE,
             false
@@ -636,13 +624,13 @@ int main(int argc, char *argv[])
     (
         IOobject
         (
-            vegMesh.name(),
+            mesh.name(),
             runTime.timeName(),
             runTime,
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        vegMesh,
+        mesh,
         finalAgglom
     );
 
