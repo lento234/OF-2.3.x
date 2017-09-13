@@ -23,7 +23,7 @@ License
 
 ################
 Vegetation model implemented by L. Manickathan, Empa, February 2017
-################    
+################
 
 \*---------------------------------------------------------------------------*/
 
@@ -85,25 +85,9 @@ simplifiedVegetationModel::simplifiedVegetationModel
     (
         vegetationProperties_.lookup("nEvapSides")
     ),
-    H_
-    (
-        vegetationProperties_.lookup("H")
-    ),
-    kc_
-    (
-        vegetationProperties_.lookup("kc")
-    ),
     l_
     (
         vegetationProperties_.lookup("l")
-    ),
-    Rg0_
-    (
-        vegetationProperties_.lookup("Rg0")
-    ),
-    Rl0_
-    (
-        vegetationProperties_.lookup("Rl0")
     ),
     rhoa_
     (
@@ -119,11 +103,11 @@ simplifiedVegetationModel::simplifiedVegetationModel
     (
         vegetationProperties_.lookup("lambda")
     ),
-    Cf_
+    cd_
     (
         IOobject
         (
-            "Cf",
+            "cd",
             "0",//runTime_.timeName(),
             mesh_,
             IOobject::MUST_READ,
@@ -353,7 +337,7 @@ simplifiedVegetationModel::simplifiedVegetationModel
     {
         // Bounding parameters
 		//bound(Tl_, TlMin_);
-			
+
         Info << " Defined custom vegetation model" << endl;
     }
 
@@ -382,25 +366,25 @@ void simplifiedVegetationModel::radiation()
     const fvMesh& vegiMesh =
 	    	mesh_.time().lookupObject<fvMesh>("vegetation");
 
-    const label patchi = vegiMesh.boundaryMesh().findPatchID("air_to_vegetation");	
+    const label patchi = vegiMesh.boundaryMesh().findPatchID("air_to_vegetation");
 
     const fvPatch& vegiPatch = vegiMesh.boundary()[patchi];
 
-    scalarField vegiPatchQr = vegiPatch.lookupPatchField<volScalarField, scalar>("Qr"); 
-    scalarField vegiPatchQs = vegiPatch.lookupPatchField<volScalarField, scalar>("Qs"); 
+    scalarField vegiPatchQr = vegiPatch.lookupPatchField<volScalarField, scalar>("Qr");
+    scalarField vegiPatchQs = vegiPatch.lookupPatchField<volScalarField, scalar>("Qs");
     scalar integrateQr = gSum(vegiPatch.magSf() * vegiPatchQr);
     scalar integrateQs = gSum(vegiPatch.magSf() * vegiPatchQs);
 
-	Info << "test: integrateQr: " << integrateQr << endl; 
- 	Info << "test: integrateQs: " << integrateQs << endl; 
-    scalar vegiVolume = gSum(pos(Cf_.internalField() - 10*SMALL)*mesh_.V());	
-	Info << "test: vegiVolume: " << vegiVolume << endl;	
+	Info << "test: integrateQr: " << integrateQr << endl;
+ 	Info << "test: integrateQs: " << integrateQs << endl;
+    scalar vegiVolume = gSum(pos(LAD_.internalField() - 10*SMALL)*mesh_.V());
+	Info << "test: vegiVolume: " << vegiVolume << endl;
 
     // radiation density inside vegetation
-    forAll(Cf_, cellI)
-        if (Cf_[cellI] > 10*SMALL)
+    forAll(LAD_, cellI)
+        if (LAD_[cellI] > 10*SMALL)
             Rn_[cellI] = (integrateQr + integrateQs)/(vegiVolume);
-    Rn_.correctBoundaryConditions();	
+    Rn_.correctBoundaryConditions();
     //Rn_.write();
 
 	//Info << vegiPatch.Cf() << endl;
@@ -429,9 +413,9 @@ void simplifiedVegetationModel::resistance(volScalarField& magU, volScalarField&
     const double p_ = 101325;
 
     // Calculate magnitude of velocity and bounding above Umin
-    forAll(Cf_, cellI)
+    forAll(LAD_, cellI)
     {
-        if (Cf_[cellI] > 10*SMALL)
+        if (LAD_[cellI] > 10*SMALL)
         {
             //Aerodynamic resistance
             // ra_[cellI] = C_.value()*pow(l_.value()/magU[cellI], 0.5);
@@ -489,7 +473,7 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
     // Magnitude of velocity
     volScalarField magU("magU", mag(U));
     // Bounding velocity
-    bound(magU, UMin_);    
+    bound(magU, UMin_);
 
     // solve aerodynamic, stomatal resistance
     //resistance(U,T);
@@ -497,13 +481,13 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
 
     // info
     Info << "    max leaf temp tl=" << max(T.internalField())
-         << "k, iteration i=0" << endl;    
+         << "k, iteration i=0" << endl;
 
 
     scalar maxError, maxRelError;
-    int i;  
+    int i;
 
-    // solve leaf temperature, iteratively.  
+    // solve leaf temperature, iteratively.
     int maxIter = 500;
     for (i=1; i<=maxIter; i++)
     {
@@ -567,8 +551,8 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
          if (maxRelError < 1e-8)
              break;
     }
-    Tl_.correctBoundaryConditions(); 
-    //Tl_.write();  
+    Tl_.correctBoundaryConditions();
+    //Tl_.write();
 
     // Iteration info
     Info << "Vegetation model:  Solving for Tl, Final residual = " << maxError
@@ -582,8 +566,8 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
          << ", max ra = " << gMax(ra_) << endl;
 
     // Final: Solve aerodynamc, stomatal resistance
-    resistance(magU, T, q, Tl_);   
-    
+    resistance(magU, T, q, Tl_);
+
     // Final: Update sensible and latent heat flux
     forAll(LAD_, cellI)
     {
@@ -606,8 +590,8 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
                 else
                 {
                 	E_[cellI] = 0.0; // No evapotranspiration
-                }            
-            
+                }
+
             //E_[cellI] = 0.0; // no evapotranspiration
             // TODO: flag for no transpiration, one side, both side
 
@@ -629,7 +613,7 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
     //      << "; max. Qlat = " << max(mag(Qlat_))
     //      << "; max. Qsen = " << max(mag(Qsen_))
     //      << "; error: max. Esum = " << max(mag(Rn_.internalField() - Qsen_.internalField()- Qlat_.internalField())) << endl;
-       
+
 }
 
 // -----------------------------------------------------------------------------
@@ -645,7 +629,7 @@ tmp<volScalarField> simplifiedVegetationModel::Sh()
 // solve & return momentum source term (explicit)
 tmp<fvVectorMatrix> simplifiedVegetationModel::Su(volScalarField& rho, volVectorField& U)
 {
-    return fvm::SuSp(-Cf_*rho*mag(U), U);
+    return fvm::SuSp(-cd_*LAD_*rho*mag(U), U);
 }
 
 // return specific humidity source term

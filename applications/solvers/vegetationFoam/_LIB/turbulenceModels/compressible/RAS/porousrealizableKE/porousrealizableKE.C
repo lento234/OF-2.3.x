@@ -21,12 +21,10 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-
----------------------------------
-# Implemented vegetation turbulence
-# Added compressible terms (aytac) 07.02.2017
-# Modified vegetation terms (Lento)
-
+################
+Modified based on Lento's libraries for incompressible porousrealizableKE
+- 07.02.2017
+################
 \*---------------------------------------------------------------------------*/
 
 #include "porousrealizableKE.H"
@@ -197,6 +195,7 @@ porousrealizableKE::porousrealizableKE
             0.0
         )
     ),
+
     k_
     (
         IOobject
@@ -221,18 +220,6 @@ porousrealizableKE::porousrealizableKE
         ),
         autoCreateEpsilon("epsilon", mesh_)
     ),
-    LAD_
-    (
-        IOobject
-        (
-            "LAD",
-            runTime_.timeName(),
-            mesh_,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh_
-    ),
     cd_
     (
         IOobject
@@ -245,18 +232,17 @@ porousrealizableKE::porousrealizableKE
         ),
         mesh_
     ),
-    Cf_
+    LAD_
     (
         IOobject
         (
-            "Cf",
+            "LAD",
             runTime_.timeName(),
             mesh_,
-            IOobject::NO_READ,
+            IOobject::MUST_READ,
             IOobject::AUTO_WRITE
         ),
-        mesh_,
-        dimensionedScalar("0", dimensionSet(0,-1,0,0,0,0,0), 0.0)
+        mesh_
     ),
     mut_
     (
@@ -288,9 +274,6 @@ porousrealizableKE::porousrealizableKE
 
     mut_ = rCmu(fvc::grad(U_))*rho_*sqr(k_)/epsilon_;
     mut_.correctBoundaryConditions();
-
-    Cf_ = cd_ * LAD_;
-    Cf_.correctBoundaryConditions();
 
     alphat_ = mut_/Prt_;
     alphat_.correctBoundaryConditions();
@@ -426,8 +409,8 @@ void porousrealizableKE::correct()
             C2_*rho_*epsilon_/(k_ + sqrt((mu()/rho_)*epsilon_)),
             epsilon_
         )
-      + fvm::Sp(rho_*betaP_*C4_*Cf_*pow(mag(U_),3)/k_,epsilon_) // TODO: look into this: is it not more stable if positive term is without fvm::Sp (so that it is not in the diagonal)? - ayk
-      - fvm::Sp(rho_*betaD_*C5_*Cf_*mag(U_),epsilon_)
+      + fvm::Sp(rho_*betaP_*C4_*cd_*LAD_*pow(mag(U_),3)/k_,epsilon_) // is it not more stable if positive term is without fvm::Sp (so that it is not in the diagonal)? - ayk
+      - fvm::Sp(rho_*betaD_*C5_*cd_*LAD_*mag(U_),epsilon_)
     );
 
     epsEqn().relax();
@@ -448,8 +431,8 @@ void porousrealizableKE::correct()
      ==
         G - fvm::SuSp(2.0/3.0*rho_*divU, k_)
       - fvm::Sp(rho_*epsilon_/k_, k_)
-      + fvm::Sp(rho_*betaP_*Cf_*pow(mag(U_),3)/k_, k_) // TODO: look into this: is it not more stable if positive term is without fvm::Sp (so that it is not in the diagonal)? - ayk
-      - fvm::Sp(rho_*betaD_*Cf_*mag(U_), k_)
+      + fvm::Sp(rho_*betaP_*cd_*LAD_*pow(mag(U_),3)/k_, k_) // is it not more stable if positive term is without fvm::Sp (so that it is not in the diagonal)? - ayk
+      - fvm::Sp(rho_*betaD_*cd_*LAD_*mag(U_), k_)
     );
 
     kEqn().relax();

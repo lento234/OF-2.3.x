@@ -826,9 +826,19 @@ int main(int argc, char *argv[])
     			sunVisibleOrNot[vectorId][k] = nVisibleFaceFacesList[vectorId][faceNo];
 
     			cosPhi = (localCoarseSf[faceNo] & sunPos)/(mag(localCoarseSf[faceNo])*mag(sunPos) + SMALL);
-    			sunViewCoeff[vectorId][k] = nVisibleFaceFacesList[vectorId][faceNo]*mag(cosPhi) * IDN[vectorId] * Foam::exp(-beta*LAIboundaryList[vectorId][faceNo]); // beer-lambert law
 
-    			cosPhi = (localCoarseSf[faceNo] & skyPos)/(mag(localCoarseSf[faceNo])*mag(skyPos) + SMALL);
+          // shadow of tree and building (possibly)
+          if (LAIboundaryList[vectorId][faceNo] > 0)
+          {
+              sunViewCoeff[vectorId][k] = mag(cosPhi) * IDN[vectorId] * Foam::exp(-beta*LAIboundaryList[vectorId][faceNo]); // beer-lambert law
+          }
+          else
+          {
+              sunViewCoeff[vectorId][k] = nVisibleFaceFacesList[vectorId][faceNo]*mag(cosPhi) * IDN[vectorId];
+          }
+
+
+          cosPhi = (localCoarseSf[faceNo] & skyPos)/(mag(localCoarseSf[faceNo])*mag(skyPos) + SMALL);
     			radAngleBetween = Foam::acos( min(max(cosPhi, -1), 1) );
     			degAngleBetween = radToDeg(radAngleBetween);
     			if (degAngleBetween > 90 && degAngleBetween <= 180){degAngleBetween=90 - (degAngleBetween-90);}

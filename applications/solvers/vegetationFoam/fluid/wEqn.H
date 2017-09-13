@@ -1,5 +1,5 @@
 {
-    dimensionedScalar Dm("Dm",dimensionSet(0,2,-1,0,0,0,0),scalar(2.5e-5)); 
+    dimensionedScalar Dm("Dm",dimensionSet(0,2,-1,0,0,0,0),scalar(2.5e-5));
     scalar Sct = 0.7;
 
     fvScalarMatrix wEqn

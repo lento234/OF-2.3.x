@@ -1,4 +1,5 @@
 {
+
     volScalarField& he = thermo.he();
 
     fvScalarMatrix EEqn

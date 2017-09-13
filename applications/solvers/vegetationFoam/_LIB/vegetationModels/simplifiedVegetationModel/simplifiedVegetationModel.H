@@ -89,11 +89,7 @@ protected:
     dimensionedScalar C_;       // proportionality factor of ra
     dimensionedScalar D0_;      // vapour pressure corresponding to minimal resistance
     dimensionedScalar nEvapSides_; // number of sides, leaf evaporates from
-    dimensionedScalar H_;       // Height of vegetation
-    dimensionedScalar kc_;      // extinction coefficient of radiation
     dimensionedScalar l_;       // characteristic length of leaf
-    dimensionedScalar Rg0_;     // global radiation at top of canopy
-    dimensionedScalar Rl0_;     // long-wave radiation at top of canopy
     dimensionedScalar rhoa_;    // denisty of air
     dimensionedScalar rsMin_;   // minimum stomatal resistance
     dimensionedScalar TlMin_;   // lower limit of T
@@ -101,7 +97,7 @@ protected:
     dimensionedScalar lambda_;  // latent heat of vaporization
     // -----------------------------------------------
     // Model fields
-    volScalarField Cf_;     // vegetation drag coefficient
+    volScalarField cd_;     // vegetation drag coefficient
     volScalarField E_;      // transpiration rate
     volScalarField ev_;     // water vapor pressure
     volScalarField evsat_;  // saturated water vapor pressure
@@ -119,7 +115,7 @@ protected:
     volScalarField Sq_;     // humidity source term
     volVectorField Su_;     // momentum source term
     //volScalarField Tl_;     // temperature of leaf
-    volScalarField VPD_;    // vapor pressure deficit  
+    volScalarField VPD_;    // vapor pressure deficit
 
 public:
     // runtime type info
@@ -160,7 +156,7 @@ public:
         virtual void radiation();
 
         // calc aerodynamic, stomatal resistances
-        virtual void resistance(volScalarField& magU, volScalarField& T, volScalarField& q, volScalarField& Tl);        
+        virtual void resistance(volScalarField& magU, volScalarField& T, volScalarField& q, volScalarField& Tl);
 
         // solve all
         virtual void solve(volVectorField&U, volScalarField& T, volScalarField& q, volScalarField& Tl_);

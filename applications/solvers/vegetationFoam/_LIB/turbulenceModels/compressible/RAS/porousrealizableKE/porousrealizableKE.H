@@ -104,9 +104,8 @@ protected:
 
             volScalarField k_;
             volScalarField epsilon_;
-            volScalarField LAD_;
             volScalarField cd_;
-            volScalarField Cf_;
+            volScalarField LAD_;
             volScalarField mut_;
             volScalarField alphat_;
 

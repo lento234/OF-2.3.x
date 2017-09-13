@@ -1,61 +1,139 @@
 
-    labelList viewFactorsPatches(patches.size());
-    labelList howManyCoarseFacesPerPatch(patches.size());
+    // Read vegetation+air mesh
+    fvMesh vegMesh
+    (
+      IOobject
+      (
+          "vegetation",
+          runTime.timeName(),
+          runTime,
+          IOobject::MUST_READ
+      )
+    );
+
+    volScalarField vegQr
+    (
+      IOobject
+      (
+          "Qr",
+          runTime.timeName(),
+          vegMesh,
+          IOobject::MUST_READ,
+          IOobject::NO_WRITE
+      ),
+      vegMesh
+    );
+
+    scalarListIOList LAIboundaryList
+    (
+        IOobject
+        (
+            "LAIboundary",
+            vegMesh.facesInstance(),
+            vegMesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        sunPosVector.size()
+    );
+
+    labelListIOList vegFinalAgglom
+    (
+        IOobject
+        (
+            "finalAgglom",
+            vegMesh.facesInstance(),
+            vegMesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE,
+            false
+        )
+    );
+
+    singleCellFvMesh vegCoarseMesh
+    (
+        IOobject
+        (
+            vegMesh.name(),
+            runTime.timeName(),
+            runTime,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        vegMesh,
+        vegFinalAgglom
+    );
+
+    Info << "done !!! " << endl;
+
+    const polyBoundaryMesh& vegPatches = vegMesh.boundaryMesh();
+    const polyBoundaryMesh& vegCoarsePatches = vegCoarseMesh.boundaryMesh();
+
+    const volScalarField::GeometricBoundaryField& vegQrb = vegQr.boundaryField();
+
+    labelList vegViewFactorsPatches(vegPatches.size());
+    labelList vegHowManyCoarseFacesPerPatch(vegPatches.size());
     label count = 0;
     label countAll = 0;
+    label vegNCoarseFaces = 0;
+    label vegNCoarseFacesAll = 0;   //Also includes non-wall faces with greyDiffusive boundary
 
     //forAll(LADb, patchI)
-    forAll(Qrb, patchI)
+    forAll(vegQrb, patchI)
     {
-        const polyPatch& pp = patches[patchI];
+        const polyPatch& pp = vegPatches[patchI];
         //const fvPatchScalarField& LADpI = LADb[patchI];
-        const fvPatchScalarField& QrpI = Qrb[patchI];
+        const fvPatchScalarField& vegQrpI = vegQrb[patchI];
 
     		if ((isA<wallFvPatch>(vegMesh.boundary()[patchI])) && (pp.size() > 0))
         {
             //viewFactorsPatches[count] = LADpI.patch().index();
-            viewFactorsPatches[count] = QrpI.patch().index();
+            vegViewFactorsPatches[count] = vegQrpI.patch().index();
             count ++;
-            howManyCoarseFacesPerPatch[countAll] = coarsePatches[patchI].size();
+            vegHowManyCoarseFacesPerPatch[countAll] = vegCoarsePatches[patchI].size();
+            vegNCoarseFaces += vegCoarsePatches[patchI].size();
+            vegNCoarseFacesAll += vegCoarsePatches[patchI].size();
         }
-        else if ((isA<fixedValueFvPatchScalarField>(QrpI)) && (pp.size() > 0))
+        else if ((isA<fixedValueFvPatchScalarField>(vegQrpI)) && (pp.size() > 0))
 		    {
-            howManyCoarseFacesPerPatch[countAll] = coarsePatches[patchI].size();
+            vegHowManyCoarseFacesPerPatch[countAll] = vegCoarsePatches[patchI].size();
+            vegNCoarseFacesAll += vegCoarsePatches[patchI].size();
         }
         else
         {
-            howManyCoarseFacesPerPatch[countAll] = 0;
+            vegHowManyCoarseFacesPerPatch[countAll] = 0;
         }
         countAll ++;
     }
 
-    viewFactorsPatches.resize(count--);
+    vegViewFactorsPatches.resize(count--);
 
-    DynamicList<point> localCoarseCf(nCoarseFaces);
+    DynamicList<point> vegLocalCoarseCf(vegNCoarseFaces);
 
-    forAll (viewFactorsPatches, i)
+    forAll (vegViewFactorsPatches, i)
     {
-        const label patchID = viewFactorsPatches[i];
+        const label patchID = vegViewFactorsPatches[i];
 
-        const polyPatch& pp = patches[patchID];
-        const labelList& agglom = finalAgglom[patchID];
+        const polyPatch& pp = vegPatches[patchID];
+        const labelList& agglom = vegFinalAgglom[patchID];
 
         label nAgglom = max(agglom)+1;
         labelListList coarseToFine(invertOneToMany(nAgglom, agglom));
-        const labelList& coarsePatchFace = coarseMesh.patchFaceMap()[patchID];
+        const labelList& vegCoarsePatchFace = vegCoarseMesh.patchFaceMap()[patchID];
 
-        const pointField& coarseCf = coarseMesh.Cf().boundaryField()[patchID];
+        const pointField& vegCoarseCf = vegCoarseMesh.Cf().boundaryField()[patchID];
         //const pointField& coarseSf = coarseMesh.Sf().boundaryField()[patchID];
 
         labelHashSet includePatches;
         includePatches.insert(patchID);
 
-        forAll(coarseCf, faceI)
+        forAll(vegCoarseCf, faceI)
         {
-            point cf = coarseCf[faceI];
+            point cf = vegCoarseCf[faceI];
 
-            const label coarseFaceI = coarsePatchFace[faceI];
-            const labelList& fineFaces = coarseToFine[coarseFaceI];
+            const label vegCoarseFaceI = vegCoarsePatchFace[faceI];
+            const labelList& fineFaces = coarseToFine[vegCoarseFaceI];
             // const label agglomI =
             //     agglom[fineFaces[0]] + coarsePatches[patchID].start();
 
@@ -96,7 +174,7 @@
                     cf = cfFine;
                 }
             }
-            localCoarseCf.append(cf);
+            vegLocalCoarseCf.append(cf);
         }
     }
 

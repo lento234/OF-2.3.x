@@ -1,17 +1,16 @@
     const wordList fluidNames(rp["fluid"]);
 
-    /*
-    label vegetationExists = 0;
-
-
     forAll(fluidNames, i)
     {
         if (fluidNames[i] == "vegetation")
         {
             vegetationExists = 1;
         }
-    }
-    */
+        /*if (fluidNames[i] == "air")
+        {
+            airRegion = i;
+        }*/
+    }   
 
     PtrList<fvMesh> fluidRegions(fluidNames.size());
 

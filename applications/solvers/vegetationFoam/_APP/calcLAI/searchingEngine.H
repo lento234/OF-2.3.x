@@ -1,5 +1,5 @@
 
-const polyBoundaryMesh& patches = vegMesh.boundaryMesh();
+const polyBoundaryMesh& patches = mesh.boundaryMesh();
 const polyBoundaryMesh& coarsePatches = coarseMesh.boundaryMesh();
 
 label nCoarseFaces = 0;      //total number of coarse faces
@@ -15,7 +15,7 @@ forAll(Qrb, patchI)
     const polyPatch& pp = patches[patchI];
     const fvPatchScalarField& QrpI = Qrb[patchI];
 
-    if ((isA<wallFvPatch>(vegMesh.boundary()[patchI])) && (pp.size() > 0))
+    if ((isA<wallFvPatch>(mesh.boundary()[patchI])) && (pp.size() > 0))
     {
       nCoarseFaces += coarsePatches[patchI].size();
       nCoarseFacesAll += coarsePatches[patchI].size();
@@ -40,7 +40,7 @@ List<treeBoundBox> meshBb
     1,
     treeBoundBox
     (
-        boundBox(vegMesh.points(), false)
+        boundBox(mesh.points(), false)
     ).extend(rndGen, 1e-3)
 );
 

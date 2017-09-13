@@ -531,18 +531,6 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createNamedMesh.H"
 
-    // Read vegetation+air mesh
-    fvMesh vegMesh
-    (
-        IOobject
-        (
-            "vegetation",
-            runTime.timeName(),
-            runTime,
-            IOobject::MUST_READ
-        )
-    );
-
     volScalarField LAD
     (
       IOobject
@@ -569,11 +557,11 @@ int main(int argc, char *argv[])
       (
           "Qr",
           runTime.timeName(),
-          vegMesh,
+          mesh,
           IOobject::MUST_READ,
           IOobject::NO_WRITE
       ),
-      vegMesh
+      mesh
     );
 
     wordList boundaryTypes = LAD.boundaryField().types();
@@ -605,27 +593,13 @@ int main(int argc, char *argv[])
         sunPosVector.size()
     );
 
-    scalarListIOList LAIboundaryList
-    (
-        IOobject
-        (
-            "LAIboundary",
-            vegMesh.facesInstance(),
-            vegMesh,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE,
-            false
-        ),
-        sunPosVector.size()
-    );
-
     labelListIOList finalAgglom
     (
         IOobject
         (
             "finalAgglom",
-            vegMesh.facesInstance(),
-            vegMesh,
+            mesh.facesInstance(),
+            mesh,
             IOobject::MUST_READ,
             IOobject::NO_WRITE,
             false
@@ -636,13 +610,13 @@ int main(int argc, char *argv[])
     (
         IOobject
         (
-            vegMesh.name(),
+            mesh.name(),
             runTime.timeName(),
             runTime,
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        vegMesh,
+        mesh,
         finalAgglom
     );
 
@@ -673,7 +647,7 @@ int main(int argc, char *argv[])
 
     // Generate dummy data
     scalarList zeroList_nMeshCells(nMeshCells, 0.0);
-    scalarList zeroList_nCoarseFacesAll(nCoarseFacesAll, 0.0);
+
 
     ////// Determine BBOX of vegetation (original coordinate system)
     point pmin = gMax(pmeshC);
@@ -704,6 +678,8 @@ int main(int argc, char *argv[])
 
     // Coarse mesh faces
     #include "findCoarseMeshFaces.H"
+
+    scalarList zeroList_nCoarseFacesAll(vegNCoarseFacesAll, 0.0);
 
 
     ////////////////////////////////////////////////////////////////////////////
@@ -841,7 +817,7 @@ int main(int argc, char *argv[])
                 }
                 else if (LAD[cellI] > 10*SMALL)
                 {
-                    LAI[cellI] = -1; // large enough to ensure qr = exp(-LAI*k)  \approx 0
+                    LAI[cellI] = 1000; // large enough to ensure qr = exp(-LAI*k)  \approx 0
                 }
             }
 
@@ -853,10 +829,10 @@ int main(int argc, char *argv[])
 
 
             int nFacesinVegetationBBOX = 0;
-            forAll(localCoarseCf, faceI)
+            forAll(vegLocalCoarseCf, faceI)
             {
                 // Cell center point (rotated coordinate system)
-                ptemp = transform(T, localCoarseCf[faceI]);
+                ptemp = transform(T, vegLocalCoarseCf[faceI]);
 
                 if ( (ptemp.x() > pminRot.x()) && (ptemp.x() < pmaxRot.x()) &&
                      (ptemp.y() > pminRot.y()) && (ptemp.y() < pmaxRot.y()) &&
@@ -867,16 +843,16 @@ int main(int argc, char *argv[])
             }
 
 
-            DynamicField<point> coarseFaceStartList(nFacesinVegetationBBOX);
-            DynamicField<point> coarseFaceEndList(nFacesinVegetationBBOX);
-            List<pointIndexHit> coarseFacePHitList(nFacesinVegetationBBOX);
-            DynamicField<label> coarseFaceInsideFaceIList(nFacesinVegetationBBOX);
-            List<bool> coarseFaceInsideList(localCoarseCf.size(), false);
+            DynamicField<point> vegCoarseFaceStartList(nFacesinVegetationBBOX);
+            DynamicField<point> vegCoarseFaceEndList(nFacesinVegetationBBOX);
+            List<pointIndexHit> vegCoarseFacePHitList(nFacesinVegetationBBOX);
+            DynamicField<label> vegCoarseFaceInsideFaceIList(nFacesinVegetationBBOX);
+            List<bool> vegCoarseFaceInsideList(vegLocalCoarseCf.size(), false);
 
-            forAll(localCoarseCf, faceI)
+            forAll(vegLocalCoarseCf, faceI)
             {
                 // Cell center point (rotated coordinate system)
-                ptemp = transform(T, localCoarseCf[faceI]);
+                ptemp = transform(T, vegLocalCoarseCf[faceI]);
 
                 if ( (ptemp.x() > pminRot.x()) && (ptemp.x() < pmaxRot.x()) &&
                      (ptemp.y() > pminRot.y()) && (ptemp.y() < pmaxRot.y()) &&
@@ -884,16 +860,16 @@ int main(int argc, char *argv[])
                 {
 
                     // Check if cell in building shadow shadow
-                    point starti = localCoarseCf[faceI] + n2*0.0001;
+                    point starti = vegLocalCoarseCf[faceI] + n2*0.0001;
                     point endi = calcEndPoint(starti, n2, pminO, pmaxO);
-                    coarseFaceStartList.append(starti);
-                    coarseFaceEndList.append(endi);
-                    coarseFaceInsideFaceIList.append(faceI);
-                    coarseFaceInsideList[faceI] = true;
+                    vegCoarseFaceStartList.append(starti);
+                    vegCoarseFaceEndList.append(endi);
+                    vegCoarseFaceInsideFaceIList.append(faceI);
+                    vegCoarseFaceInsideList[faceI] = true;
                 }
             }
 
-            surfacesMesh.findLine(coarseFaceStartList, coarseFaceEndList, coarseFacePHitList);
+            surfacesMesh.findLine(vegCoarseFaceStartList, vegCoarseFaceEndList, vegCoarseFacePHitList);
 
             // Updated LAI boundary fields
             // forAll(coarseFacePHitList, rayI)
@@ -908,11 +884,11 @@ int main(int argc, char *argv[])
             //     }
             // }
 
-            forAll(viewFactorsPatches, patchID)
+            forAll(vegViewFactorsPatches, patchID)
           	{
-                while (i < viewFactorsPatches[patchID])
+                while (i < vegViewFactorsPatches[patchID])
           		  {
-          			     while (j < howManyCoarseFacesPerPatch[i])
+          			     while (j < vegHowManyCoarseFacesPerPatch[i])
           			     {
           				         k++;
           				         j++;
@@ -920,17 +896,21 @@ int main(int argc, char *argv[])
           			     j = 0;
           			     i++;
           		  }
-          		  while (j < howManyCoarseFacesPerPatch[i])
+          		  while (j < vegHowManyCoarseFacesPerPatch[i])
           		  {
                     // if face inside bbox of vegetation
-                    if (coarseFaceInsideList[faceNo])
+                    if (vegCoarseFaceInsideList[faceNo])
                     {
                         // if face did not hit any wall
-                        if (!coarseFacePHitList[insideFaceI].hit())
+                        if (!vegCoarseFacePHitList[insideFaceI].hit())
                         {
-                            ptemp = transform(T, localCoarseCf[faceNo]);
+                            ptemp = transform(T, vegLocalCoarseCf[faceNo]);
                             LAIboundary[k] = interp3D(ptemp, pInterpRot, LAIInterpRot, nxRot, nyRot);
                             //Info << "k = " << k << ", faceNo = " << faceNo << ", insideFaceNo = " << insideFaceNo << endl;
+                        }
+                        else
+                        {
+                            LAIboundary[k] = 1000;
                         }
                         insideFaceI++;
                     }
