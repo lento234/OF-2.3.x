@@ -9,6 +9,7 @@ label nFineFacesTotal = 0;        //total number of fine faces including non-fix
 //const volScalarField::GeometricBoundaryField& LADb = LAD.boundaryField();
 const volScalarField::GeometricBoundaryField& Qrb = Qr.boundaryField();
 
+
 //forAll(LADb, patchI)
 forAll(Qrb, patchI)
 {
@@ -27,8 +28,13 @@ forAll(Qrb, patchI)
         nCoarseFacesAll += coarsePatches[patchI].size();
         nFineFacesTotal += patches[patchI].size();
     }
+    else
+    {
+        nFineFacesTotal += patches[patchI].size();
+    }
 
 }
+
 
 globalIndex globalNumbering(nCoarseFaces);
 
@@ -97,3 +103,4 @@ distributedTriSurfaceMesh surfacesMesh
 triSurfaceToAgglom.resize(surfacesMesh.size());
 
 surfacesMesh.setField(triSurfaceToAgglom);
+

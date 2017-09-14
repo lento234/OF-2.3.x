@@ -38,14 +38,14 @@ Versions
 #include "argList.H"
 #include "fvMesh.H"
 #include "Time.H"
-#include "fvCFD.H"
+//#include "fvCFD.H"
 #include "volFields.H"
 #include "surfaceFields.H"
 #include "distributedTriSurfaceMesh.H"
 #include "cyclicAMIPolyPatch.H"
 #include "triSurfaceTools.H"
 #include "mapDistribute.H"
-#include "regionProperties.H"
+//#include "regionProperties.H"
 #include "OFstream.H"
 #include "meshTools.H"
 #include "meshSearch.H"
@@ -55,21 +55,22 @@ Versions
 #include "IFstream.H"
 #include "unitConversion.H"
 
-//#include "mathematicalConstants.H"
-//#include "scalarMatrices.H"
-//#include "CompactListList.H"
-//#include "labelIOList.H"
-//#include "labelListIOList.H"
+#include "mathematicalConstants.H"
+#include "scalarMatrices.H"
+#include "CompactListList.H"
+#include "labelIOList.H"
+#include "labelListIOList.H"
 #include "scalarListIOList.H"
 #include "scalarIOList.H"
 #include "vectorIOList.H"
 
 #include "singleCellFvMesh.H"
 #include "interpolation.H"
-//#include "IOdictionary.H"
+#include "IOdictionary.H"
 #include "fixedValueFvPatchFields.H"
 #include "wallFvPatch.H"
-#include "treeDataFace.H"
+//#include "treeDataFace.H"
+#include "unitConversion.H"
 //#include "fvIOoptionList.H"
 
 using namespace Foam;
@@ -629,7 +630,6 @@ int main(int argc, char *argv[])
     // Mesh setup
     int nMeshCells = mesh.cells().size();
 
-    // Define rotation vectors
     vector n1(0,0,1); // original vector
     n1 /= mag(n1);
 
@@ -640,6 +640,7 @@ int main(int argc, char *argv[])
     point pminO = gMin(pmeshC);
     point pmaxO = gMax(pmeshC);
 
+
     // Set up searching engine for obstacles (copied from Aytac)
     #include "searchingEngine.H"
 
@@ -647,7 +648,6 @@ int main(int argc, char *argv[])
 
     // Generate dummy data
     scalarList zeroList_nMeshCells(nMeshCells, 0.0);
-
 
     ////// Determine BBOX of vegetation (original coordinate system)
     point pmin = gMax(pmeshC);
