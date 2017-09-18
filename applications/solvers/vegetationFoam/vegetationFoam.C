@@ -28,7 +28,7 @@ Description
     Solves for air flow and transport in building materials
     Written by Aytac Kubilay, December 2015, ETH Zurich/Empa
 
-Modified by lento
+Modified by lento for pure vegetation foam
 
 \*---------------------------------------------------------------------------*/
 
@@ -37,15 +37,15 @@ Modified by lento
 #include "turbulenceModel.H"
 #include "fixedGradientFvPatchFields.H"
 #include "regionProperties.H"
-#include "buildingMaterialModel.H"
-#include "solidThermo.H"
+//#include "buildingMaterialModel.H"
+//#include "solidThermo.H"
 #include "radiationModel.H"
 #include "solarLoadModel.H"
 #include "simpleControlFluid.H"
 #include "fvIOoptionList.H"
 #include "fixedFluxPressureFvPatchScalarField.H"
 
-#include "simplifiedVegetationModel.H"  // vegetation model by Lento added
+#include "vegetationModel.H" // vegetation model by Lento added
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -56,16 +56,16 @@ int main(int argc, char *argv[])
 
     regionProperties rp(runTime);
 
-    label vegetationExists = 0;
+    //label vegetationExists = 0;
 
     #include "createFluidMeshes.H"
-    #include "createSolidMeshes.H"
+    //#include "createSolidMeshes.H"
 
     #include "createFluidFields.H"
-    #include "createSolidFields.H"
+    //#include "createSolidFields.H"
 
     #include "initContinuityErrs.H"
-    #include "readSolidTimeControls.H"
+    //#include "readSolidTimeControls.H"
 
     while (runTime.loop())
     {
@@ -73,43 +73,43 @@ int main(int argc, char *argv[])
 
         forAll(fluidRegions, i)
         {
-        	if (fluidRegions[i].name() == "vegetation")
-			{
-				Info<< "\nVegetation region found..." << endl;
-				#include "setVegetationFields.H"
+            if (fluidRegions[i].name() == "radiation")
+            {
+                Info<< "\nRadiation region found..." << endl;
+				        #include "setRadiationFields.H"
 
-				Info << "Updating T boundary fields..." << endl;
-				thermo.T().correctBoundaryConditions();
-				Info << "Updating long-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
-				rad.correct();
-				Info << "Updating short-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
-				sol.correct();
-			}
-			else
-			{
-	            Info<< "\nSolving for fluid region "
-	                << fluidRegions[i].name() << endl;
-	            #include "setRegionFluidFields.H"
-	            #include "readFluidMultiRegionSIMPLEControls.H"
-	            #include "solveFluid.H"
-
-	        }
+				        Info << "Updating T boundary fields..." << endl;
+				        thermo.T().correctBoundaryConditions();
+				        Info << "Updating long-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
+				        rad.correct();
+				        Info << "Updating short-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
+				        sol.correct();
+			      }
+			      else
+			      {
+	               Info<< "\nSolving for fluid region " << fluidRegions[i].name() << endl;
+	               #include "setRegionFluidFields.H"
+	               #include "readFluidMultiRegionSIMPLEControls.H"
+	               #include "solveFluid.H"
+	          }
         }
 
-        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            << nl << endl;
+        // Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+        //     << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+        //     << nl << endl;
 
-        scalar storeFluidDeltaT = runTime.deltaT().value();
+        /*
+        //scalar storeFluidDeltaT = runTime.deltaT().value();
+        forAll(solidRegions, i)
+		    {
+			      Info<< "\nSolving for solid region "
+				        << solidRegions[i].name() << endl;
 
-		forAll(solidRegions, i)
-		{
-			Info<< "\nSolving for solid region "
-				<< solidRegions[i].name() << endl;
-			#include "setRegionSolidFields.H"
-			#include "readSolidMultiRegionSIMPLEControls.H"
-			#include "solveSolid.H"
-		}
+            #include "setRegionSolidFields.H"
+			      #include "readSolidMultiRegionSIMPLEControls.H"
+			      #include "solveSolid.H"
+		    }
+        */
 
         runTime.write();
 

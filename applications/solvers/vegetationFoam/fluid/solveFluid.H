@@ -1,6 +1,6 @@
 simpleControlFluid simpleControlFluid(fluidRegions[i]);
 
-simplifiedVegetationModel vegetation(U, thermo.T(), w, Tl); // Vegetation model
+//simplifiedVegetationModel vegetation(U, thermo.T(), w, Tl); // Vegetation model
 
 label fluidIteration = 0;
 
@@ -25,6 +25,20 @@ while (simpleControlFluid.loop())
     turb.correct();
 
     Info << nl;
+
+    if ((fluidIteration % 100) == 0)
+    {
+        U.write();
+        thermo.T().write();
+        w.write();
+        Tl.write();
+        thermo.rho().write();
+    }
+
+    Info<< nl << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+        << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+        << nl << endl;
+
 }
 
 Info<< nl << fluidRegions[i].name() << " region solution converged in "

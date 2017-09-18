@@ -33,3 +33,5 @@
     volScalarField& p_rgh = p_rghFluid[i];
     const volScalarField& gh = ghFluid[i];
     const surfaceScalarField& ghf = ghfFluid[i];
+
+    vegetationModel &vegetation = vegetationFluid[i];

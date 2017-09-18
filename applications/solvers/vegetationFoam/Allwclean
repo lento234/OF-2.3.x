@@ -1,0 +1,42 @@
+#!/bin/bash
+
+function printInfo () {
+    BLUE='\033[1;34m'
+    NC='\033[0m'
+    printf "\n\n\n${BLUE}/////////////////////////////////////////////////////////////////////////////${NC}\n\n\t\t"
+    echo "$1" | awk '{$1=$1; print toupper($0)}' FS= OFS=" "
+    printf "\n${BLUE}/////////////////////////////////////////////////////////////////////////////${NC}\n\n\n"
+}
+
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+NC='\033[0m'
+
+# paths
+paths=(
+    app/calcLAI 
+    app/solarRayTracingVegGen
+    app/viewFactorsGenUpdated 
+    lib/simpleControlFluid
+    lib/solarLoadModel
+    lib/turbulenceModels/compressible/RAS
+    lib/vegetationModels
+)
+
+parentDir=$(pwd)
+
+# clean 
+printInfo "cleaning vegetationFOAM"
+for i in "${paths[@]}"
+  do
+    cd $i
+    echo -e "${RED}Cleaning${NC}... ${GREEN}$i${NC}"
+    wclean
+    cd $parentDir
+
+done
+
+echo -e "${RED}Cleaning${NC}... ${GREEN}vegetationFOAM${NC}"
+wclean
+
+echo -e "${GREEN}All done.${NC}"

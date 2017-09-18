@@ -28,6 +28,9 @@
 
     PtrList<fv::IOoptionList> fluidFvOptions(fluidRegions.size());
 
+    PtrList<vegetationModel> vegetationFluid(fluidRegions.size());
+    //simplifiedVegetationModel vegetation(U, thermo.T(), w, Tl); // Vegetation model
+
     // Populate fluid field pointer lists
     forAll(fluidRegions, i)
     {
@@ -75,7 +78,7 @@
             solarLoad::solarLoadModel::New(thermoFluid[i].T())
         );
 
-        if (fluidRegions[i].name() != "vegetation")
+        if (fluidRegions[i].name() != "radiation")
         {
             Info<< "    Adding to UFluid\n" << endl;
             UFluid.set
@@ -112,27 +115,6 @@
                     fluidRegions[i]
                 )
             );
-
-            /*
-            Info<< "    Adding to gcrFluid\n" << endl;
-            gcrFluid.set
-            (
-                i,
-                new volScalarField
-                (
-                    IOobject
-                    (
-                        "gcr",
-                        runTime.timeName(),
-                        fluidRegions[i],
-                        IOobject::MUST_READ,
-                        IOobject::AUTO_WRITE
-                    ),
-                    fluidRegions[i]
-                )
-            );
-            */
-
 
             Info<< "    Adding to TlFluid\n" << endl;
             TlFluid.set
@@ -235,7 +217,6 @@
             // Force p_rgh to be consistent with p
             p_rghFluid[i] = thermoFluid[i].p() - rhoFluid[i]*ghFluid[i];
 
-
             initialMassFluid[i] = fvc::domainIntegrate(rhoFluid[i]).value();
 
             setRefCell
@@ -276,6 +257,19 @@
             (
                 i,
                 new fv::IOoptionList(fluidRegions[i])
+            );
+
+            Info<< "    Adding vegetation model\n" << endl;
+            vegetationFluid.set
+            (
+                i,
+                new vegetationModel
+                (
+                    UFluid[i],
+                    thermoFluid[i].T(),
+                    wFluid[i],
+                    TlFluid[i]
+                )
             );
 
         }
