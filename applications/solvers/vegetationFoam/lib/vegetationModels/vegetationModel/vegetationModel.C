@@ -51,7 +51,6 @@ vegetationModel::vegetationModel
             U.time().constant(),
             U.db(),
             IOobject::MUST_READ_IF_MODIFIED,
-
             IOobject::NO_WRITE
         )
     ),
@@ -140,7 +139,7 @@ vegetationModel::vegetationModel
             runTime_.timeName(),
             mesh_,
             IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh_,
         dimensionedScalar("0", dimensionSet(1,-3,-1,0,0,0,0), 0.0)
@@ -153,7 +152,7 @@ vegetationModel::vegetationModel
             runTime_.timeName(),
             mesh_,
             IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh_,
         dimensionedScalar("0", dimensionSet(1,-1,-2,0,0,0,0), 0.0)
@@ -166,7 +165,7 @@ vegetationModel::vegetationModel
             runTime_.timeName(),
             mesh_,
             IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh_,
         dimensionedScalar("0", dimensionSet(1,-1,-2,0,0,0,0), 0.0)
@@ -183,18 +182,6 @@ vegetationModel::vegetationModel
         ),
         mesh_
     ),
-    // LAI_
-    // (
-    //     IOobject
-    //     (
-    //         "LAI",
-    //         "0",//runTime_.timeName(),
-    //         mesh_,
-    //         IOobject::MUST_READ,
-    //         IOobject::AUTO_WRITE
-    //     ),
-    //     mesh_
-    // ),
     qsat_
     (
         IOobject
@@ -203,7 +190,7 @@ vegetationModel::vegetationModel
             runTime_.timeName(),
             mesh_,
             IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh_,
         dimensionedScalar("0", dimensionSet(0,0,0,0,0,0,0), 0.0)
@@ -216,7 +203,7 @@ vegetationModel::vegetationModel
             runTime_.timeName(),
             mesh_,
             IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh_,
         dimensionedScalar("0", dimensionSet(1,-1,-3,0,0,0,0), 0.0)
@@ -229,7 +216,7 @@ vegetationModel::vegetationModel
             runTime_.timeName(),
             mesh_,
             IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh_,
         dimensionedScalar("0", dimensionSet(1,-1,-3,0,0,0,0), 0.0)
@@ -268,24 +255,11 @@ vegetationModel::vegetationModel
             runTime_.timeName(),
             mesh_,
             IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh_,
         dimensionedScalar("0", dimensionSet(1,-3,0,0,0,0,0), 0.0)
     ),
-    // Rg_
-    // (
-    //     IOobject
-    //     (
-    //         "Rg",
-    //         runTime_.timeName(),
-    //         mesh_,
-    //         IOobject::NO_READ,
-    //         IOobject::AUTO_WRITE
-    //     ),
-    //     mesh_,
-    //     dimensionedVector("0", dimensionSet(1,0,-3,0,0,0,0), vector::zero)
-    // ),
     Rn_
     (
         IOobject
@@ -336,7 +310,7 @@ vegetationModel::vegetationModel
             IOobject::AUTO_WRITE
         ),
         mesh_,
-        dimensionedVector("0", dimensionSet(0,1,-2,0,0,0,0), vector::zero)
+        dimensionedVector("0", dimensionSet(1,-2,-2,0,0,0,0), vector::zero)
     ),
     VPD_
     (
@@ -346,7 +320,7 @@ vegetationModel::vegetationModel
             runTime_.timeName(),
             mesh_,
             IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh_,
         dimensionedScalar("0", dimensionSet(1,-1,-2,0,0,0,0), 0.0)
@@ -380,12 +354,12 @@ double vegetationModel::calc_rhosat(double& T)
 // solve radiation
 void vegetationModel::radiation()
 {
-    const fvMesh& radiationMesh =
-	    	mesh_.time().lookupObject<fvMesh>("radiation");
+    const fvMesh& vegetationMesh =
+	    	mesh_.time().lookupObject<fvMesh>("vegetation");
 
-    const label patchi = radiationMesh.boundaryMesh().findPatchID("air_to_vegetation");
+    const label patchi = vegetationMesh.boundaryMesh().findPatchID("air_to_vegetation");
 
-    const fvPatch& vegiPatch = radiationMesh.boundary()[patchi];
+    const fvPatch& vegiPatch = vegetationMesh.boundary()[patchi];
 
     scalarField vegiPatchQr = vegiPatch.lookupPatchField<volScalarField, scalar>("Qr");
     scalarField vegiPatchQs = vegiPatch.lookupPatchField<volScalarField, scalar>("Qs");
@@ -447,7 +421,7 @@ void vegetationModel::radiation()
 
      Rn_.correctBoundaryConditions();
 
-     Rn_.write();
+     //Rn_.write();
      //LAI_.write();
 
 	//Info << vegiPatch.Cf() << endl;
@@ -646,14 +620,14 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
             // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
             // E_[cellI] = 2.0*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
 
-				if (runTime_.value() >= 16800 && runTime_.value() <= 72600) //timesteps are hardcoded - ayk
-				{
-                	E_[cellI] = nEvapSides_.value()*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]); // todo: implement switch for double or single side
-                }
-                else
-                {
-                	E_[cellI] = 0.0; // No evapotranspiration
-                }
+				// if (runTime_.value() >= 16800 && runTime_.value() <= 72600) //timesteps are hardcoded - ayk
+				// {
+      	     E_[cellI] = nEvapSides_.value()*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]); // todo: implement switch for double or single side
+        // }
+        // else
+        // {
+        // 	E_[cellI] = 0.0; // No evapotranspiration
+        // }
 
             //E_[cellI] = 0.0; // no evapotranspiration
             // TODO: flag for no transpiration, one side, both side
@@ -692,6 +666,8 @@ tmp<volScalarField> vegetationModel::Sh()
 // solve & return momentum source term (explicit)
 tmp<fvVectorMatrix> vegetationModel::Su(volScalarField& rho, volVectorField& U)
 {
+    Su_ = -cd_*LAD_*rho*mag(U)*U;
+    Su_.correctBoundaryConditions();
     return fvm::SuSp(-cd_*LAD_*rho*mag(U), U);
 }
 

@@ -38,7 +38,7 @@ Modified by lento for pure vegetation foam
 #include "fixedGradientFvPatchFields.H"
 #include "regionProperties.H"
 //#include "buildingMaterialModel.H"
-//#include "solidThermo.H"
+#include "solidThermo.H"
 #include "radiationModel.H"
 #include "solarLoadModel.H"
 #include "simpleControlFluid.H"
@@ -69,14 +69,15 @@ int main(int argc, char *argv[])
 
     while (runTime.loop())
     {
+
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         forAll(fluidRegions, i)
         {
-            if (fluidRegions[i].name() == "radiation")
+            if (fluidRegions[i].name() == "vegetation")
             {
-                Info<< "\nRadiation region found..." << endl;
-				        #include "setRadiationFields.H"
+                Info<< "\nVegetation region found..." << endl;
+				        #include "setVegetationFields.H"
 
 				        Info << "Updating T boundary fields..." << endl;
 				        thermo.T().correctBoundaryConditions();
@@ -94,19 +95,19 @@ int main(int argc, char *argv[])
 	          }
         }
 
-        // Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-        //     << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-        //     << nl << endl;
+        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            << nl << endl;
 
         /*
-        //scalar storeFluidDeltaT = runTime.deltaT().value();
+        scalar storeFluidDeltaT = runTime.deltaT().value();
         forAll(solidRegions, i)
 		    {
 			      Info<< "\nSolving for solid region "
 				        << solidRegions[i].name() << endl;
 
             #include "setRegionSolidFields.H"
-			      #include "readSolidMultiRegionSIMPLEControls.H"
+			      //#include "readSolidMultiRegionSIMPLEControls.H"
 			      #include "solveSolid.H"
 		    }
         */

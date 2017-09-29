@@ -78,7 +78,7 @@
             solarLoad::solarLoadModel::New(thermoFluid[i].T())
         );
 
-        if (fluidRegions[i].name() != "radiation")
+        if (fluidRegions[i].name() != "vegetation")
         {
             Info<< "    Adding to UFluid\n" << endl;
             UFluid.set
