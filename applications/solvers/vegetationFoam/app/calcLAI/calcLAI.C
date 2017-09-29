@@ -1050,6 +1050,7 @@ int main(int argc, char *argv[])
             ////////////////////////////////////////////////////////////////////
             // Interpolate LAI onto coarse mesh faces
 
+            Info << "vegLocalCoarseCf " << vegLocalCoarseCf.size() << endl;
 
             int nFacesinVegetationBBOX = 0;
             forAll(vegLocalCoarseCf, faceI)

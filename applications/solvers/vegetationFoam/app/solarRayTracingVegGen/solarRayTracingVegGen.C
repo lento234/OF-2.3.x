@@ -828,14 +828,14 @@ int main(int argc, char *argv[])
     			cosPhi = (localCoarseSf[faceNo] & sunPos)/(mag(localCoarseSf[faceNo])*mag(sunPos) + SMALL);
 
           // shadow of tree and building (possibly)
-          if (LAIboundaryList[vectorId][faceNo] > 0)
-          {
-              sunViewCoeff[vectorId][k] = mag(cosPhi) * IDN[vectorId] * Foam::exp(-beta*LAIboundaryList[vectorId][faceNo]); // beer-lambert law
-          }
-          else
-          {
+          // if (LAIboundaryList[vectorId][faceNo] > 0)
+          // {
+          //     sunViewCoeff[vectorId][k] = mag(cosPhi) * IDN[vectorId] * Foam::exp(-beta*LAIboundaryList[vectorId][faceNo]); // beer-lambert law
+          // }
+          // else
+          // {
               sunViewCoeff[vectorId][k] = nVisibleFaceFacesList[vectorId][faceNo]*mag(cosPhi) * IDN[vectorId];
-          }
+          // }
 
 
           cosPhi = (localCoarseSf[faceNo] & skyPos)/(mag(localCoarseSf[faceNo])*mag(skyPos) + SMALL);
