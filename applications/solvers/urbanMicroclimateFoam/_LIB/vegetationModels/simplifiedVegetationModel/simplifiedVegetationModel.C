@@ -23,7 +23,7 @@ License
 
 ################
 Vegetation model implemented by L. Manickathan, Empa, February 2017
-################    
+################
 
 \*---------------------------------------------------------------------------*/
 
@@ -118,6 +118,18 @@ simplifiedVegetationModel::simplifiedVegetationModel
     lambda_
     (
         vegetationProperties_.lookup("lambda")
+    ),
+    divqrsw
+    (
+        IOobject
+        (
+            "divqrsw",
+            mesh_.facesInstance(),
+            mesh_,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE,
+            false
+        )
     ),
     Cf_
     (
@@ -353,7 +365,7 @@ simplifiedVegetationModel::simplifiedVegetationModel
     {
         // Bounding parameters
 		//bound(Tl_, TlMin_);
-			
+
         Info << " Defined custom vegetation model" << endl;
     }
 
@@ -382,25 +394,40 @@ void simplifiedVegetationModel::radiation()
     const fvMesh& vegiMesh =
 	    	mesh_.time().lookupObject<fvMesh>("vegetation");
 
-    const label patchi = vegiMesh.boundaryMesh().findPatchID("air_to_vegetation");	
+    const label patchi = vegiMesh.boundaryMesh().findPatchID("air_to_vegetation");
 
     const fvPatch& vegiPatch = vegiMesh.boundary()[patchi];
 
-    scalarField vegiPatchQr = vegiPatch.lookupPatchField<volScalarField, scalar>("Qr"); 
-    scalarField vegiPatchQs = vegiPatch.lookupPatchField<volScalarField, scalar>("Qs"); 
+    scalarField vegiPatchQr = vegiPatch.lookupPatchField<volScalarField, scalar>("Qr");
+    scalarField vegiPatchQs = vegiPatch.lookupPatchField<volScalarField, scalar>("Qs");
     scalar integrateQr = gSum(vegiPatch.magSf() * vegiPatchQr);
     scalar integrateQs = gSum(vegiPatch.magSf() * vegiPatchQs);
 
-	Info << "test: integrateQr: " << integrateQr << endl; 
- 	Info << "test: integrateQs: " << integrateQs << endl; 
-    scalar vegiVolume = gSum(pos(Cf_.internalField() - 10*SMALL)*mesh_.V());	
-	Info << "test: vegiVolume: " << vegiVolume << endl;	
+	Info << "test: integrateQr: " << integrateQr << endl;
+ 	Info << "test: integrateQs: " << integrateQs << endl;
+    scalar vegiVolume = gSum(pos(Cf_.internalField() - 10*SMALL)*mesh_.V());
+	Info << "test: vegiVolume: " << vegiVolume << endl;
+
+    label timestepsInADay_ = divqrsw.size(); //readLabel(coeffs_.lookup("timestepsInADay"));
+
+    Time& time = const_cast<Time&>(mesh_.time());
+    Info << "time.value(): " << time.value();
+
+    label timestep = ceil( (time.value()/(86400/timestepsInADay_))-0.5 );
+    Info << ", 1 timestep: " << timestep;
+    timestep = timestep % timestepsInADay_;
+    Info << ", 2 timestep: " << timestep << endl;
+
+    //vector sunPos = sunPosVector[timestep];
+
+    scalarList divqrswi =  divqrsw[timestep];
 
     // radiation density inside vegetation
     forAll(Cf_, cellI)
         if (Cf_[cellI] > 10*SMALL)
-            Rn_[cellI] = (integrateQr + integrateQs)/(vegiVolume);
-    Rn_.correctBoundaryConditions();	
+          Rn_[cellI] = -divqrswi[cellI] + (integrateQr)/(vegiVolume);
+    //Rn_[cellI] = (integrateQr + integrateQs)/(vegiVolume);
+    Rn_.correctBoundaryConditions();
     //Rn_.write();
 
 	//Info << vegiPatch.Cf() << endl;
@@ -489,7 +516,7 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
     // Magnitude of velocity
     volScalarField magU("magU", mag(U));
     // Bounding velocity
-    bound(magU, UMin_);    
+    bound(magU, UMin_);
 
     // solve aerodynamic, stomatal resistance
     //resistance(U,T);
@@ -497,13 +524,13 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
 
     // info
     Info << "    max leaf temp tl=" << max(T.internalField())
-         << "k, iteration i=0" << endl;    
+         << "k, iteration i=0" << endl;
 
 
     scalar maxError, maxRelError;
-    int i;  
+    int i;
 
-    // solve leaf temperature, iteratively.  
+    // solve leaf temperature, iteratively.
     int maxIter = 500;
     for (i=1; i<=maxIter; i++)
     {
@@ -567,8 +594,8 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
          if (maxRelError < 1e-8)
              break;
     }
-    Tl_.correctBoundaryConditions(); 
-    //Tl_.write();  
+    Tl_.correctBoundaryConditions();
+    //Tl_.write();
 
     // Iteration info
     Info << "Vegetation model:  Solving for Tl, Final residual = " << maxError
@@ -582,8 +609,8 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
          << ", max ra = " << gMax(ra_) << endl;
 
     // Final: Solve aerodynamc, stomatal resistance
-    resistance(magU, T, q, Tl_);   
-    
+    resistance(magU, T, q, Tl_);
+
     // Final: Update sensible and latent heat flux
     forAll(LAD_, cellI)
     {
@@ -606,8 +633,8 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
                 else
                 {
                 	E_[cellI] = 0.0; // No evapotranspiration
-                }            
-            
+                }
+
             //E_[cellI] = 0.0; // no evapotranspiration
             // TODO: flag for no transpiration, one side, both side
 
@@ -629,7 +656,7 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
     //      << "; max. Qlat = " << max(mag(Qlat_))
     //      << "; max. Qsen = " << max(mag(Qsen_))
     //      << "; error: max. Esum = " << max(mag(Rn_.internalField() - Qsen_.internalField()- Qlat_.internalField())) << endl;
-       
+
 }
 
 // -----------------------------------------------------------------------------

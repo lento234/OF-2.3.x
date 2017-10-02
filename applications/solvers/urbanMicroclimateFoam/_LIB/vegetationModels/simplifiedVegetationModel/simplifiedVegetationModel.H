@@ -50,6 +50,9 @@ SourceFiles
 #include "IOdictionary.H"
 // #include "Switch.H"
 #include "bound.H"
+#include "scalarListIOList.H"
+#include "scalarIOList.H"
+#include "vectorIOList.H"
 // #include "autoPtr.H"
 // #include "runTimeSelectionTables.H"
 
@@ -99,6 +102,8 @@ protected:
     dimensionedScalar TlMin_;   // lower limit of T
     dimensionedScalar UMin_;    // lower limit of U
     dimensionedScalar lambda_;  // latent heat of vaporization
+
+    scalarListIOList divqrsw;
     // -----------------------------------------------
     // Model fields
     volScalarField Cf_;     // vegetation drag coefficient
@@ -119,7 +124,7 @@ protected:
     volScalarField Sq_;     // humidity source term
     volVectorField Su_;     // momentum source term
     //volScalarField Tl_;     // temperature of leaf
-    volScalarField VPD_;    // vapor pressure deficit  
+    volScalarField VPD_;    // vapor pressure deficit
 
 public:
     // runtime type info
@@ -160,7 +165,7 @@ public:
         virtual void radiation();
 
         // calc aerodynamic, stomatal resistances
-        virtual void resistance(volScalarField& magU, volScalarField& T, volScalarField& q, volScalarField& Tl);        
+        virtual void resistance(volScalarField& magU, volScalarField& T, volScalarField& q, volScalarField& Tl);
 
         // solve all
         virtual void solve(volVectorField&U, volScalarField& T, volScalarField& q, volScalarField& Tl_);
