@@ -1,0 +1,114 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.4.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : 2.4.0-dcea1e13ff76
+Exec   : faceAgglomerate -region vegetation -parallel
+Date   : Feb 23 2017
+Time   : 18:37:10
+Host   : "e1182"
+PID    : 57975
+Case   : /cluster/scratch/akubilay/test_vegi4_test
+nProcs : 48
+Slaves : 
+47
+(
+"e1182.57976"
+"e1182.57977"
+"e1182.57978"
+"e1182.57979"
+"e1182.57980"
+"e1182.57981"
+"e1182.57982"
+"e1182.57983"
+"e1182.57984"
+"e1182.57985"
+"e1182.57986"
+"e1182.57987"
+"e1182.57988"
+"e1182.57989"
+"e1182.57990"
+"e1182.57991"
+"e1182.57992"
+"e1182.57993"
+"e1182.57994"
+"e1182.57995"
+"e1182.57996"
+"e1182.57997"
+"e1182.57998"
+"e1401.34623"
+"e1401.34624"
+"e1401.34625"
+"e1401.34626"
+"e1401.34627"
+"e1401.34628"
+"e1401.34629"
+"e1401.34630"
+"e1401.34631"
+"e1401.34632"
+"e1401.34633"
+"e1401.34634"
+"e1401.34635"
+"e1401.34636"
+"e1401.34637"
+"e1401.34638"
+"e1401.34639"
+"e1401.34640"
+"e1401.34641"
+"e1401.34642"
+"e1401.34643"
+"e1401.34644"
+"e1401.34645"
+"e1401.34646"
+)
+
+Pstream initialized with:
+    floatTransfer      : 0
+    nProcsSimpleSum    : 0
+    commsType          : nonBlocking
+    polling iterations : 0
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+--> FOAM Warning : 
+    From function dlOpen(const fileName&, const bool)
+    in file POSIX.C at line 1179
+    dlopen error : /cluster/home/akubilay/OpenFOAM/akubilay-2.4.0/platforms/linux64GccDPOpt/lib/libporousCompressibleRASModels.so: undefined symbol: _ZTIN4Foam12compressible8RASModelE
+--> FOAM Warning : 
+    From function dlLibraryTable::open(const fileName&, const bool)
+    in file db/dynamicLibrary/dlLibraryTable/dlLibraryTable.C at line 99
+    could not load "libporousCompressibleRASModels.so"
+Create mesh vegetation for time = 114600
+
+
+Agglomerating patch : inlet
+
+Agglomerating patch : outlet
+
+Agglomerating patch : top
+
+Agglomerating patch : ground
+
+Agglomerating patch : air_to_street
+
+Agglomerating patch : air_to_windward
+
+Agglomerating patch : air_to_leeward
+
+Agglomerating patch : side1
+
+Agglomerating patch : side2
+
+Agglomerating patch : buildings
+
+Agglomerating patch : air_to_vegetation
+End
+
+Finalising parallel run

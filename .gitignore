@@ -22,6 +22,8 @@ src/thermophysicalModels/
 *.so
 *.dep
 
+*.gz
+
 # Temporaries
 *~
 .~*

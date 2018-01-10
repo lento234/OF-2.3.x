@@ -64,15 +64,15 @@ simplifiedVegetationModel::simplifiedVegetationModel
     (
         vegetationProperties_.lookup("Qs")
     ),
-    rhoa_
-    (
-        vegetationProperties_.lookup("rhoa")
-    ),
-    Cf_
+    // rhoa_
+    // (
+    //     vegetationProperties_.lookup("rhoa")
+    // ),
+    cd_
     (
         IOobject
         (
-            "Cf",
+            "cd",
             runTime_.timeName(),
             mesh_,
             IOobject::MUST_READ,

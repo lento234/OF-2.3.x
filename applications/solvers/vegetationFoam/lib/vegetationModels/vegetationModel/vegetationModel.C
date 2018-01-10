@@ -413,13 +413,18 @@ void vegetationModel::radiation()
      {
         if (LAD_[cellI] > 10*SMALL)
         {
-            Rn_[cellI] = - divqrswi[cellI] + (integrateQr + integrateQs)/(vegiVolume); // direct and diffuse
+            //Rn_[cellI] = - divqrswi[cellI] + (integrateQr + integrateQs)/(vegiVolume); // direct and diffuse
+            Rn_[cellI] = (integrateQr + integrateQs)/(vegiVolume); // direct and diffuse
+            //Rn_[cellI] = - divqrswi[cellI] + (integrateQs)/(vegiVolume); // direct and diffuse
 
         }
 
      }
 
      Rn_.correctBoundaryConditions();
+
+     Info << "gMax(Rn) = " << gMax(Rn_) << ", gMin(Rn) = " << gMin(Rn_) << endl;
+     Info << "sum qrswi = " << gSum(divqrswi*mesh_.V()) << endl;
 
      //Rn_.write();
      //LAI_.write();
@@ -549,14 +554,14 @@ void vegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField
                 // E_[cellI] = LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_.value());
                 // E_[cellI] = 2.0*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
 
-				if (runTime_.value() >= 16800 && runTime_.value() <= 72600) //timesteps are hardcoded - ayk
-				{
+				        //if (runTime_.value() >= 16800 && runTime_.value() <= 72600) //timesteps are hardcoded - ayk
+				        //{
                 	E_[cellI] = nEvapSides_.value()*LAD_[cellI]*rhoa_.value()*(qsat_[cellI]-q[cellI])/(ra_[cellI]+rs_[cellI]);
-                }
-                else
-                {
-                	E_[cellI] = 0.0; // No evapotranspiration
-                }
+                //}
+                //else
+                //{
+                //	E_[cellI] = 0.0; // No evapotranspiration
+                //}
                 //E_[cellI] = 0.0; // No evapotranspiration
 
                 // Calculate latent heat flux

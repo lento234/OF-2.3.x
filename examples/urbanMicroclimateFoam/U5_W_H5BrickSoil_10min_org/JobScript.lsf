@@ -1,0 +1,9 @@
+#BSUB -J U5
+#BSUB -W 1400
+#BSUB -n 48
+
+# start solver
+#mpirun faceAgglomerate -region vegetation -parallel >log.faceAgglomerate
+#mpirun viewFactorsGenUpdated -region vegetation -parallel >log.viewFactorsGenUpdated
+#mpirun solarRayTracingGen -region vegetation -parallel >log.solarRayTracingGen
+mpirun urbanMicroclimateFoam -parallel >log
