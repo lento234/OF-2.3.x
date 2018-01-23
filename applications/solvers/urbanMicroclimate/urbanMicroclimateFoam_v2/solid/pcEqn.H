@@ -20,12 +20,41 @@ Crel.correctBoundaryConditions();
 K_v.correctBoundaryConditions();
 K_pt.correctBoundaryConditions();//pc.write(); Krel.write(); K_v.write(); w.write(); 
 
-fvScalarMatrix pcEqn
-(				
-	Crel*fvm::ddt(pc)
-	==
-	fvm::laplacian(Krel+K_v,pc,"laplacian(Krel,pc)")
-	+fvc::laplacian(K_pt,Ts,"laplacian(Krel,pc)")
-);
-pcEqn.relax();
-pcEqn.solve(); 
+// Check if domain has roots
+label hasRoots = 0;
+forAll(vegetationRootNames, j)
+{
+	if (solidRegions[i].name() == vegetationRootNames[j])
+		hasRoots = 1;
+}
+
+
+if (hasRoots)
+{
+	fvScalarMatrix pcEqn
+	(
+		Crel*fvm::ddt(pc)
+		==
+		fvm::laplacian(Krel+K_v,pc,"laplacian(Krel,pc)")
+		+ fvc::laplacian(K_pt,Ts,"laplacian(Krel,pc)")
+		+ vegetation.Sws(Krel,Crel)
+	);
+
+	pcEqn.relax();
+	pcEqn.solve(); 
+	
+}
+else
+{
+	fvScalarMatrix pcEqn
+	(				
+		Crel*fvm::ddt(pc)
+		==
+		fvm::laplacian(Krel+K_v,pc,"laplacian(Krel,pc)")
+		+ fvc::laplacian(K_pt,Ts,"laplacian(Krel,pc)")
+	);
+	
+	pcEqn.relax();
+	pcEqn.solve(); 
+}
+

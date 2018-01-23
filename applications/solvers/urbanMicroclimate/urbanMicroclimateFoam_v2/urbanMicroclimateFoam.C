@@ -29,6 +29,7 @@ Description
     Written by Aytac Kubilay, December 2015, ETH Zurich/Empa
 
 \*---------------------------------------------------------------------------*/
+#include <ctime>
 
 #include "fvCFD.H"
 #include "rhoThermo.H"
@@ -43,7 +44,8 @@ Description
 #include "fvIOoptionList.H"
 #include "fixedFluxPressureFvPatchScalarField.H"
 
-#include "simplifiedVegetationModel.H"  // vegetation model by Lento added
+//#include "simplifiedVegetationModel.H"  // vegetation model by Lento added
+#include "soilVegetationModel.H"  // vegetation model by Lento added
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -62,6 +64,8 @@ int main(int argc, char *argv[])
     #include "createFluidFields.H"
     #include "createSolidFields.H"
 
+    #include "createVegetationFields.H"
+
     #include "initContinuityErrs.H"
     #include "readSolidTimeControls.H"
 
@@ -78,11 +82,16 @@ int main(int argc, char *argv[])
 
 				Info << "Updating T boundary fields..." << endl;
 				thermo.T().correctBoundaryConditions();
-				Info << "Updating long-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
-				rad.correct();
-				Info << "Updating short-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
-				sol.correct();
-        runTime.write();
+				
+                // Info << "Updating long-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
+				// rad.correct();
+				// Info << "Updating short-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
+				// sol.correct();
+
+                Info << "skipped: Updating long-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
+                Info << "skipped: Updating short-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
+        
+                runTime.write();
 			}
 			else
 			{

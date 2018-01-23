@@ -86,6 +86,7 @@ protected:
             const Time& runTimeSoil_;       // time
             const fvMesh& mesh_;        // mesh
             const fvMesh& meshSoil_;        // soil mesh
+            scalar internalTime;        // internal time
 
         // Model coefficients
     
@@ -103,7 +104,7 @@ protected:
             dimensionedScalar Rl0_;         // long-wave radiation at top of canopy
             dimensionedScalar rhoa_;        // denisty of air
             dimensionedScalar rsMin_;       // minimum stomatal resistance
-            dimensionedScalar TlMin_;       // lower limit of T
+            //dimensionedScalar TlMin_;       // lower limit of T
             dimensionedScalar UMin_;        // lower limit of U
             dimensionedScalar lambda_;      // latent heat of vaporization
             dimensionedScalar mtrans_;      // net transpirated mass of water vapour

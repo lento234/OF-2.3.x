@@ -145,6 +145,9 @@ void soilVegetationModel::calc_radiation()
     Info << "Vegetation: [Radiation] :: update. int. Qrsw = " << fvc::domainIntegrate(qrad_leaf_ * LAD_) 
          << ", Qr + Qs = " << integrateQr + integrateQs << endl;
 
+    // update internal clock
+    internalTime = time.value();
+
 }
 
 
@@ -214,6 +217,7 @@ soilVegetationModel::soilVegetationModel
     runTimeSoil_(Ts.time()),
     mesh_(U.mesh()),
     meshSoil_(Ts.mesh()),
+    internalTime(-1.0),
     a1_
     (
         vegetationProperties_.lookup("a1")
@@ -270,7 +274,7 @@ soilVegetationModel::soilVegetationModel
     (
         vegetationProperties_.lookup("rsMin")
     ),
-    TlMin_("TlMin", dimTemperature, SMALL),
+    //TlMin_("TlMin", dimTemperature, SMALL),
     UMin_("UMin", dimVelocity, SMALL),
     lambda_
     (
@@ -523,18 +527,28 @@ soilVegetationModel::soilVegetationModel
 //void soilVegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField& w)
 void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo, const volScalarField& w)
 {
-    // solve radiation within vegetation
-    calc_radiation();
-
-
     const volScalarField& p = thermo.p();
-    
     const volScalarField& T = thermo.T();
     const volScalarField& rho = thermo.rho();
-    
     double pvsat, pv;
     double Ra = 287.042;
     double Rv = 461.524;
+
+    // Initialize radiation and leaf temperature if internalTime is changed
+    if (mesh_.time().value() != internalTime)
+    {
+        Info << "Vegetation: [Radiation] :: updating radiation field" 
+             << ", internal time = " << internalTime << endl;
+        calc_radiation();
+
+        // Initialize leaf temperature
+        forAll(Tl_, cellI)
+            if (LAD_[cellI] > 10*SMALL)
+                Tl_[cellI] = T[cellI];
+    }    
+
+    Info << "Vegetation: [Leaf Energy Balance] :: updating leaf temperature "
+         << ", internal time = " << internalTime << endl;
 
     // Magnitude of velocity
     volScalarField magU("magU", mag(U));
@@ -545,11 +559,6 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
     // solve aerodynamic, stomatal resistance
     //resistance(U,T);
     volScalarField new_Tl("new_Tl", Tl_);
-
-    // info
-    Info << "    max leaf temp tl=" << max(T.internalField())
-         << "k, iteration i=0" << endl;
-
 
     scalar maxError, maxRelError;
     int i;
@@ -568,8 +577,8 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
             if (LAD_[cellI] > 10*SMALL)
             {
                 // Initial leaf temperature
-                if (i==1)
-                    Tl_[cellI] = T[cellI];//*0. + 300.;//T[cellI];
+                // if (i==1)
+                //     Tl_[cellI] = T[cellI];//*0. + 300.;//T[cellI];
 
                 // vapour pressure
                 pv = p[cellI] * w[cellI] / (Ra/Rv + w[cellI]); // vapour pressure
@@ -611,11 +620,10 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
         maxRelError = maxError/gMax(mag(new_Tl.internalField()));
 
         // Info
-        Info << "    Leaf energy balance: Iteration = " << i
+        Info << "Vegetation: [Leaf Energy Balance] :: Iteration = " << i
              << " max. Tl = " << gMax(new_Tl)
              << ", error Tl = "   << maxError
-             << ", rel .error Tl = " << maxRelError 
-             << " error = " << gMax(qrad_leaf_.internalField() - qsen_leaf_.internalField() - qlat_leaf_.internalField())
+             << " LEB error = " << gMax(qrad_leaf_.internalField() - qsen_leaf_.internalField() - qlat_leaf_.internalField())
              << endl;
         
         // convergence check
@@ -634,7 +642,7 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
     qsen_leaf_.correctBoundaryConditions();
 
     // Iteration info
-    Info << "Vegetation:    Solving for Tl, Final residual = " << maxError
+    Info << "Vegetation: [Leaf Energy Balance] :: Final residual = " << maxError
          << ", Final rel. residual = " << maxRelError
          << ", No Iterations " << i 
          << endl;
@@ -683,7 +691,7 @@ tmp<volScalarField> soilVegetationModel::Sws(volScalarField& Kl, volScalarField&
     // source term for water uptake due to roots kg/(m3s)
     Sws_ = - (mtrans * RAD_ * Dl) / fvc::domainIntegrate(RAD_ * Dl);
     
-    Info << "    Vegetation Model (soil): Sws_:: max: " << gMax(Sws_) 
+    Info << "Vegetation: [soil root uptake] :: Sws_ max = " << gMax(Sws_) 
          << ", min: " << gMin(Sws_) << endl;
 
     return Sws_;

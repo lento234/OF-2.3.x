@@ -1,12 +1,13 @@
 simpleControlFluid simpleControlFluid(fluidRegions[i]);
 
-simplifiedVegetationModel vegetation(U, thermo.T(), w, Tl); // Vegetation model
+//simplifiedVegetationModel vegetation(U, thermo.T(), w, Tl); // Vegetation model
+//soilVegetationModel vegetation(U, thermo.T(), w, Tl); // Vegetation model
 
 label fluidIteration = 0;
 
 while (simpleControlFluid.loop())
 {
-//  Pressure-velocity SIMPLE corrector
+    //  Pressure-velocity SIMPLE corrector
     fluidIteration++;
     Info << "Internal iteration number: " << fluidIteration << endl;
 
@@ -19,17 +20,16 @@ while (simpleControlFluid.loop())
         #include "wEqn.H"
     }
 
-    // Solve vegetation energy balance
-    vegetation.solve(U, thermo.T(), w, Tl);
+    // Solve vegetation energy balance // not really needed every iteration
+    if ((fluidIteration % 10) == 0)
+        vegetation.solve(U, thermo, w);
 
     turb.correct();
 
-    Info << nl;
-
     if ((fluidIteration % 50) == 0)
-    {
         runTime.write();
-    }
+
+    Info << nl;
 
 }
 

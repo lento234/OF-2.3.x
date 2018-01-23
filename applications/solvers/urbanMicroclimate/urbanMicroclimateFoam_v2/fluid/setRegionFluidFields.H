@@ -10,7 +10,7 @@
     volVectorField& U = UFluid[i];
     volScalarField& w = wFluid[i];
     volScalarField& gcr = gcrFluid[i];
-    volScalarField& Tl = TlFluid[i];      
+    // volScalarField& Tl = TlFluid[i];      
     surfaceScalarField& phi = phiFluid[i];
 
     compressible::turbulenceModel& turb = turbulence[i];
@@ -33,3 +33,20 @@
     volScalarField& p_rgh = p_rghFluid[i];
     const volScalarField& gh = ghFluid[i];
     const surfaceScalarField& ghf = ghfFluid[i];
+
+    
+    label vegRegionID = -1;
+
+    forAll(vegetationLeafNames, j)
+    {
+        if (fluidRegions[i].name() == vegetationLeafNames[j])
+            vegRegionID = j;
+    }
+
+    Info << "Vegetation: [Domain] :: vegRegionID: " << vegRegionID 
+         << ", name: " << vegetationLeafNames[vegRegionID] << endl;
+
+    // vegetation
+    soilVegetationModel& vegetation = vegetationFluid[vegRegionID];
+
+

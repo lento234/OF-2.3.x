@@ -19,3 +19,18 @@ volScalarField& K_v = K_vSolid[i];
 volScalarField& K_pt = K_ptSolid[i];
 volScalarField& Crel = CrelSolid[i];
 
+
+label vegRegionID = -1;
+
+forAll(vegetationRootNames, j)
+{
+    if (solidRegions[i].name() == vegetationRootNames[j])
+        vegRegionID = j;
+}
+
+Info << "vegRegionID: " << vegRegionID << endl;
+
+// vegetation
+soilVegetationModel& vegetation = vegetationFluid[vegRegionID];
+
+
