@@ -1,6 +1,0 @@
-#!/bin/bash
-
-if [ "$PMI_ID" == "0" ]; then
-  echo "Running reconstruct script..."
-  qsub reconstructSubmit
-fi

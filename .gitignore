@@ -48,6 +48,9 @@ trash/
 # Doc
 doc/
 
+log*
+
 # Work in Progress
 #!cases/bigleafFoam/cubeTree
 examples/streetCanyonSTLVegetation*
+examples/urbanMicroclimateFoam
