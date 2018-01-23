@@ -2,19 +2,19 @@
 
 # src files
 srcPath=(
-    src/turbulenceModels/incompressible/RAS
-    src/vegetationModels
-    src/finiteVolume
+    #src/turbulenceModels/incompressible/RAS
+    #src/vegetationModels
+    #src/finiteVolume
 )
 
 utilPath=(
-    applications/utilities/preProcessing/calcLAI
-    applications/utilities/postProcessing/cellV
+    #applications/utilities/preProcessing/calcLAI
+    #applications/utilities/postProcessing/cellV
     applications/utilities/postProcessing/fieldIntegrate
     applications/utilities/postProcessing/fieldMinMax
-    applications/utilities/postProcessing/gradU
-    applications/utilities/postProcessing/moisture/hmoist
-    applications/utilities/postProcessing/moisture/heatFluxMoist
+    #applications/utilities/postProcessing/gradU
+    #applications/utilities/postProcessing/moisture/hmoist
+    #applications/utilities/postProcessing/moisture/heatFluxMoist
     #applications/utilities/postProcessing/moisture/qToRH
     #applications/utilities/postProcessing/moisture/RHToq
     #applications/utilities/postProcessing/heatFluxIncompressible
@@ -22,12 +22,12 @@ utilPath=(
 )
 
 appPath=(
-    applications/solvers/bbbigleafFoam
-    applications/solvers/simplifiedVegetation
-    applications/solvers/buoyantBoussinesqVegetationSimpleFoam
+    #applications/solvers/bbbigleafFoam
+    #applications/solvers/simplifiedVegetation
+    #applications/solvers/buoyantBoussinesqVegetationSimpleFoam
     # applications/solvers/bigleafFoam
     # applications/solvers/transientbbbigleafFoam
-
+    # applications/solver/urbanMicroclimate/urbanMicroclimateFoam_v2
 )
 
 extPath=(
