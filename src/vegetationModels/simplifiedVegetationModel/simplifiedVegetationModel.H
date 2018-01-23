@@ -116,7 +116,7 @@ public:
 
         // -----------------------------------------------
 
-        // return vegetation properties dictionary
+        //- return vegetation properties dictionary
         dictionary vegetationProperties() const
         {
             return vegetationProperties_;
@@ -125,24 +125,24 @@ public:
         // -----------------------------------------------
 
 
-        // solve all
+        //- solve all
         virtual void solve(volVectorField&U, volScalarField& T, volScalarField& q);
 
         // -----------------------------------------------
         // source terms
 
-        // return vegetation energy source
+        //- return vegetation energy source
         virtual tmp<volScalarField> Sh();
 
-        // return vegetation momentum source
+        //- return vegetation momentum source
         virtual tmp<fvVectorMatrix> Su(volVectorField& U);
 
-        // return vegetation specific humidity source
+        //- return vegetation specific humidity source
         virtual tmp<volScalarField> Sq();
 
         // -----------------------------------------------
 
-        // read vegetationProperties dictionary
+        //- read vegetationProperties dictionary
         virtual bool read();
 };
 
