@@ -155,31 +155,31 @@ public:
 
         // -----------------------------------------------
 
-        // return saturated density of water vapour
+        //- return saturated density of water vapour
         virtual double calc_rhosat(double& T);
 
-        // return saturated water vapour pressure
+        //- return saturated water vapour pressure
         virtual double calc_evsat(double& T);
 
-        // calc radiation
+        //- calc radiation
         virtual void radiation();
 
-        // calc aerodynamic, stomatal resistances
+        //- calc aerodynamic, stomatal resistances
         virtual void resistance(volScalarField& magU, volScalarField& T, volScalarField& q, volScalarField& Tl);
 
-        // solve all
+        //- solve all
         virtual void solve(volVectorField&U, volScalarField& T, volScalarField& q, volScalarField& Tl_);
 
         // -----------------------------------------------
         // source terms
 
-        // return vegetation energy source
+        //- return vegetation energy source
         virtual tmp<volScalarField> Sh();
 
-        // return vegetation momentum source
+        //- return vegetation momentum source
         virtual tmp<fvVectorMatrix> Su(volScalarField& rho, volVectorField& U);
 
-        // return vegetation specific humidity source
+        //- return vegetation specific humidity source
         virtual tmp<volScalarField> Sq();
 
         // -----------------------------------------------
