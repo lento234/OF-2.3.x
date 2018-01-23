@@ -45,6 +45,9 @@ VTK
 
 trash/
 
+# Doc
+doc/
+
 # Work in Progress
 #!cases/bigleafFoam/cubeTree
 examples/streetCanyonSTLVegetation*
