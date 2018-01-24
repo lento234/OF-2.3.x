@@ -87,6 +87,7 @@ protected:
             const fvMesh& mesh_;        // mesh
             const fvMesh& meshSoil_;        // soil mesh
             scalar internalTime;        // internal time
+            bool isDayTime_;            // check if day time
 
         // Model coefficients
     
@@ -126,8 +127,8 @@ protected:
             volScalarField qlat_leaf_;           // latent heat flux
             //volScalarField Qsen_;           // sensible heat flux
             volScalarField qsen_leaf_;           // sensible heat flux
-            volScalarField ra_;             // aerodynamic resistance
-            volScalarField rs_;             // stomatal resistance
+            volScalarField ga_;             // aerodynamic resistance
+            volScalarField gs_;             // stomatal resistance
             //volScalarField rhosat_;         // saturated density field
             //volVectorField Rg_;             // global radiation
             //volScalarField Rn_;             // global radiation density in volume
@@ -164,10 +165,12 @@ protected:
         //virtual void resistance(const volScalarField& magU, const volScalarField& T, const volScalarField& w, const volScalarField& Tl);
 
         // solve aerodynamic resistance
-        virtual double calc_resistance_aerodynamic(const double& magU);
+        //virtual double calc_resistance_aerodynamic(const double& magU);
+        virtual double calc_conductance_aerodynamic(const double& magU);
 
         // solve stomtal resistance
-        virtual double calc_resistance_stomatal(const double& pv, const double& pvsat, const double& T, const int& cellI);
+        //virtual double calc_resistance_stomatal(const double& pv, const double& pvsat, const double& T, const int& cellI);
+        virtual double calc_conductance_stomatal(const double& pv, const double& pvsat, const double& T, const int& cellI);
             
 
 public:

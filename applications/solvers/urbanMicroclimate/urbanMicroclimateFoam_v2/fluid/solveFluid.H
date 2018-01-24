@@ -21,14 +21,14 @@ while (simpleControlFluid.loop())
     }
 
     // Solve vegetation energy balance // not really needed every iteration
-    if ((fluidIteration % 10) == 0)
+    if ((fluidIteration % 5) == 0)
         vegetation.solve(U, thermo, w);
 
     turb.correct();
 
-    if ((fluidIteration % 50) == 0)
-        runTime.write();
-
+    // if ((fluidIteration % 50) == 0)
+    //     runTime.write();
+        
     Info << nl;
 
 }

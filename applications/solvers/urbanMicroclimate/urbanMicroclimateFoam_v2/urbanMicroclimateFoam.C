@@ -83,13 +83,13 @@ int main(int argc, char *argv[])
 				Info << "Updating T boundary fields..." << endl;
 				thermo.T().correctBoundaryConditions();
 				
-                // Info << "Updating long-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
-				// rad.correct();
-				// Info << "Updating short-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
-				// sol.correct();
+                Info << "Updating long-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
+				rad.correct();
+				Info << "Updating short-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
+				sol.correct();
 
-                Info << "skipped: Updating long-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
-                Info << "skipped: Updating short-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
+                // Info << "skipped: Updating long-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
+                // Info << "skipped: Updating short-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
         
                 runTime.write();
 			}
