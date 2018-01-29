@@ -7,6 +7,8 @@ label fluidIteration = 0;
 
 while (simpleControlFluid.loop())
 {
+    std::clock_t starttime = std::clock();
+
     //  Pressure-velocity SIMPLE corrector
     fluidIteration++;
     Info << "Internal iteration number: " << fluidIteration << endl;
@@ -30,6 +32,9 @@ while (simpleControlFluid.loop())
     //     runTime.write();
         
     Info << nl;
+
+    Info << "It took: " << (std::clock() - starttime) / (double) CLOCKS_PER_SEC 
+         << " seconds. " << endl;
 
 }
 
