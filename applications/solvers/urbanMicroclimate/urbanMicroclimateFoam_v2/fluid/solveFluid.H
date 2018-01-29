@@ -24,7 +24,21 @@ while (simpleControlFluid.loop())
 
     // Solve vegetation energy balance // not really needed every iteration
     if ((fluidIteration % 5) == 0)
-        vegetation.solve(U, thermo, w);
+    {
+        label leafzoneID = -1;
+        label rootzoneID = -1;
+        forAll(vegetationLeafNames, j)
+        {
+            if (fluidRegions[i].name() == vegetationLeafNames[j])
+                leafzoneID = j;
+        }
+        forAll(solidRegions, k)
+        {
+            if (solidRegions[k].name() == vegetationRootNames[leafzoneID])
+                rootzoneID = k;
+        }
+        vegetation.solve(U, thermo, w, wsSolid[rootzoneID]);
+    }
 
     turb.correct();
 
