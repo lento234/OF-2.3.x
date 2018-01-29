@@ -180,7 +180,7 @@ double soilVegetationModel::calc_conductance_aerodynamic(const double& magU)
 }
 
 
-double soilVegetationModel::calc_conductance_stomatal(const double& pv, const double& pvsat, const double& T, const int& cellI)
+double soilVegetationModel::calc_conductance_stomatal(const double& pv, const double& pvsat, const double& T, const int& cellI, const dimensionedScalar& mean_ws)
 {
    
     // Vapor pressure deficit
@@ -209,7 +209,9 @@ double soilVegetationModel::calc_conductance_stomatal(const double& pv, const do
     {
         // constant Stomatal resistance
         // case STOMATAL_RESISTANCE_CONSTANT: return rsMin_.value();
-        return 1.0/rsMin_.value();    
+        double rs = rsMin_.value()*(0.971 + pow(wPWP_.value()/mean_ws.value(), 2));
+        //return 1.0/rsMin_.value();    
+        return 1.0/rs;    
     }
     else
     {
@@ -347,6 +349,10 @@ soilVegetationModel::soilVegetationModel
     (
         vegetationProperties_.lookup("lambda")
     ),
+    wPWP_
+    (
+        vegetationProperties_.lookup("wPWP")
+    ),    
     mtrans_
     (
         "mtrans",
@@ -592,7 +598,7 @@ soilVegetationModel::soilVegetationModel
 // solve vegetation model
 //void soilVegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField& w, volScalarField& Tl_)
 //void soilVegetationModel::solve(volVectorField& U, volScalarField& T, volScalarField& w)
-void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo, const volScalarField& w)
+void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo, const volScalarField& w, const volScalarField& ws)
 {
     const volScalarField& p = thermo.p();
     const volScalarField& T = thermo.T();
@@ -626,6 +632,13 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
     // solve aerodynamic, stomatal resistance
     //resistance(U,T);
     volScalarField new_Tl("new_Tl", Tl_);
+
+    // 
+    dimensionedScalar mean_ws("mean_ws", fvc::domainIntegrate(ws*RAD_)/fvc::domainIntegrate(RAD_));
+    Info << "Vegetation: [soil moisture] :: mean ws: " << mean_ws << endl;
+    Info << "Vegetation: [soil moisture] :: PWP ws: " << wPWP_ << endl;
+
+
 
     scalar maxError, maxRelError;
     int i;
@@ -661,7 +674,7 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
                 // stomatal resistance
                 // rs_[cellI] = calc_resistance_stomatal(pv, pvsat, T[cellI], cellI);
                 // stomatal conductance m/s
-                gs_[cellI] = calc_conductance_stomatal(pv,pvsat,T[cellI],cellI);
+                gs_[cellI] = calc_conductance_stomatal(pv,pvsat,T[cellI],cellI, mean_ws);
 
                 // net heat/vapor conductance m/s
                 gnet = (gs_[cellI] * ga_[cellI]) / (gs_[cellI] + ga_[cellI]) ;

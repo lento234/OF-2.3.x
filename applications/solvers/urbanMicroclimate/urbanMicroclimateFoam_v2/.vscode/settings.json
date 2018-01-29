@@ -17,7 +17,14 @@
         "radiationmodel.h": "c",
         "readsolidmultiregionsimplecontrols.h": "c",
         "peqn.h": "c",
-        "weqn.h": "c"
+        "weqn.h": "c",
+        "cctype": "c",
+        "cmath": "c",
+        "cstddef": "c",
+        "cstdlib": "c",
+        "cstring": "c",
+        "ctime": "c",
+        "readfluidmultiregionsimplecontrols.h": "c"
     },
 
     "C_Cpp.errorSquiggles": "Disabled"

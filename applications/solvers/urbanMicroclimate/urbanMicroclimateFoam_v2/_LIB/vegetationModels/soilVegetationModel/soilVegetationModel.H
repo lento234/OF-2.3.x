@@ -108,6 +108,7 @@ protected:
             //dimensionedScalar TlMin_;       // lower limit of T
             dimensionedScalar UMin_;        // lower limit of U
             dimensionedScalar lambda_;      // latent heat of vaporization
+            dimensionedScalar wPWP_;      // permanent wilting point moisture content
             dimensionedScalar mtrans_;      // net transpirated mass of water vapour
 
             scalarListIOList divqrsw;
@@ -170,8 +171,9 @@ protected:
 
         // solve stomtal resistance
         //virtual double calc_resistance_stomatal(const double& pv, const double& pvsat, const double& T, const int& cellI);
-        virtual double calc_conductance_stomatal(const double& pv, const double& pvsat, const double& T, const int& cellI);
-            
+        //virtual double calc_conductance_stomatal(const double& pv, const double& pvsat, const double& T, const int& cellI);
+        virtual double calc_conductance_stomatal(const double& pv, const double& pvsat, const double& T, const int& cellI, const dimensionedScalar& mean_ws);
+        
 
 public:
     
@@ -209,7 +211,8 @@ public:
         
         // //- Solve leaf energy balance
         //virtual void solve(volVectorField&U, volScalarField& T, volScalarField& w);//, volScalarField& Tl_);
-        virtual void solve(const volVectorField&U, const rhoThermo& thermo, const volScalarField& w);//, volScalarField& Tl_);
+        //virtual void solve(const volVectorField&U, const rhoThermo& thermo, const volScalarField& w);//, volScalarField& Tl_);
+        virtual void solve(const volVectorField&U, const rhoThermo& thermo, const volScalarField& w, const volScalarField& ws);//, volScalarField& Tl_);
 
         // Source terms
 
