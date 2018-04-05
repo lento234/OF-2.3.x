@@ -1,3 +1,0 @@
-porousrealizableKE/porousrealizableKE.C
-
-LIB = $(FOAM_USER_LIBBIN)/libporousCompressibleRASModels
