@@ -1,3 +1,0 @@
-viewFactorsGenUpdatedCyclic.C
-
-EXE = $(FOAM_USER_APPBIN)/viewFactorsGenUpdatedCyclic
