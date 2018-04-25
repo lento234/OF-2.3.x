@@ -54,7 +54,7 @@ else
 		volScalarField pc_ss = rDeltaT*(ws_old - ws_n); //additional source term appearing due to dw/dt 
 
 		pc.oldTime() = pc_n; //Tricking OpenFOAM to use pc value from previous Picard iteration, instead of previous timestep
-
+		
 		fvScalarMatrix pcEqn
 		(
 			Crel*fvm::ddt(pc)                

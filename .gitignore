@@ -43,6 +43,8 @@ src/thermophysicalModels/
 # Data files
 VTK
 
+.vscode/
+
 trash/
 
 # Doc

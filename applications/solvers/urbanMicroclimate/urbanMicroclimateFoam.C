@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 
     regionProperties rp(runTime);
 
-    label vegetationExists = 0;
+    //label vegetationExists = 0;
 
     #include "createFluidMeshes.H"
     #include "createSolidMeshes.H"
