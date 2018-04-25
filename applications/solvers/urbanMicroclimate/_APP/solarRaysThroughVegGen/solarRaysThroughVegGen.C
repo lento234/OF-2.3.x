@@ -22,15 +22,16 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    calcLAI
+    solarRaysThroughVegGen
 
 Description
-    calcLAI by Lento Manickathan
+    solarRaysThroughVegGen by Lento Manickathan
 
 Versions
     May   - v1
     July  - v2
     Aug   - v3, v4
+    v5    - renamed from `calcLAI` to `solarRaysThroughVegGen`, and bbox error fixed
 
 \*---------------------------------------------------------------------------*/
 
@@ -597,14 +598,12 @@ int main(int argc, char *argv[])
       mesh
     );
 
-    /*
     // Check if vegetation is present
     if (gSum(LAD) < 10*SMALL)
     {
-        Info << "\n\n\n No vegetation !!!!!!!!!\n\nDon't waste my time d[-.-]b\n" << endl;
-        return 0;
+        Info << "\n\n\n Warning :: No vegetation !!!!!!!!!\n\nDon't waste my time d[-.-]b\n" << endl;
+        //return 0;
     }
-    */
 
     volScalarField Qr
     (
@@ -1060,7 +1059,7 @@ int main(int argc, char *argv[])
             ////////////////////////////////////////////////////////////////////
             // Interpolate LAI onto coarse mesh faces
 
-            Info << "vegLocalCoarseCf " << vegLocalCoarseCf.size() << endl;
+            // Info << "vegLocalCoarseCf " << vegLocalCoarseCf.size() << endl;
 
             int nFacesinVegetationBBOX = 0;
             forAll(vegLocalCoarseCf, faceI)
@@ -1227,15 +1226,16 @@ int main(int argc, char *argv[])
             //LAD.write();
             divqrswi.write();
 
-            //runTime++;
-            runTime.setTime(runTime.value()+runTime.deltaT().value(),runTime.timeIndex()+1);
+            runTime++;
+            //runTime.setTime(runTime.value()+runTime.deltaT().value(),runTime.timeIndex()+1);
         }
 
         ////////////////////////////////////////////////////////////////////////
         // Status Info
         Info << "Solar ray direction " << vectorID
-             << ", It took " << (std::clock()-tstartStep) / (double)CLOCKS_PER_SEC
-             << " second(s)."<< endl;
+             << ", It took " ;
+        printf("%.3f", (std::clock()-tstartStep) / (double)CLOCKS_PER_SEC);
+        Info << " second(s)."<< endl;
 
         ////////////////////////////////////////////////////////////////////////
         // if (iter >= 2)
@@ -1244,16 +1244,16 @@ int main(int argc, char *argv[])
     }
 
 
-    Info << "\nWriting fields: LAI " << endl;
+    Info << "\nWriting to constant: LAI " << endl;
     LAIList.write();
 
-    Info << "\nWriting fields: LAI boundary" << endl;
+    Info << "\nWriting to constant: LAI boundary" << endl;
     LAIboundaryList.write();
 
-    Info << "\nWriting fields: qrsw" << endl;
+    Info << "\nWriting to constant: qrsw" << endl;
     qrswList.write();
 
-    Info << "\nWriting fields: div qrsw" << endl;
+    Info << "\nWriting to constant: div qrsw" << endl;
     divqrswList.write();
 
     // // Status Info
