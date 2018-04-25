@@ -67,7 +67,10 @@ int main(int argc, char *argv[])
     #include "createVegetationFields.H"
 
     #include "initContinuityErrs.H"
-    #include "readSolidTimeControls.H"
+    #include "readFluidControls.H"
+    #include "readSolidControls.H"    
+    //#include "readSolidTimeControls.H"
+    
 
     while (runTime.loop())
     {
@@ -87,11 +90,7 @@ int main(int argc, char *argv[])
 				rad.correct();
 				Info << "Updating short-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
 				sol.correct();
-
-                // Info << "skipped: Updating long-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
-                // Info << "skipped: Updating short-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
-        
-                runTime.write();
+                //runTime.write();
 			}
 			else
 			{
@@ -100,7 +99,6 @@ int main(int argc, char *argv[])
 	            #include "setRegionFluidFields.H"
 	            #include "readFluidMultiRegionSIMPLEControls.H"
 	            #include "solveFluid.H"
-
 	        }
         }
 
@@ -108,14 +106,14 @@ int main(int argc, char *argv[])
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
             << nl << endl;
 
-        scalar storeFluidDeltaT = runTime.deltaT().value();
+        //scalar storeFluidDeltaT = runTime.deltaT().value();
 
 		forAll(solidRegions, i)
 		{
 			Info<< "\nSolving for solid region "
 				<< solidRegions[i].name() << endl;
 			#include "setRegionSolidFields.H"
-			#include "readSolidMultiRegionSIMPLEControls.H"
+			//#include "readSolidMultiRegionSIMPLEControls.H"
 			#include "solveSolid.H"
 		}
 

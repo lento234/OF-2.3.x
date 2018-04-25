@@ -1,217 +1,227 @@
-    // Initialise solid field pointer lists
-    PtrList<IOdictionary> solidTransportProperties(solidRegions.size());
-    PtrList<volScalarField> rho_mSolid(solidRegions.size());
-    PtrList<volScalarField> cap_mSolid(solidRegions.size());
-    PtrList<volScalarField> lambda_mSolid(solidRegions.size());
-    PtrList<volScalarField> TsSolid(solidRegions.size());
-    PtrList<volScalarField> wsSolid(solidRegions.size());
-    PtrList<volScalarField> pcSolid(solidRegions.size());
-    PtrList<volScalarField> KrelSolid(solidRegions.size());
-    PtrList<volScalarField> K_vSolid(solidRegions.size());
-    PtrList<volScalarField> K_ptSolid(solidRegions.size());
-    PtrList<volScalarField> CrelSolid(solidRegions.size());
+// Initialise solid field pointer lists
+PtrList<IOdictionary> solidTransportProperties(solidRegions.size());
+PtrList<volScalarField> rho_mSolid(solidRegions.size());
+PtrList<volScalarField> cap_mSolid(solidRegions.size());
+PtrList<volScalarField> lambda_mSolid(solidRegions.size());
+PtrList<volScalarField> TsSolid(solidRegions.size());
+PtrList<volScalarField> wsSolid(solidRegions.size());
+PtrList<volScalarField> pcSolid(solidRegions.size());
+PtrList<volScalarField> KrelSolid(solidRegions.size());
+PtrList<volScalarField> K_vSolid(solidRegions.size());
+PtrList<volScalarField> K_ptSolid(solidRegions.size());
+PtrList<volScalarField> CrelSolid(solidRegions.size());
 
-    // Populate solid field pointer lists
-    forAll(solidRegions, i)
-    {
-        Info<< "    Adding solidTransportProperties\n" << endl;
-        solidTransportProperties.set
+// Populate solid field pointer lists
+forAll(solidRegions, i)
+{
+    Info<< "    Adding solidTransportProperties\n" << endl;
+    solidTransportProperties.set
+    (
+        i,
+        new IOdictionary
         (
-            i,
-            new IOdictionary
+            IOobject
             (
-                IOobject
-                (
-                    "transportProperties",
-                    runTime.constant(),
-                    solidRegions[i],
-                    IOobject::MUST_READ,
-                    IOobject::NO_WRITE
-                )
-            )
-        );
-
-        Info<< "    Adding to rho_mSolid\n" << endl;
-        rho_mSolid.set
-        (
-            i,
-            new volScalarField
-            (
-                IOobject
-                (
-                    "rho_m",
-                    runTime.timeName(),
-                    solidRegions[i],
-                    IOobject::NO_READ,
-                    IOobject::NO_WRITE
-                ),
+                "transportProperties",
+                runTime.constant(),
                 solidRegions[i],
-		dimensionedScalar("rho_m", dimensionSet(1,-3,0,0,0,0,0), scalar(1E-3))
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE
             )
-        );      
+        )
+    );
 
-        Info<< "    Adding to cap_mSolid\n" << endl;
-        cap_mSolid.set
+    Info<< "    Adding to rho_mSolid\n" << endl;
+    rho_mSolid.set
+    (
+        i,
+        new volScalarField
         (
-            i,
-            new volScalarField
+            IOobject
             (
-                IOobject
-                (
-                    "cap_m",
-                    runTime.timeName(),
-                    solidRegions[i],
-                    IOobject::NO_READ,
-                    IOobject::NO_WRITE
-                ),
+                "rho_m",
+                runTime.timeName(),
                 solidRegions[i],
-		dimensionedScalar("cap_m", dimensionSet(0,2,-2,-1,0,0,0), scalar(1E-3))
-            )
-        );    
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            solidRegions[i],
+            dimensionedScalar("rho_m", dimensionSet(1,-3,0,0,0,0,0), scalar(1E-3)),
+            ("zeroGradient")
+        )
+    );      
 
-        Info<< "    Adding to lambda_mSolid\n" << endl;
-        lambda_mSolid.set
+    Info<< "    Adding to cap_mSolid\n" << endl;
+    cap_mSolid.set
+    (
+        i,
+        new volScalarField
         (
-            i,
-            new volScalarField
+            IOobject
             (
-                IOobject
-                (
-                    "lambda_m",
-                    runTime.timeName(),
-                    solidRegions[i],
-                    IOobject::MUST_READ,
-                    IOobject::AUTO_WRITE
-                ),
-                solidRegions[i]
-            )
-        );   
+                "cap_m",
+                runTime.timeName(),
+                solidRegions[i],
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            solidRegions[i],
+            dimensionedScalar("cap_m", dimensionSet(0,2,-2,-1,0,0,0), scalar(1E-3)),
+            ("zeroGradient")
+        )
+    );    
 
-        Info<< "    Adding to TsSolid\n" << endl;
-        TsSolid.set
+    Info<< "    Adding to lambda_mSolid\n" << endl;
+    lambda_mSolid.set
+    (
+        i,
+        new volScalarField
         (
-            i,
-            new volScalarField
+            IOobject
             (
-                IOobject
-                (
-                    "Ts",
-                    runTime.timeName(),
-                    solidRegions[i],
-                    IOobject::MUST_READ,
-                    IOobject::AUTO_WRITE
-                ),
-                solidRegions[i]
-            )
-        ); 
+                "lambda_m",
+                runTime.timeName(),
+                solidRegions[i],
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            solidRegions[i],
+            dimensionedScalar("lambda_m", dimensionSet(1,1,-3,-1,0,0,0), scalar(1E-3)),
+            ("zeroGradient")
+        )
+    );
 
-        Info<< "    Adding to wsSolid\n" << endl;
-        wsSolid.set
+    Info<< "    Adding to TsSolid\n" << endl;
+    TsSolid.set
+    (
+        i,
+        new volScalarField
         (
-            i,
-            new volScalarField
+            IOobject
             (
-                IOobject
-                (
-                    "ws",
-                    runTime.timeName(),
-                    solidRegions[i],
-                    IOobject::MUST_READ,
-                    IOobject::AUTO_WRITE
-                ),
-                solidRegions[i]
-            )
-        );                               
+                "Ts",
+                runTime.timeName(),
+                solidRegions[i],
+                IOobject::MUST_READ,
+                IOobject::AUTO_WRITE
+            ),
+            solidRegions[i]
+        )
+    ); 
 
-        Info<< "    Adding to pcSolid\n" << endl;
-        pcSolid.set
+    Info<< "    Adding to wsSolid\n" << endl;
+    wsSolid.set
+    (
+        i,
+        new volScalarField
         (
-            i,
-            new volScalarField
+            IOobject
             (
-                IOobject
-                (
-                    "pc",
-                    runTime.timeName(),
-                    solidRegions[i],
-                    IOobject::MUST_READ,
-                    IOobject::AUTO_WRITE
-                ),
-                solidRegions[i]
-            )
-        );  
+                "ws",
+                runTime.timeName(),
+                solidRegions[i],
+                IOobject::MUST_READ,
+                IOobject::AUTO_WRITE
+            ),
+            solidRegions[i]
+        )
+    );                               
 
-        Info<< "    Adding to KrelSolid\n" << endl;
-        KrelSolid.set
+    Info<< "    Adding to pcSolid\n" << endl;
+    pcSolid.set
+    (
+        i,
+        new volScalarField
         (
-            i,
-            new volScalarField
+            IOobject
             (
-                IOobject
-                (
-                    "Krel",
-                    runTime.timeName(),
-                    solidRegions[i],
-                    IOobject::MUST_READ,
-                    IOobject::AUTO_WRITE
-                ),
-                solidRegions[i]
-            )
-        );  
+                "pc",
+                runTime.timeName(),
+                solidRegions[i],
+                IOobject::MUST_READ,
+                IOobject::AUTO_WRITE
+            ),
+            solidRegions[i]
+        )
+    );  
 
-        Info<< "    Adding to K_vSolid\n" << endl;
-        K_vSolid.set
+    Info<< "    Adding to KrelSolid\n" << endl;
+    KrelSolid.set
+    (
+        i,
+        new volScalarField
         (
-            i,
-            new volScalarField
+            IOobject
             (
-                IOobject
-                (
-                    "K_v",
-                    runTime.timeName(),
-                    solidRegions[i],
-                    IOobject::MUST_READ,
-                    IOobject::AUTO_WRITE
-                ),
-                solidRegions[i]
-            )
-        ); 
+                "Krel",
+                runTime.timeName(),
+                solidRegions[i],
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            solidRegions[i],
+            dimensionedScalar("Krel", dimensionSet(0, 0, 1, 0, 0, 0, 0), scalar(1E-3)),
+            ("zeroGradient")
+        )
+    );  
 
-        Info<< "    Adding to K_ptSolid\n" << endl;
-        K_ptSolid.set
+    Info<< "    Adding to K_vSolid\n" << endl;
+    K_vSolid.set
+    (
+        i,
+        new volScalarField
         (
-            i,
-            new volScalarField
+            IOobject
             (
-                IOobject
-                (
-                    "K_pt",
-                    runTime.timeName(),
-                    solidRegions[i],
-                    IOobject::MUST_READ,
-                    IOobject::AUTO_WRITE
-                ),
-                solidRegions[i]
-            )
-        ); 
+                "K_v",
+                runTime.timeName(),
+                solidRegions[i],
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            solidRegions[i],
+            dimensionedScalar("K_v", dimensionSet(0, 0, 1, 0, 0, 0, 0), scalar(1E-3)),
+            ("zeroGradient")
+        )
+    ); 
 
-        Info<< "    Adding to CrelSolid\n" << endl;
-        CrelSolid.set
+    Info<< "    Adding to K_ptSolid\n" << endl;
+    K_ptSolid.set
+    (
+        i,
+        new volScalarField
         (
-            i,
-            new volScalarField
+            IOobject
             (
-                IOobject
-                (
-                    "Crel",
-                    runTime.timeName(),
-                    solidRegions[i],
-                    IOobject::MUST_READ,
-                    IOobject::AUTO_WRITE
-                ),
-                solidRegions[i]
-            )
-        );  
+                "K_pt",
+                runTime.timeName(),
+                solidRegions[i],
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            solidRegions[i],
+            dimensionedScalar("K_pt", dimensionSet(1, -1, -1, -1, 0, 0, 0), scalar(1E-3)),
+            ("zeroGradient")
+        )
+    ); 
 
-                           
-    }
+    Info<< "    Adding to CrelSolid\n" << endl;
+    CrelSolid.set
+    (
+        i,
+        new volScalarField
+        (
+            IOobject
+            (
+                "Crel",
+                runTime.timeName(),
+                solidRegions[i],
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            solidRegions[i],
+            dimensionedScalar("Crel", dimensionSet(0, -2, 2, 0, 0, 0, 0), scalar(1E-3)),
+            ("zeroGradient")
+        )
+    );                                
+}

@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Global
-    readSolidTimeControls
+    readSolidControls
 
 Description
     Read the control parameters used in the solid
@@ -45,9 +45,15 @@ scalar maxDeltaT =
     runTime.controlDict().lookupOrDefault<scalar>("maxDeltaT", 600.0); 
 
 scalar minDeltaT =
-    runTime.controlDict().lookupOrDefault<scalar>("minDeltaT", 1.0);
+    runTime.controlDict().lookupOrDefault<scalar>("minDeltaT", 1.0);  
 
-bool adjustTimeStep =
-    runTime.controlDict().lookupOrDefault<bool>("adjustTimeStep", true);    
+scalar PicardTolerancews =
+    runTime.controlDict().lookupOrDefault<scalar>("PicardTolerancews", 0.01);
+
+scalar PicardToleranceTs =
+    runTime.controlDict().lookupOrDefault<scalar>("PicardToleranceTs", 0.01); 
+
+word pcEqnForm =
+    runTime.controlDict().lookupOrDefault<word>("pcEqnForm", "pc-based"); 
 
 // ************************************************************************* //

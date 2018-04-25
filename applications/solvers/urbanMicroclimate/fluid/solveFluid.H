@@ -1,14 +1,10 @@
 simpleControlFluid simpleControlFluid(fluidRegions[i]);
 
-//simplifiedVegetationModel vegetation(U, thermo.T(), w, Tl); // Vegetation model
-//soilVegetationModel vegetation(U, thermo.T(), w, Tl); // Vegetation model
+label fluidIteration = 1;
 
-label fluidIteration = 0;
-
-while (simpleControlFluid.loop())
+while ((simpleControlFluid.loop() || fluidIteration <= minFluidIteration) && fluidIteration <= maxFluidIteration)
 {
     //  Pressure-velocity SIMPLE corrector
-    fluidIteration++;
     Info << "Internal iteration number: " << fluidIteration << endl;
 
     p_rgh.storePrevIter();
@@ -20,8 +16,8 @@ while (simpleControlFluid.loop())
         #include "wEqn.H"
     }
 
-    // Solve vegetation energy balance // not really needed every iteration
-    if ((fluidIteration % 5) == 0)
+    // Solve vegetation energy balance // every nth iteration
+    if ((fluidIteration % 5) == 0) // TODO: solution control -> vegetation solve frequency
     {
         label leafzoneID = -1;
         label rootzoneID = -1;
@@ -39,16 +35,14 @@ while (simpleControlFluid.loop())
     }
 
     turb.correct();
-
-    // if ((fluidIteration % 50) == 0)
-    //     runTime.write();
         
     Info << nl;
+    fluidIteration++;
 
 }
 
 Info<< nl << fluidRegions[i].name() << " region solution converged in "
-    << fluidIteration << " iterations" << nl << endl;
+    << fluidIteration-1 << " iterations" << nl << endl;
 
 Info << "Updating long-wave radiation heat transfer for region: " << fluidRegions[i].name() << endl;
 rad.correct();

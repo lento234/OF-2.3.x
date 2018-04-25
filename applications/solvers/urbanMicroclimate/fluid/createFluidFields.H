@@ -13,11 +13,6 @@
     PtrList<volScalarField> wFluid(fluidRegions.size());
     PtrList<volScalarField> gcrFluid(fluidRegions.size());
 
-    //    PtrList<volScalarField> TlFluid(fluidRegions.size());    
-
-    //    PtrList<volScalarField> QsFluid(fluidRegions.size());
-    //    PtrList<volScalarField> QrFluid(fluidRegions.size());
-
     List<scalar> initialMassFluid(fluidRegions.size());
     List<label> pRefCellFluid(fluidRegions.size(),0);
     List<scalar> pRefValueFluid(fluidRegions.size(),0.0);
@@ -26,9 +21,6 @@
     PtrList<dimensionedScalar> rhoMin(fluidRegions.size());
 
     PtrList<fv::IOoptionList> fluidFvOptions(fluidRegions.size());
-
-
-    //PtrList<soilVegetationModel> vegetationFluid(fluidRegions.size()); // Vegetation model
 
 
     // Populate fluid field pointer lists
@@ -75,48 +67,6 @@
             i,
             solarLoad::solarLoadModel::New(thermoFluid[i].T())
         );
-
-        /*  
-        if (vegetationExists == 1)
-            {
-                Info<< "    Adding to QsFluid\n" << endl;
-                QsFluid.set
-                (
-                    i,
-                    new volScalarField
-                    (
-                        IOobject
-                        (
-                            "Qs",
-                            runTime.timeName(),
-                            fluidRegions[i],
-                            IOobject::MUST_READ,
-                            IOobject::AUTO_WRITE
-                        ),
-                        fluidRegions[i]
-                    )
-                );  
-
-                Info<< "    Adding to QrFluid\n" << endl;
-                QrFluid.set
-                (
-                    i,
-                    new volScalarField
-                    (
-                        IOobject
-                        (
-                            "Qr",
-                            runTime.timeName(),
-                            fluidRegions[i],
-                            IOobject::MUST_READ,
-                            IOobject::AUTO_WRITE
-                        ),
-                        fluidRegions[i]
-                    )
-                );              
-            }   
-        
-        */   
 
         if (fluidRegions[i].name() != "vegetation")             
         {
@@ -173,24 +123,6 @@
                     fluidRegions[i]
                 )
             );    
-
-            // Info<< "    Adding to TlFluid\n" << endl;
-            // TlFluid.set
-            // (
-            //     i,
-            //     new volScalarField
-            //     (
-            //         IOobject
-            //         (
-            //             "Tl",
-            //             runTime.timeName(),
-            //             fluidRegions[i],
-            //             IOobject::MUST_READ,
-            //             IOobject::AUTO_WRITE
-            //         ),
-            //         fluidRegions[i]
-            //     )
-            // );                      
 
             Info<< "    Adding to phiFluid\n" << endl;
             phiFluid.set
@@ -317,20 +249,6 @@
                 i,
                 new fv::IOoptionList(fluidRegions[i])
             );
-
-            // Info <<"    Adding vegetation\n" << endl;
-            // vegetationFluid.set
-            // (
-            //     i,
-            //     new soilVegetationModel
-            //     (
-            //         UFluid[i],
-            //         //thermoFluid[i].T(),
-            //         thermoFluid[i],
-            //         wFluid[i]//,
-            //         //TlFluid[i]
-            //     )
-            // );
 
         }
 

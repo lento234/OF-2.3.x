@@ -10,7 +10,6 @@
     volVectorField& U = UFluid[i];
     volScalarField& w = wFluid[i];
     volScalarField& gcr = gcrFluid[i];
-    // volScalarField& Tl = TlFluid[i];      
     surfaceScalarField& phi = phiFluid[i];
 
     compressible::turbulenceModel& turb = turbulence[i];
@@ -36,7 +35,6 @@
 
     
     label vegRegionID = -1;
-
     forAll(vegetationLeafNames, j)
     {
         if (fluidRegions[i].name() == vegetationLeafNames[j])

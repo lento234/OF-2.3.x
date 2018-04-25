@@ -1,10 +1,12 @@
 {
-    instantList timeDirs = timeSelector::select0(runTime, args);
-    runTime.setTime(timeDirs.last(),timeDirs.size()-1);
+    const scalar& storeFluidDeltaT = runTime.deltaT().value();
+    const scalar& storeFluidTimeStep = runTime.value();
+    const label& storeFluidTimeIndex = runTime.timeIndex();
 
+    runTime.setTime(storeFluidTimeStep-storeFluidDeltaT,storeFluidTimeIndex);
     runTime.setDeltaT(storeFluidDeltaT * initialSolidTimestepFactor); //this always resets to the small timestep for solid, could it be better?
  
-    scalar solidInternalTime = 0;//runTime.deltaT().value();
+    scalar solidInternalTime = 0;
     scalar timeToOutput = storeFluidDeltaT;
     bool timeStepDecrease = false;
 
@@ -15,70 +17,45 @@
         pc.storePrevIter();
         Ts.storePrevIter();
 
-        volScalarField Ts_old = Ts;
-        volScalarField ws_old = ws;
+        #include "updatebuildingMaterials.H"
 
-        int update_sequence = 1;
+        //store values from previous timestep (for mixed form moisture equation)
+        volScalarField ws_old = ws; //ws_old.boundaryField().updateCoeffs();
+        volScalarField pc_old = pc; //pc_old.boundaryField().updateCoeffs();
+        //volScalarField Ts_old = Ts; //Ts_old.boundaryField().updateCoeffs();
 
-        for (int nInternalIter=1; nInternalIter<=nInternalIterMax; nInternalIter++)
+        //store values from previous Picard iteration
+        volScalarField ws_n = ws; //ws_n.boundaryField().updateCoeffs();
+        volScalarField pc_n = pc; //pc_n.boundaryField().updateCoeffs();
+        volScalarField Ts_n = Ts; //Ts_n.boundaryField().updateCoeffs();
+
+        for (int nInternalIter=1; nInternalIter<=nInternalIterMax; nInternalIter++) //starting Picard iteration
         {
+
             //Moisture transfer////////////
-            	#include "pcEqn.H"    
+                #include "pcEqn.H"    
 
                 //Firstly, test if all pc values are valid
-                if (gMax(pc) >= 0)// || gMax(pc.boundaryField()) >= 0)
+                if (gMax(pc) >= 0 || gMax(pc.boundaryField()) >= 0)
                 {
                     Info << "This is going to crash (pc)! Decreasing timestep and reverting fields..." << endl;
                     Info << "Error: gMax(pc): " << gMax(pc) << ", gMax(pc.boundaryField()): " << gMax(pc.boundaryField()) << endl;
-                    //pc.write();
                     timeStepDecrease = true;
-                    pc=pc.prevIter(); 
-                    forAll(pc.boundaryField(), patchi)
-                    { 
-                        forAll(pc.boundaryField()[patchi], facei)
-                        {
-                            pc.boundaryField()[patchi][facei] = pc.prevIter().boundaryField()[patchi][facei];
-                        }
-                    }
-                    Ts=Ts.prevIter(); 
-                    forAll(Ts.boundaryField(), patchi)
-                    { 
-                        forAll(Ts.boundaryField()[patchi], facei)
-                        {
-                            Ts.boundaryField()[patchi][facei] = Ts.prevIter().boundaryField()[patchi][facei];
-                        }
-                    }
+                    #include "revertValues.H"    
                     break;
                 }
-                pc.correctBoundaryConditions();  
-
+                pc.correctBoundaryConditions();
             ///////////////////////////////
 
             //Heat transfer////////////////
-            	#include "TsEqn.H"
-		
+                #include "TsEqn.H" 
                 //Firstly, test if all Ts values are valid
                 if (gMin(Ts) <= 0 || gMin(Ts.boundaryField()) <= 0)
                 {           
                     Info << "This is going to crash (Ts)! Decreasing timestep and reverting fields..." << endl;
                     timeStepDecrease = true;
-                    pc=pc.prevIter(); 
-                    forAll(pc.boundaryField(), patchi)
-                    { 
-                        forAll(pc.boundaryField()[patchi], facei)
-                        {
-                            pc.boundaryField()[patchi][facei] = pc.prevIter().boundaryField()[patchi][facei];
-                        }
-                    }
-                    Ts=Ts.prevIter(); 
-                    forAll(Ts.boundaryField(), patchi)
-                    { 
-                        forAll(Ts.boundaryField()[patchi], facei)
-                        {
-                            Ts.boundaryField()[patchi][facei] = Ts.prevIter().boundaryField()[patchi][facei];
-                        }
-                    }
-                    break;		              
+                    #include "revertValues.H"  
+                    break;                      
                 }
                 Ts.correctBoundaryConditions();
             ///////////////////////////////
@@ -86,22 +63,18 @@
 
             //Convergence test/////////////
 
-                //update moisture content for convergence test
-                update_sequence = 3;
-                pc.dimensions().reset(dimless);
-                ws.dimensions().reset(dimless);
+                //update values for convergence test
                 #include "updatebuildingMaterials.H"
-                ws.dimensions().reset(dimensionSet( 1, -3, 0, 0, 0, 0, 0));          
-                pc.dimensions().reset(dimensionSet( 1, -1, -2, 0, 0, 0, 0));   
-                
+              
                 //convergence test
 
-                scalar maxChangews = gMax(mag(ws.internalField()-ws_old.internalField())); 
-                scalar maxChangeTs = gMax(mag(Ts.internalField()-Ts_old.internalField())); 
-                if(maxChangews < 0.1 && maxChangeTs < 0.1 && nInternalIter>=2) //force at least 1 internal iteration
+                scalar maxChangews = gMax(mag(ws.internalField()-ws_n.internalField())); 
+                scalar maxChangeTs = gMax(mag(Ts.internalField()-Ts_n.internalField())); 
+                if(maxChangews < PicardTolerancews && maxChangeTs < PicardToleranceTs && nInternalIter>=2) //force at least 1 internal iteration
                 {
-                    ws_old = ws; ws_old.correctBoundaryConditions();
-                    Ts_old = Ts; Ts_old.correctBoundaryConditions();
+                    pc_n = pc; pc_n.boundaryField().updateCoeffs();
+                    ws_n = ws; ws_n.boundaryField().updateCoeffs();
+                    Ts_n = Ts; Ts_n.boundaryField().updateCoeffs();
                     Info << "Total internal iterations: " << nInternalIter << endl;
                     timeStepDecrease = false;
                     break;
@@ -115,48 +88,32 @@
                        << "maxChangeT: " << maxChangeTs << endl
                        << "Total internal iterations: " << nInternalIter << endl;
                     timeStepDecrease = true;                    
-                    pc=pc.prevIter(); 
-                    forAll(pc.boundaryField(), patchi)
-                    { 
-                        forAll(pc.boundaryField()[patchi], facei)
-                        {
-                            pc.boundaryField()[patchi][facei] = pc.prevIter().boundaryField()[patchi][facei];
-                        }
-                    }
-                    //pc.correctBoundaryConditions();
-                    Ts=Ts.prevIter(); 
-                    forAll(Ts.boundaryField(), patchi)
-                    { 
-                        forAll(Ts.boundaryField()[patchi], facei)
-                        {
-                            Ts.boundaryField()[patchi][facei] = Ts.prevIter().boundaryField()[patchi][facei];
-                        }
-                    }
-                    //Ts.correctBoundaryConditions();
+                    #include "revertValues.H"
                 }   
                 else //not converged nor reached the maximum iteration yet, continue
                 {
-                    ws_old = ws; ws_old.correctBoundaryConditions();
-                    Ts_old = Ts; Ts_old.correctBoundaryConditions();
+                    pc_n = pc; pc_n.boundaryField().updateCoeffs();
+                    ws_n = ws; ws_n.boundaryField().updateCoeffs();
+                    Ts_n = Ts; Ts_n.boundaryField().updateCoeffs();
                     Info << "maxChangews: " << maxChangews << ", maxChangeTs: " << maxChangeTs << endl;
                 }               
             ///////////////////////////////
 
         }                
 
-        if (timeStepDecrease != true) 
+        if (timeStepDecrease == false) 
         {
             solidInternalTime += runTime.deltaT().value();
             timeToOutput = storeFluidDeltaT - solidInternalTime;
             if (timeToOutput >= 0.0)
             {
-                runTime++;  
+                runTime.setTime(runTime.value()+runTime.deltaT().value(),runTime.timeIndex()+1);
+                //runTime++;  //using this creates problems when writeInterval != 1
             }
         }
 
         if (timeToOutput > 0.0)
         {
-            #include "readSolidTimeControls.H"
             #include "setSolidRegionDeltaT.H"
 
             //update thermal radiation fluxes
@@ -172,6 +129,7 @@
     }
 
     runTime.setDeltaT(storeFluidDeltaT);
+    runTime.setTime(storeFluidTimeStep,storeFluidTimeIndex);
 }
 
 

@@ -31,63 +31,66 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-if (adjustTimeStep)
+
+if(timeStepDecrease == false && runTime.deltaT().value() <= maxDeltaT) //time step is increased (slowly)
 {
+  Info << "Increasing time step slowly...deltaT = " 
+       <<  min
+           (
+             min
+             (
+              runTime.deltaT().value()*increase_factor,
+              maxDeltaT
+             ),
+             timeToOutput
+           )
+       << endl;
 
-    if(timeStepDecrease == false && runTime.deltaT().value() <= maxDeltaT) //time step is increased (slowly)
-    {
-      Info << "Increasing time step slowly...deltaT = " 
-           <<  min
-               (
-                 min
-                 (
-                  runTime.deltaT().value()*increase_factor,
-                  maxDeltaT
-                 ),
-                 timeToOutput
-               )
-           << endl;
-
-      runTime.setDeltaT
-      (
-            min(
-                min
-                (
-                  runTime.deltaT().value()*increase_factor,
-                  maxDeltaT
-                ),
-                timeToOutput
-            )
-      );
-    }
-    else if(timeStepDecrease == true) //time step is decreased
-    {
-      Info << "Decreasing time step...deltaT = " 
-           << min
-                (
-                  max
-                  (
-                      runTime.deltaT().value()*decrease_factor,
-                      minDeltaT
-                  ),
-                  timeToOutput
-                )
-           << endl;
-         
-
-      runTime.setDeltaT
-      (
-        min
-        (
-            max
+  runTime.setDeltaT
+  (
+        min(
+            min
             (
-              runTime.deltaT().value()*decrease_factor,
-              minDeltaT
+              runTime.deltaT().value()*increase_factor,
+              maxDeltaT
             ),
             timeToOutput
         )
-      );
-    }
+  );
+}
+else if(timeStepDecrease == true) //time step is decreased
+{
+  if (runTime.deltaT().value() - minDeltaT < VSMALL)
+  {
+    FatalError
+      << "Cannot decrease time step further. Exiting..." 
+      << abort(FatalError);
+  }
+  Info << "Decreasing time step...deltaT = " 
+       << min
+            (
+              max
+              (
+                  runTime.deltaT().value()*decrease_factor,
+                  minDeltaT
+              ),
+              timeToOutput
+            )
+       << endl;
+     
+
+  runTime.setDeltaT
+  (
+    min
+    (
+        max
+        (
+          runTime.deltaT().value()*decrease_factor,
+          minDeltaT
+        ),
+        timeToOutput
+    )
+  );
 }
 
 // ************************************************************************* //
