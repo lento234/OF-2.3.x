@@ -24,39 +24,21 @@ License
 Class
     Foam::
     compressible::
-    turbulentTemperatureRadCoupledMixedFvPatchScalarField
+    CFDHAMsolidMoistureCoupledMixedFvPatchScalarField
 
 Description
-    Mixed boundary condition for temperature and radiation heat transfer
-    to be used for in multiregion cases
+    Coupled boundary condition for moisture flux at solid boundaries - ayk
 
     Example usage:
         myInterfacePatchName
         {
-            type compressible::turbulentTemperatureRadCoupledMixed;
-            TNbr        T;      // name of T field on neighbour region
-            kappa       lookup;
-            KappaName   kappa;
-            QrNbr       Qr; // or none. Name of Qr field on neighbour region
-            Qr          Qr; // or none. Name of Qr field on local region
-            value       uniform 300;
+            type            compressible::CFDHAMsolidMoistureCoupledMixed;
+            impermeable     false; //(or true, default=false);
+            value           uniform -1e7;
         }
 
-    Needs to be on underlying mapped(Wall)FvPatch.
-
-     Note: kappa : heat conduction at patch. Gets supplied how to
-            lookup/calculate
-     kappa:
-    - 'lookup' : lookup volScalarField (or volSymmTensorField) with name
-    - 'fluidThermo' : use fluidThermo and compressible::RASmodel to calculate K
-    - 'solidThermo' : use solidThermo kappa()
-    - 'directionalSolidThermo' directionalKappa()
-
-    Note: runs in parallel with arbitrary decomposition. Uses mapped
-    functionality to calculate exchange.
-
 SourceFiles
-    turbulentTemperatureRadCoupledMixedFvPatchScalarField.C
+    CFDHAMsolidMoistureCoupledMixedFvPatchScalarField.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -64,7 +46,6 @@ SourceFiles
 #define CFDHAMsolidMoistureCoupledMixedFvPatchScalarField_H
 
 #include "mixedFvPatchFields.H"
-#include "temperatureCoupledBase.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -79,28 +60,12 @@ namespace compressible
 
 class CFDHAMsolidMoistureCoupledMixedFvPatchScalarField
 :
-    public mixedFvPatchScalarField,
-    public temperatureCoupledBase
+    public mixedFvPatchScalarField
 {        
     // Private data
 
-        //- Name of field on the neighbour region
-        const word wnbrName_;        
-
-        //- Name of field on the neighbour region
-        const word TnbrName_;
-
-         //- Name of the thermal radiative heat flux in the neighbour region
-        const word QrNbrName_;
-
-        //- Name of the thermal radiative heat flux in local region
-        const word QrName_;
-		
-         //- Name of the solar radiative heat flux in the neighbour region
-        const word QsNbrName_;
-
-        //- Name of the solar radiative heat flux in local region
-        const word QsName_;		                    
+         //- is the patch impermeable?
+        const bool impermeable_;
 
 public:
 

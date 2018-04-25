@@ -23,23 +23,23 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::buildingMaterialModels::CalciumSilicate
+    Foam::buildingMaterialModels::AsphaltConcrete
 
 Description
-    buildingMaterial constitutive relationship as in CalciumSilicate et al. (1977).
+    buildingMaterial constitutive relationship as in AsphaltConcrete et al. (1977).
    
     Reference:
-    CalciumSilicate R, Vauclin M, Touma J, Wierenga P, Vachaud G. Comparision of numerical
+    AsphaltConcrete R, Vauclin M, Touma J, Wierenga P, Vachaud G. Comparision of numerical
     simulation models for one dimensional infiltration. buildingMaterial Sci. Soc. Am J. 1977,
     41:285-294
 
 SourceFiles
-    CalciumSilicate.C
+    AsphaltConcrete.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef CalciumSilicate_H
-#define CalciumSilicate_H
+#ifndef AsphaltConcrete_H
+#define AsphaltConcrete_H
 
 #include "buildingMaterialModel.H"
 #include "volFields.H"
@@ -52,27 +52,29 @@ namespace buildingMaterialModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class CalciumSilicate Declaration
+                           Class AsphaltConcrete Declaration
 \*---------------------------------------------------------------------------*/
 
-class CalciumSilicate
+class AsphaltConcrete
 :
     public buildingMaterialModel
 {
     // Private data
+
+        dictionary AsphaltConcreteCoeffs_;
 
     // Private Member Functions
 
 public:
 
     //- Runtime type information
-    TypeName("CalciumSilicate");
+    TypeName("AsphaltConcrete");
 
 
     // Constructors
 
         //- Construct from components
-        CalciumSilicate
+        AsphaltConcrete
         (
             const word& name, 
             const dictionary& buildingMaterialDict,
@@ -82,7 +84,7 @@ public:
 
     // Destructor
 
-        ~CalciumSilicate()
+        ~AsphaltConcrete()
         {}
 
 
@@ -98,7 +100,7 @@ public:
         void update_Kv_cell(const volScalarField& pc, const volScalarField& w, const volScalarField& T, volScalarField& K_v, label& celli);
 
         //- Correct the buildingMaterial K_pt (cell)
-        void update_Kpt_cell(const volScalarField& pc, const volScalarField& w, const volScalarField& T, volScalarField& K_pt, label& celli);
+        void update_Kpt_cell(const volScalarField& pc, const volScalarField& w, const volScalarField& T, volScalarField& K_pt, label& celli);      
 
 };
 

@@ -60,8 +60,8 @@ SourceFiles
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef CFDHAMsolidwCoupledMixedFvPatchScalarField_H
-#define CFDHAMsolidwCoupledMixedFvPatchScalarField_H
+#ifndef CFDHAMsolidTemperature1DCoupledMixedFvPatchScalarField_H
+#define CFDHAMsolidTemperature1DCoupledMixedFvPatchScalarField_H
 
 #include "mixedFvPatchFields.H"
 #include "temperatureCoupledBase.H"
@@ -74,10 +74,10 @@ namespace compressible
 {
 
 /*---------------------------------------------------------------------------*\
-    Class CFDHAMsolidwCoupledMixedFvPatchScalarField Declaration
+    Class CFDHAMsolidTemperature1DCoupledMixedFvPatchScalarField Declaration
 \*---------------------------------------------------------------------------*/
 
-class CFDHAMsolidwCoupledMixedFvPatchScalarField
+class CFDHAMsolidTemperature1DCoupledMixedFvPatchScalarField
 :
     public mixedFvPatchScalarField,
     public temperatureCoupledBase
@@ -95,30 +95,30 @@ class CFDHAMsolidwCoupledMixedFvPatchScalarField
 
         //- Name of the thermal radiative heat flux in local region
         const word QrName_;
-		
+        
          //- Name of the solar radiative heat flux in the neighbour region
         const word QsNbrName_;
 
         //- Name of the solar radiative heat flux in local region
-        const word QsName_;		                    
+        const word QsName_;                            
 
 public:
 
     //- Runtime type information
-    TypeName("compressible::CFDHAMsolidwCoupledMixed");
+    TypeName("compressible::CFDHAMsolidTemperature1DCoupledMixed");
 
 
     // Constructors
 
         //- Construct from patch and internal field
-        CFDHAMsolidwCoupledMixedFvPatchScalarField
+        CFDHAMsolidTemperature1DCoupledMixedFvPatchScalarField
         (
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&
         );
 
         //- Construct from patch, internal field and dictionary
-        CFDHAMsolidwCoupledMixedFvPatchScalarField
+        CFDHAMsolidTemperature1DCoupledMixedFvPatchScalarField
         (
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&,
@@ -128,10 +128,10 @@ public:
         //- Construct by mapping given
         //  turbulentTemperatureCoupledBaffleMixedFvPatchScalarField onto a
         //  new patch
-        CFDHAMsolidwCoupledMixedFvPatchScalarField
+        CFDHAMsolidTemperature1DCoupledMixedFvPatchScalarField
         (
             const
-            CFDHAMsolidwCoupledMixedFvPatchScalarField&,
+            CFDHAMsolidTemperature1DCoupledMixedFvPatchScalarField&,
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&,
             const fvPatchFieldMapper&
@@ -142,7 +142,7 @@ public:
         {
             return tmp<fvPatchScalarField>
             (
-                new CFDHAMsolidwCoupledMixedFvPatchScalarField
+                new CFDHAMsolidTemperature1DCoupledMixedFvPatchScalarField
                 (
                     *this
                 )
@@ -150,9 +150,9 @@ public:
         }
 
         //- Construct as copy setting internal field reference
-        CFDHAMsolidwCoupledMixedFvPatchScalarField
+        CFDHAMsolidTemperature1DCoupledMixedFvPatchScalarField
         (
-            const CFDHAMsolidwCoupledMixedFvPatchScalarField&,
+            const CFDHAMsolidTemperature1DCoupledMixedFvPatchScalarField&,
             const DimensionedField<scalar, volMesh>&
         );
 
@@ -164,7 +164,7 @@ public:
         {
             return tmp<fvPatchScalarField>
             (
-                new CFDHAMsolidwCoupledMixedFvPatchScalarField
+                new CFDHAMsolidTemperature1DCoupledMixedFvPatchScalarField
                 (
                     *this,
                     iF

@@ -400,14 +400,14 @@ void Foam::radiation::viewFactorSky::calculate()
     DynamicList<scalar> localCoarseTave(nLocalCoarseFaces_);
     DynamicList<scalar> localCoarseEave(nLocalCoarseFaces_);
     DynamicList<scalar> localCoarseHoave(nLocalCoarseFaces_);
-	
-	// added by aytac
-		label inletPatchID = mesh_.boundaryMesh().findPatchID("inlet");
-		label outletPatchID = mesh_.boundaryMesh().findPatchID("outlet");
-		label topPatchID = mesh_.boundaryMesh().findPatchID("top");		
-		label side1PatchID = mesh_.boundaryMesh().findPatchID("side1");
-		label side2PatchID = mesh_.boundaryMesh().findPatchID("side2");
-	//
+    
+    // added by aytac
+        label inletPatchID = mesh_.boundaryMesh().findPatchID("inlet");
+        label outletPatchID = mesh_.boundaryMesh().findPatchID("outlet");
+        label topPatchID = mesh_.boundaryMesh().findPatchID("top");        
+        label side1PatchID = mesh_.boundaryMesh().findPatchID("side1");
+        label side2PatchID = mesh_.boundaryMesh().findPatchID("side2");
+    //
 
     forAll(selectedPatches_, i)
     {
@@ -456,17 +456,17 @@ void Foam::radiation::viewFactorSky::calculate()
                 forAll(fineFaces, j)
                 {
                     label faceI = fineFaces[j];
-					if (patchID == inletPatchID || patchID == outletPatchID || patchID == topPatchID || patchID == side1PatchID || patchID == side2PatchID) // added by aytac to take into account sky temperature
-					{
-						scalar cc = 0; //cloud cover
-						scalar ec = (1-0.84*cc)*(0.527 + 0.161*Foam::exp(8.45*(1-273/Tp[faceI]))) +0.84*cc; //cloud emissivity
-						scalar Tsky = pow(9.365574E-6*(1-cc)*pow(Tp[faceI],6) + pow(Tp[faceI],4)*cc*ec ,0.25); // Swinbank model (1963, Cole 1976)
-						Tave[coarseI] += (Tsky*sf[faceI])/area;
-					}
-					else
-					{
-						Tave[coarseI] += (Tp[faceI]*sf[faceI])/area; 
-					}
+                    if (patchID == inletPatchID || patchID == outletPatchID || patchID == topPatchID || patchID == side1PatchID || patchID == side2PatchID) // added by aytac to take into account sky temperature
+                    {
+                        scalar cc = 0; //cloud cover
+                        scalar ec = (1-0.84*cc)*(0.527 + 0.161*Foam::exp(8.45*(1-273/Tp[faceI]))) +0.84*cc; //cloud emissivity
+                        scalar Tsky = pow(9.365574E-6*(1-cc)*pow(Tp[faceI],6) + pow(Tp[faceI],4)*cc*ec ,0.25); // Swinbank model (1963, Cole 1976)
+                        Tave[coarseI] += (Tsky*sf[faceI])/area;
+                    }
+                    else
+                    {
+                        Tave[coarseI] += (Tp[faceI]*sf[faceI])/area; 
+                    }
                     Eave[coarseI] += (eb[faceI]*sf[faceI])/area;
                     Hoiave[coarseI] += (Hoi[faceI]*sf[faceI])/area;
                 }

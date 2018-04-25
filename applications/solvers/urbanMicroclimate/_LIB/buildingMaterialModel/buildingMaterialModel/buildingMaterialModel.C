@@ -42,31 +42,23 @@ namespace Foam
 Foam::buildingMaterialModel::buildingMaterialModel
 (
     const word& name,
-    const dictionary& buildingMaterialProperties,
+    const dictionary& buildingMaterialDict,
     const word& cellZoneModel
-    //volScalarField& h,
-    //volScalarField& theta,
-    //volScalarField& kr,
-    //volScalarField& Ch
 )
 :
     name_(name),
-    buildingMaterialProperties_(buildingMaterialProperties),
+    buildingMaterialDict_(buildingMaterialDict),
     cellZoneModel_(cellZoneModel)
-    //h_(h),
-    //theta_(theta),
-    //kr_(kr),
-    //Ch_(Ch)
 {}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-bool Foam::buildingMaterialModel::read(const dictionary& buildingMaterialProperties)
+/*bool Foam::buildingMaterialModel::read(const dictionary& buildingMaterialProperties)
 {
     buildingMaterialProperties_ = buildingMaterialProperties;
 
     return true;
-}
+}*/
 
 
 // ************************************************************************* //

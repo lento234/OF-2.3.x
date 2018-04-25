@@ -23,23 +23,23 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::buildingMaterialModels::CalciumSilicate
+    Foam::buildingMaterialModels::Savonnieres
 
 Description
-    buildingMaterial constitutive relationship as in CalciumSilicate et al. (1977).
+    buildingMaterial constitutive relationship as in Savonnieres et al. (1977).
    
     Reference:
-    CalciumSilicate R, Vauclin M, Touma J, Wierenga P, Vachaud G. Comparision of numerical
+    Savonnieres R, Vauclin M, Touma J, Wierenga P, Vachaud G. Comparision of numerical
     simulation models for one dimensional infiltration. buildingMaterial Sci. Soc. Am J. 1977,
     41:285-294
 
 SourceFiles
-    CalciumSilicate.C
+    Savonnieres.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef CalciumSilicate_H
-#define CalciumSilicate_H
+#ifndef Savonnieres_H
+#define Savonnieres_H
 
 #include "buildingMaterialModel.H"
 #include "volFields.H"
@@ -52,10 +52,10 @@ namespace buildingMaterialModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class CalciumSilicate Declaration
+                           Class Savonnieres Declaration
 \*---------------------------------------------------------------------------*/
 
-class CalciumSilicate
+class Savonnieres
 :
     public buildingMaterialModel
 {
@@ -66,13 +66,13 @@ class CalciumSilicate
 public:
 
     //- Runtime type information
-    TypeName("CalciumSilicate");
+    TypeName("Savonnieres");
 
 
     // Constructors
 
         //- Construct from components
-        CalciumSilicate
+        Savonnieres
         (
             const word& name, 
             const dictionary& buildingMaterialDict,
@@ -82,7 +82,7 @@ public:
 
     // Destructor
 
-        ~CalciumSilicate()
+        ~Savonnieres()
         {}
 
 

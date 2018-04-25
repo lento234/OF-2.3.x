@@ -584,11 +584,15 @@ void simplifiedVegetationModel::solve(volVectorField& U, volScalarField& T, volS
         maxError = gMax(mag(new_Tl.internalField()-Tl_.internalField()));
         maxRelError = maxError/gMax(mag(new_Tl.internalField()));
 
+        // read relaxation factor for Tl - aytac
+        dictionary relaxationDict = mesh_.solutionDict().subDict("relaxationFactors");
+        scalar Tl_relax = relaxationDict.lookupOrDefault<scalar>("Tl", 0.5);
+
         // update leaf temp.
         //Tl_.internalField() = new_Tl.internalField();
         //Tl_.boundaryField() = new_Tl.boundaryField();
         forAll(Tl_, cellI)
-            Tl_[cellI] = 0.5*Tl_[cellI]+0.5*new_Tl[cellI];
+            Tl_[cellI] = (1-Tl_relax)*Tl_[cellI]+(Tl_relax)*new_Tl[cellI];
 
          // convergence check
          if (maxRelError < 1e-8)

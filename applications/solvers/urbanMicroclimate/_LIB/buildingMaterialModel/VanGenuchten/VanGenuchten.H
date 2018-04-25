@@ -23,23 +23,42 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    Foam::buildingMaterialModels::CalciumSilicate
+    Foam::buildingMaterialModels::VanGenuchten
 
 Description
-    buildingMaterial constitutive relationship as in CalciumSilicate et al. (1977).
-   
-    Reference:
-    CalciumSilicate R, Vauclin M, Touma J, Wierenga P, Vachaud G. Comparision of numerical
-    simulation models for one dimensional infiltration. buildingMaterial Sci. Soc. Am J. 1977,
-    41:285-294
+    buildingMaterial constitutive relationship given by Van Genuchten relationships
+    (for single pore system material)
+
+    m = 1 - 1/n
+
+    water retention curve:
+    w(pc) = wcap * (1+ (alpha*pc)^n)^(-m)
+
+    liquid permeability
+    Krel = Ks * (w/wcap)^0.5 * (1-(1-(w/wcap)1/m)^m)^2
+
+    vapor permeability
+    Kv = Ks * (w/wcap)^0.5 * (1-(w/wcap)^1/m)^2m
+
+    where
+
+    wcap = thetaS - thetaR (saturated - residual water content)
+
+    *requires definition of the following additional entries:
+         -wcap
+         -n
+         -alpha
+         -Ks
+
+    Author: Andrea Ferrari
 
 SourceFiles
-    CalciumSilicate.C
+    VanGenuchten.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef CalciumSilicate_H
-#define CalciumSilicate_H
+#ifndef VanGenuchten_H
+#define VanGenuchten_H
 
 #include "buildingMaterialModel.H"
 #include "volFields.H"
@@ -52,27 +71,33 @@ namespace buildingMaterialModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class CalciumSilicate Declaration
+                           Class VanGenuchten Declaration
 \*---------------------------------------------------------------------------*/
 
-class CalciumSilicate
+class VanGenuchten
 :
     public buildingMaterialModel
 {
     // Private data
+
+        dictionary VanGenuchtenCoeffs_;
+        scalar wcap_;
+        scalar n_;
+        scalar alpha_;
+        scalar Ks_;
 
     // Private Member Functions
 
 public:
 
     //- Runtime type information
-    TypeName("CalciumSilicate");
+    TypeName("VanGenuchten");
 
 
     // Constructors
 
         //- Construct from components
-        CalciumSilicate
+        VanGenuchten
         (
             const word& name, 
             const dictionary& buildingMaterialDict,
@@ -82,7 +107,7 @@ public:
 
     // Destructor
 
-        ~CalciumSilicate()
+        ~VanGenuchten()
         {}
 
 
@@ -98,7 +123,7 @@ public:
         void update_Kv_cell(const volScalarField& pc, const volScalarField& w, const volScalarField& T, volScalarField& K_v, label& celli);
 
         //- Correct the buildingMaterial K_pt (cell)
-        void update_Kpt_cell(const volScalarField& pc, const volScalarField& w, const volScalarField& T, volScalarField& K_pt, label& celli);
+        void update_Kpt_cell(const volScalarField& pc, const volScalarField& w, const volScalarField& T, volScalarField& K_pt, label& celli);      
 
 };
 

@@ -24,30 +24,47 @@ License
 Class
     Foam::
     compressible::
-    CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField
+    turbulentTemperatureRadCoupledMixedFvPatchScalarField
 
 Description
-    Coupled boundary condition for heat flux at solid boundaries - ayk
+    Mixed boundary condition for temperature and radiation heat transfer
+    to be used for in multiregion cases
 
     Example usage:
         myInterfacePatchName
         {
-            type            compressible::CFDHAMsolidTemperatureCoupledMixed;
-            QrNbr           Qr; //or none, name of thermal radiation from neighbour region
-            QsNbr           Qs; //or none, name of solar radiation from neighbour region
-            impermeable     false; //(or true, default=false);
-            value           uniform -1e7;
+            type compressible::turbulentTemperatureRadCoupledMixed;
+            TNbr        T;      // name of T field on neighbour region
+            kappa       lookup;
+            KappaName   kappa;
+            QrNbr       Qr; // or none. Name of Qr field on neighbour region
+            Qr          Qr; // or none. Name of Qr field on local region
+            value       uniform 300;
         }
 
+    Needs to be on underlying mapped(Wall)FvPatch.
+
+     Note: kappa : heat conduction at patch. Gets supplied how to
+            lookup/calculate
+     kappa:
+    - 'lookup' : lookup volScalarField (or volSymmTensorField) with name
+    - 'fluidThermo' : use fluidThermo and compressible::RASmodel to calculate K
+    - 'solidThermo' : use solidThermo kappa()
+    - 'directionalSolidThermo' directionalKappa()
+
+    Note: runs in parallel with arbitrary decomposition. Uses mapped
+    functionality to calculate exchange.
+
 SourceFiles
-    CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField.C
+    turbulentTemperatureRadCoupledMixedFvPatchScalarField.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField_H
-#define CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField_H
+#ifndef CFDHAMsolidMoisture1DCoupledMixedFvPatchScalarField_H
+#define CFDHAMsolidMoisture1DCoupledMixedFvPatchScalarField_H
 
 #include "mixedFvPatchFields.H"
+#include "temperatureCoupledBase.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -57,44 +74,51 @@ namespace compressible
 {
 
 /*---------------------------------------------------------------------------*\
-    Class CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField Declaration
+    Class CFDHAMsolidMoisture1DCoupledMixedFvPatchScalarField Declaration
 \*---------------------------------------------------------------------------*/
 
-class CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField
+class CFDHAMsolidMoisture1DCoupledMixedFvPatchScalarField
 :
-    public mixedFvPatchScalarField
+    public mixedFvPatchScalarField,
+    public temperatureCoupledBase
 {        
     // Private data
 
+        //- Name of field on the neighbour region
+        const word wnbrName_;        
+
+        //- Name of field on the neighbour region
+        const word TnbrName_;
+
          //- Name of the thermal radiative heat flux in the neighbour region
         const word QrNbrName_;
+
+        //- Name of the thermal radiative heat flux in local region
+        const word QrName_;
         
          //- Name of the solar radiative heat flux in the neighbour region
         const word QsNbrName_;
 
-        //- Is there a vegetation region? If so, this b.c. get use radiation fluxes Qs and Qr from that region
-        const bool vegetationExists_;             	                    
-
-         //- is the patch impermeable?
-        const bool impermeable_;                    
+        //- Name of the solar radiative heat flux in local region
+        const word QsName_;                            
 
 public:
 
     //- Runtime type information
-    TypeName("compressible::CFDHAMsolidTemperatureCoupledMixed");
+    TypeName("compressible::CFDHAMsolidMoisture1DCoupledMixed");
 
 
     // Constructors
 
         //- Construct from patch and internal field
-        CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField
+        CFDHAMsolidMoisture1DCoupledMixedFvPatchScalarField
         (
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&
         );
 
         //- Construct from patch, internal field and dictionary
-        CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField
+        CFDHAMsolidMoisture1DCoupledMixedFvPatchScalarField
         (
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&,
@@ -104,10 +128,10 @@ public:
         //- Construct by mapping given
         //  turbulentTemperatureCoupledBaffleMixedFvPatchScalarField onto a
         //  new patch
-        CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField
+        CFDHAMsolidMoisture1DCoupledMixedFvPatchScalarField
         (
             const
-            CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField&,
+            CFDHAMsolidMoisture1DCoupledMixedFvPatchScalarField&,
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&,
             const fvPatchFieldMapper&
@@ -118,7 +142,7 @@ public:
         {
             return tmp<fvPatchScalarField>
             (
-                new CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField
+                new CFDHAMsolidMoisture1DCoupledMixedFvPatchScalarField
                 (
                     *this
                 )
@@ -126,9 +150,9 @@ public:
         }
 
         //- Construct as copy setting internal field reference
-        CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField
+        CFDHAMsolidMoisture1DCoupledMixedFvPatchScalarField
         (
-            const CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField&,
+            const CFDHAMsolidMoisture1DCoupledMixedFvPatchScalarField&,
             const DimensionedField<scalar, volMesh>&
         );
 
@@ -140,7 +164,7 @@ public:
         {
             return tmp<fvPatchScalarField>
             (
-                new CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField
+                new CFDHAMsolidMoisture1DCoupledMixedFvPatchScalarField
                 (
                     *this,
                     iF

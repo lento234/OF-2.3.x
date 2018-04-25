@@ -22,23 +22,23 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::radiation::viewFactorUpdated
+    Foam::solarLoad::directAndDiffuse
 
 Description
-    View factor radiation model. The system solved is: C q = b
+    Solar radiation model based on viewFactorModel. - aytac
+    The system solved is: C q = b
     where:
-            Cij  = deltaij/Ej - (1/Ej - 1)Fij
+            Cij  = deltaij/(1-Aj) - (Aj/(1-Aj))Fij
             q    = heat flux
-            b    = A eb - Ho
+            b    = -deltaij*Isol - Ho
     and:
-            eb   = sigma*T^4
-            Ej   = emissivity
-            Aij  = deltaij - Fij
+            Isol = solar radiation
+            Aj   = Albedo
             Fij  = view factor matrix
 
 
 SourceFiles
-    viewFactorUpdated.C
+    directAndDiffuse.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -84,38 +84,38 @@ class directAndDiffuse
         volScalarField Qs_;
 
         //- View factor matrix
-        autoPtr<scalarSquareMatrix> Fmatrix_;		
+        autoPtr<scalarSquareMatrix> Fmatrix_;        
 
         //- Inverse of C matrix
         autoPtr<scalarSquareMatrix> CLU_;
-		
-		//- skyViewCoeffMatrix_
-		autoPtr<scalarRectangularMatrix> skyViewCoeffMatrix_;
+        
+        //- skyViewCoeffMatrix_
+        autoPtr<scalarRectangularMatrix> skyViewCoeffMatrix_;
 
         label skyViewCoeffSize; 
-		
-		//- sunViewCoeffMatrix_
-		autoPtr<scalarRectangularMatrix> sunViewCoeffMatrix_;	
+        
+        //- sunViewCoeffMatrix_
+        autoPtr<scalarRectangularMatrix> sunViewCoeffMatrix_;    
 
-        label sunViewCoeffSize;	
+        label sunViewCoeffSize;    
 
         //- Selected patches
         labelList selectedPatches_;
 
         //- Selected patches
-        labelList wallPatchOrNot_;		
+        labelList wallPatchOrNot_;        
 
         //- Total global coarse faces
         label totalNCoarseFaces_;
 
         //- Total local coarse faces
         label nLocalCoarseFaces_;
-		
+        
         //- Total local wall coarse faces
-        label nLocalWallCoarseFaces_;		
+        label nLocalWallCoarseFaces_;        
 
-        //- Constant emissivity
-        bool constEmissivity_;
+        //- Constant albedo
+        bool constAlbedo_;
 
         //- timestepsInADay
         label timestepsInADay_;
@@ -137,7 +137,7 @@ class directAndDiffuse
             const globalIndex& index,
             const label fromProcI,
             const labelListList& globalFaceFaces,
-			const scalarListList& viewFactors,
+            const scalarListList& viewFactors,
             scalarSquareMatrix& matrix
         );
 
@@ -149,7 +149,7 @@ class directAndDiffuse
             const labelListList& globalFaceFaces,
             const scalarListList& skysunViewCoeffs,
             scalarRectangularMatrix& skysunViewCoeffMatrix
-        );          	
+        );              
 
         //- Disallow default bitwise copy construct
         directAndDiffuse(const directAndDiffuse&);
