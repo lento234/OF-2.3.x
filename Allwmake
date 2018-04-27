@@ -27,7 +27,7 @@ appPath=(
     #applications/solvers/buoyantBoussinesqVegetationSimpleFoam
     # applications/solvers/bigleafFoam
     # applications/solvers/transientbbbigleafFoam
-    # applications/solver/urbanMicroclimate/urbanMicroclimateFoam_v2
+    # applications/solver/urbanMicroclimate/
 )
 
 extPath=(

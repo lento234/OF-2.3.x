@@ -27,6 +27,7 @@ Application
 Description
     Solves for air flow and transport in building materials
     Written by Aytac Kubilay, December 2015, ETH Zurich/Empa
+    Modified by Lento Manickathan, 2017-2018, ETH Zurich/Empa
 
 \*---------------------------------------------------------------------------*/
 #include <ctime>

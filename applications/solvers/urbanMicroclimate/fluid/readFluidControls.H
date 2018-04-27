@@ -29,10 +29,23 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-scalar maxFluidIteration =
-    runTime.controlDict().lookupOrDefault<scalar>("maxFluidIteration", 10000);
+label maxFluidIteration =
+    runTime.controlDict().lookupOrDefault<label>("maxFluidIteration", 10000);
 
-scalar minFluidIteration =
-    runTime.controlDict().lookupOrDefault<scalar>("minFluidIteration", 1);
+label minFluidIteration =
+    runTime.controlDict().lookupOrDefault<label>("minFluidIteration", 1);
+
+label vegetationSolveFreq =
+    runTime.controlDict().lookupOrDefault<label>("vegetationSolveFreq", 10);    
+
+bool debugExport =
+    runTime.controlDict().lookupOrDefault<bool>("debugExport", false);
+
+Info << "maxFluidIteration: " << maxFluidIteration << endl;
+
+Info << "vegetationSolveFreq: " << vegetationSolveFreq << endl;
+
+Info << "debugExport: " << debugExport << endl;
+
 
 // ************************************************************************* //

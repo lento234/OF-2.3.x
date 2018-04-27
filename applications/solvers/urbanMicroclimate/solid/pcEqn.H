@@ -24,7 +24,7 @@ if (hasRoots)
 			  fvm::laplacian(Krel+K_v,pc,"laplacian(Krel,pc)")
 			+ fvc::laplacian(K_pt,Ts,"laplacian(Krel,pc)")
 			+ pc_ss
-			+ vegetation.Sws(Krel,Crel)
+			+ vegetation.Sws(Krel,Crel,pc)
 		);
 		pcEqn.solve(); 
 
@@ -38,7 +38,7 @@ if (hasRoots)
 			==
 			  fvm::laplacian(Krel+K_v,pc,"laplacian(Krel,pc)")
 			+ fvc::laplacian(K_pt,Ts,"laplacian(Krel,pc)")
-			+ vegetation.Sws(Krel,Crel)
+			+ vegetation.Sws(Krel,Crel,pc)
 		);
 		pcEqn.solve(); 
 	}

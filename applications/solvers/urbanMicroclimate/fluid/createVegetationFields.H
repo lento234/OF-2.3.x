@@ -49,7 +49,8 @@
                 thermoFluid[fluidRegionID],
                 wFluid[fluidRegionID],
                 TsSolid[solidRegionID],
-                wsSolid[solidRegionID]
+                wsSolid[solidRegionID],
+                pcSolid[solidRegionID]
             )
         );        
 
