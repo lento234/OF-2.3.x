@@ -82,7 +82,6 @@ protected:
     
             dictionary vegetationProperties_;
     
-    
             //- Reference to air time class
             const Time& runTime_;
 
@@ -95,20 +94,13 @@ protected:
             //- Reference to soil mesh
             const fvMesh& meshSoil_;
 
-            //- Internal clock
-            scalar internalTime;
-
+    // Model coefficients
+    
             //- Minimum velocity threshold
             const dimensionedScalar UMin_;
 
             //- Min. threshold for LAD, RAD
             const scalar minThreshold;
-        
-            //bool isDayTime_;            // check if day time
-
-        // Model coefficients
-    
-            // UNITS = [kg m s K mol A cd]
 
             //- Density of water [kg/m3]
             const dimensionedScalar rhow_;
@@ -133,6 +125,19 @@ protected:
 
             //- Latent heat of vaporization of water
             const dimensionedScalar Lv_;
+
+            //- Relative diffusion of H2O to CO2
+            const scalar a_;
+
+            //- Energy density inside PAR (J/mol)
+            const dimensionedScalar E_PAR_;
+
+
+    // Model constant properties
+
+            //- Sink term of short-wave radiation (W/m3)
+            const scalarListIOList divqrsw;
+
 
             //- Ambient CO2 Concentration [mol/mol]
             const dimensionedScalar c_;
@@ -179,6 +184,63 @@ protected:
             //- Leaf water potential at maximum WUE
             const dimensionedScalar psi_Lmax_;
 
+            //- Maximum xylem condutance (1/s)
+            const dimensionedScalar gx_max_;
+
+            //- Xylem condutance constant [Pa]
+            const dimensionedScalar d_;
+
+            //- Xylem condutance constant 
+            const scalar cx_;
+
+            //- Xylem area [m2]
+            const dimensionedScalar Ax_;
+
+            //- Stomatal condutance constant
+            const scalar s_;
+
+            //- Nocturnal stomatal condutance (mol / m2 s)
+            const dimensionedScalar gsn_;
+
+            //- Maximum carboxylation capacity at 25 deg.
+            const dimensionedScalar Vcmax25_;
+
+            //- Michaelis constant for CO2 fixation
+            const dimensionedScalar Kc25_;
+
+            //- Michaelis constant for O2 fixation
+            const dimensionedScalar Ko25_;
+
+            //- Assimilation constant
+            const scalar gammac_;
+
+            //- Assimilation constant
+            const scalar gammao_;
+
+            //- Assimilation constant (1/s)
+            const dimensionedScalar kc_;
+
+            //- Assimilation constant (1/s)
+            const dimensionedScalar ko_;
+
+            //- Fraction of short-wave inside PAR band
+            const scalar rPAR_;
+
+            //- Apparent Quantum Yield 
+            const scalar gammaPAR_;
+
+
+            //- Absolute gravitational acceleration (m/s2)
+            const dimensionedScalar gabs_;
+
+            //- Soil-root conductance constant (-)
+            const dimensionedScalar alpha_;
+
+           
+
+
+    // Model time-dependent properties
+
             //- Leaf water potential [Pa]
             dimensionedScalar psi_L_;
 
@@ -190,6 +252,9 @@ protected:
 
             //- Marginal water use efficiency
             dimensionedScalar lambda_;
+
+            //- Internal clock
+            scalar internalTime;
 
             //- Varying vegetation properties
             IOdictionary varyingVegetationProperties_;
@@ -241,9 +306,6 @@ protected:
             
             // dimensionedScalar mtrans_;      // net transpirated mass of water vapour
 
-            const scalarListIOList divqrsw;
-    
-
         // Fields
 
             //- Vegetation net drag = cd*LAD [m2/m3]
@@ -267,11 +329,32 @@ protected:
             //- Leaf temperature [K]
             volScalarField Tl_;                
 
+            //- Short-wave radiation absorbed by leaves (W/m2)
+            volScalarField qrsw_leaf_;
+
+            //- Long-wave radiation absorbed by leaves (W/m2)
+            volScalarField qrlw_leaf_;
+
             //- Short + long wave radiation absorbed by leaves (W/m2)
-            volScalarField qrad_leaf_;         
-            
+            volScalarField qrad_leaf_;
+
+            //- Stomatal condutance to CO2 (mol / m2 s)      
+            volScalarField gs_;
+
+            //- Effective conductance to CO2 (mol / m2 s)
+            volScalarField gc_eff_;
+
+            //- Effectuve conductance to vapour (mol / m2 s)
+            volScalarField gv_eff_;
+
+            //- Assimilation rate (mol / m2 s)
+            volScalarField An_;
+
+            //- Intercellular CO2 concentration (mol / m2 s)
+            volScalarField ci_;            
+
             //- Energy source term [kg/m s3]
-            volScalarField Sh_;        
+            volScalarField Sh_;
 
             //- Momentum source term [kg/m2 s2]
             volVectorField Su_;
@@ -309,10 +392,30 @@ protected:
 
     // Protected Member Functions
 
+        //- Solve the quadratic equation
+        virtual scalar solve_quadratic(const scalar& b, const scalar& c);
+
+        //- Calculate the intercellular CO2 concentration
+        virtual scalar calc_ci(const scalar& a1, const scalar& a2, const scalar& ccp, const scalar& gc_eff);
+
+        //- Calculate stomatal condutance (mol / m2 s)
+        virtual scalar calc_gs(const scalar& a1, const scalar& a2, const scalar& VPD);
+
+        //- Calculate effective CO2 condutance (mol / m2 s)
+        virtual scalar calc_gc_eff(const scalar& gs, const scalar& ga);
+
+        //- Calculate effective vapour conductance (mol / m2 s)
+        virtual scalar calc_gv_eff(const scalar& gc_eff);
+
+        //- Calculate Assimilation rate (mol / m2 s)
+        virtual scalar calc_An(const scalar& gc_eff, const scalar& ci);
+
+        //- Calculate minimum assimilation rate, stomatal resistances and intercellular CO2 concentration
+        virtual void calc_minimum_An_gs_gceff_ci(const scalar& Tl, const scalar& VPD, const label& cellI);
+
         //- Assert the units are as required
         template<class tmpClass>
-        void assertUnit(const tmpClass& sourceVar, const dimensionSet& targetUnit);
-        //virtual void assertUnit(const dimensionedScalar& sourceVar, const dimensionSet& targetUnit);
+        void assertDimensions(const tmpClass& sourceVar, const dimensionSet& targetUnit);
         
         //- Write time-varying vegetation properties
         virtual void writeVegetationProperties();
@@ -321,20 +424,22 @@ protected:
         // virtual double calc_rhosat(const double& T);
 
         //- Return saturated water vapour pressure [Pa]
-        virtual double calc_pvsat(const double& T);
+        virtual scalar calc_pvsat(const scalar& T);
 
         //- Return vapour pressure [Pa]
-        virtual double calc_pv(const double& p, const double& w);
+        virtual scalar calc_pv(const scalar& p, const scalar& w);
 
         //- Return vapour pressure deficit [Pa/Pa]
-        virtual double calc_VPD(const double& T, const double& p, const double& w);
+        virtual scalar calc_VPD(const scalar& T, const scalar& p, const scalar& w);
 
         //- Return stomatal condutance to CO2 (mol/m2 s)
-        virtual double calc_ga(const double& magU, const double& rho);
+        virtual void calc_ga(const volVectorField& U, const volScalarField& rho);
 
-        //- Calculate soil properties
-        virtual void calc_soilProperties(const volScalarField& Kl);
+        //- Calculate soil-root system conductance (s/m)
+        virtual void calc_gsr(const volScalarField& Kl);
 
+        //- Calculate soil xylem condutance (1/s)
+        virtual scalar calc_gx(const scalar& psi_L);
 
         //- Calculate marginal water use efficiency
         virtual void calc_marginalWUE();

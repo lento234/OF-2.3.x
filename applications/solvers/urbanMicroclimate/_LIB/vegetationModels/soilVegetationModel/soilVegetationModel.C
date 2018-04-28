@@ -40,8 +40,129 @@ defineTypeNameAndDebug(soilVegetationModel, 0);
 
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
 
+//checked
+scalar soilVegetationModel::solve_quadratic(const scalar& b,const scalar& c)
+{
+    scalar b2m4c = pow(b,2) - 4*c;
+    
+    if (b2m4c < 0.0)
+        FatalError << "Root is complex: " << b2m4c << abort(FatalError);
+    
+    scalar x1 = (-b + sqrt(b2m4c) )/2.0;
+    scalar x2 = (-b - sqrt(b2m4c) )/2.0;
+
+    return max(x1,x2);
+}
+
+//checked
+scalar soilVegetationModel::calc_ci(const scalar& a1, const scalar& a2, const scalar& ccp, const scalar& gc_eff)
+{
+    scalar b = (a1 / gc_eff) + a2 - c_.value();
+    scalar c = - (a1 * ccp / gc_eff) - c_.value()*a2;
+
+    // Calculate intercellular CO2 concentration
+    scalar ci = solve_quadratic(b, c);
+
+    return ci;
+}
+
+
+// checked
+scalar soilVegetationModel::calc_gs(const scalar& a1, const scalar& a2, const scalar& VPD)
+{
+    return a1/(a2 + s_*c_.value()) * ( -1.0 + sqrt(c_.value()/(a_*lambda_.value()*VPD)) ) + gsn_.value();
+}
+
+// checked
+scalar soilVegetationModel::calc_gc_eff(const scalar& gs, const scalar& ga)
+{
+    return (gs * ga) / (gs + ga);
+}
+
+//checked
+scalar soilVegetationModel::calc_gv_eff(const scalar& gc_eff)
+{
+    return a_ * gc_eff;
+}
+
+//checked
+scalar soilVegetationModel::calc_An(const scalar& gc_eff, const scalar& ci)
+{
+    return gc_eff * (ci - c_.value());
+}
+
+
+void soilVegetationModel::calc_minimum_An_gs_gceff_ci(const scalar& Tl, const scalar& VPD, const label& cellI)
+{
+    // Aerodynamic resistance
+    scalar ga = ga_[cellI];
+
+    // Calculating rubisco limited coefficients (A_C)
+
+        // Coefficients
+        scalar Vcmax = Vcmax25_.value() * exp(0.088*(Tl-273.15-25.0))/(1.0 + exp(0.29*(Tl-273.15-41.0)));
+        scalar Kc = Kc25_.value() * exp(gammac_*(Tl-273.15-25.0));
+        scalar Ko = Ko25_.value() * exp(gammao_*(Tl-273.15-25.0));
+
+        scalar a1 = Vcmax;
+        scalar a2 = Kc * (1.0 + cao_.value() / Ko);
+        scalar ccp = (Kc/(2*Ko)) * cao_.value() * (ko_.value()/kc_.value());
+
+        // Condutance due to limited Ac
+        scalar gs_C = calc_gs(a1, a2, VPD);
+        scalar gc_eff_C = calc_gc_eff(gs_C, ga);
+
+        // Intercelluar CO2 due to limited Ac
+        scalar ci_C = calc_ci(a1, a2, ccp, gc_eff_C);
+        
+        // Assimilaion rate Ac
+        scalar A_C = calc_An(gc_eff_C, ci_C);
+
+    // Calculate light limiting coefficients (A_E)
+
+        // Quantum flux density
+        scalar Qp = rPAR_ * qrsw_leaf_[cellI] / E_PAR_.value();
+
+        a1 = gammaPAR_*Qp;
+        a2 = 2.0*ccp;
+
+        // Conductance due to limited Ae
+        scalar gs_E = calc_gs(a1, a2, VPD);
+        scalar gc_eff_E = calc_gc_eff(gs_E, ga);
+
+        // Intercelluar CO2 due to limited Ac
+        scalar ci_E = calc_ci(a1, a2, ccp, gc_eff_E);
+
+        // Assimilate rate AE
+        scalar A_E = calc_An(gc_eff_E, ci_E);
+
+    
+    // Minimum assimilation
+    if (A_E < A_C)
+    {
+        // Light limited 
+        gs_[cellI] = gs_E;
+        gc_eff_[cellI] = gc_eff_E;
+        ci_[cellI] = ci_E;
+        An_[cellI] = A_E;
+    }
+    else
+    {
+        // Rubisco limited 
+        gs_[cellI] = gs_C;
+        gc_eff_[cellI] = gc_eff_C;
+        ci_[cellI] = ci_C;
+        An_[cellI] = A_C;        
+    }
+
+}
+
+
+
+
+//checked
 template<class tmpClass>
-void soilVegetationModel::assertUnit(const tmpClass& sourceVar, const dimensionSet& targetUnit)
+void soilVegetationModel::assertDimensions(const tmpClass& sourceVar, const dimensionSet& targetUnit)
 {
     if (sourceVar.dimensions() != targetUnit)
     {
@@ -58,6 +179,7 @@ void soilVegetationModel::assertUnit(const tmpClass& sourceVar, const dimensionS
     }
 }
 
+//checked
 void soilVegetationModel::writeVegetationProperties()
 {
     // Update dictionary
@@ -74,7 +196,8 @@ void soilVegetationModel::writeVegetationProperties()
     varyingVegetationProperties_.regIOobject::write();
 }
 
-double soilVegetationModel::calc_pvsat(const double& T)
+//checked
+scalar soilVegetationModel::calc_pvsat(const scalar& T)
 {
     // saturated vapor pressure pws - ASHRAE 1.2
     return exp( - 5.8002206e3/T
@@ -85,49 +208,55 @@ double soilVegetationModel::calc_pvsat(const double& T)
                 + 6.5459673*log(T) );
 }
 
-double soilVegetationModel::calc_pv(const double& p, const double& w)
+//checked
+scalar soilVegetationModel::calc_pv(const scalar& p, const scalar& w)
 {
     // vapor pressure pv
     return (p*w)/(0.6219438209 + w);
 }
 
-
-double soilVegetationModel::calc_VPD(const double& T, const double& p, const double& w)
+//checked
+scalar soilVegetationModel::calc_VPD(const scalar& T, const scalar& p, const scalar& w)
 {
     // saturation vapour pressure [Pa]
-    double pvs = calc_pvsat(T);
+    scalar pvs = calc_pvsat(T);
     // vapour pressure [Pa]
-    double pv = calc_pv(p, w);
+    scalar pv = calc_pv(p, w);
 
     return (pvs - pv)/Pstd_.value();
 }
 
- 
-double soilVegetationModel::calc_ga(const double& magU, const double& rho)
+
+void soilVegetationModel::calc_ga(const volVectorField& U, const volScalarField& rho)
 {
-    return (rho/(Mco2_.value()*C_.value())) * pow(magU / l_.value(), 0.5);
+    // Magnitude of velocity
+    //volScalarField magU("magU", mag(U));
+    scalar magU;
+    forAll(LAD_, cellI)
+    {
+        if (LAD_[cellI] > minThreshold)
+        {
+            magU = mag(U[cellI]);
+            ga_[cellI] = (rho[cellI]/(Mco2_.value()*C_.value())) * pow(magU / l_.value(), 0.5); 
+        }
+    }
+
 }
 
 
-void soilVegetationModel::calc_soilProperties(const volScalarField& Kl)
+void soilVegetationModel::calc_gsr(const volScalarField& Kl)
 {
-    //- alpha
-    const dimensionedScalar alpha("alpha", pow(Hr_/RAI_, 0.5)/pow(2.0*r_, 0.5));
-
-    // Absolute value of gravity [m/s2]
-    const dimensionedScalar gabs("gabs", mag(g_));
-
     // Calculate conductivies
-    double K, ks, meshDL, kr;
+    scalar K, ks, kr, meshDL;
     forAll(RAD_, cellI)
     {
         if (RAD_[cellI] > minThreshold)
         {
             //- Hydraulic conductivity [m/s]
-            K = Kl[cellI] * gabs.value();
+            K = Kl[cellI] * gabs_.value();
 
             // Soil-root interface conductance [1/s]
-            ks = alpha.value() * K * RAD_[cellI];
+            ks = alpha_.value() * K * RAD_[cellI];
 
             // Characterstic cell size
             meshDL = pow(meshSoil_.V()[cellI],1.0/3.0);
@@ -136,11 +265,19 @@ void soilVegetationModel::calc_soilProperties(const volScalarField& Kl)
             kr = RAD_[cellI] * meshDL / beta_.value();
 
             // Effective soil-root conductivity (s/m)
-            gsr_[cellI] = (ks * kr) / ((ks + kr) * gabs.value());
+            gsr_[cellI] = (ks * kr) / ((ks + kr) * gabs_.value());
         }
-
     }
+}
 
+//checked
+scalar soilVegetationModel::calc_gx(const scalar& psi_L)
+{
+    // Xylem condutance (1/s)
+    scalar gx = gx_max_.value() * exp( - pow(-psi_L/d_.value(),cx_) );
+    
+    // Effective xylem condutance (sm)
+    return Ax_.value() * gx / gabs_.value();
 }
 
 
@@ -154,6 +291,7 @@ void soilVegetationModel::calc_marginalWUE()
     // Calculate Marginal Water use efficiency (lamba) 
     lambda_.value() = lambda_max_.value() * (c_.value() / c_star_.value()) * exp ( - betaL_.value() * pow(psi_L24_avg - psi_Lmax_.value(), 2));
 }
+
 
 
 void soilVegetationModel::calc_radiation()
@@ -209,14 +347,20 @@ void soilVegetationModel::calc_radiation()
 
     // radiation density inside vegetation
     forAll(LAD_, cellI)
+    {
         if (LAD_[cellI] > minThreshold)
-            qrad_leaf_[cellI] = (- divqrswi[cellI] )/ LAD_[cellI];
-            //qrad_leaf_[cellI] =  ( -divqrswi[cellI]  + (integrateQr/vegiVolume) ) /  LAD_[cellI];
-    qrad_leaf_.correctBoundaryConditions();
+        {
+            qrsw_leaf_[cellI] = (- divqrswi[cellI] )/ LAD_[cellI];
+            qrlw_leaf_[cellI] = (integrateQr / vegiVolume)/ LAD_[cellI];
+            
+        }
+        
+    }
+    qrsw_leaf_.correctBoundaryConditions();
+    qrlw_leaf_.correctBoundaryConditions();
 
     // Integrate direct short-wave radiation absorbed by vegetation
-    dimensionedScalar integrateQrsw = fvc::domainIntegrate(qrad_leaf_ * LAD_);
-
+    dimensionedScalar integrateQrsw = fvc::domainIntegrate(qrsw_leaf_ * LAD_);
 
     Info << "Vegetation : [Radiation]   :: int. Qrsw = " << integrateQrsw << endl;
 
@@ -224,9 +368,17 @@ void soilVegetationModel::calc_radiation()
     scalar missingQs = integrateQs - integrateQrsw.value(); // needs to be added to satisfy energy balance, sadly
 
     forAll(LAD_, cellI)
+    {
         if (LAD_[cellI] > minThreshold)
-            qrad_leaf_[cellI] += ((integrateQr + missingQs)/vegiVolume)/ LAD_[cellI];
-            //qrad_leaf_[cellI] =  ( -divqrswi[cellI]  + (integrateQr/vegiVolume) ) /  LAD_[cellI];
+        {
+            // Add the missing short-wave radiation
+            qrsw_leaf_[cellI] += (missingQs/vegiVolume)/ LAD_[cellI];
+            // Calculate the net radiation
+            qrad_leaf_[cellI] += qrsw_leaf_[cellI] + qrlw_leaf_[cellI];
+            
+        }
+    }
+    qrsw_leaf_.correctBoundaryConditions();
     qrad_leaf_.correctBoundaryConditions();
 
     Info << "Vegetation : [Radiation]   :: update. int. Qrsw = " << fvc::domainIntegrate(qrad_leaf_ * LAD_) 
@@ -264,7 +416,6 @@ soilVegetationModel::soilVegetationModel
     runTimeSoil_(Ts.time()),
     mesh_(U.mesh()),
     meshSoil_(Ts.mesh()),
-    internalTime(-1.0),
     UMin_("UMin", dimVelocity, SMALL),
     minThreshold(10*SMALL),
 
@@ -276,6 +427,22 @@ soilVegetationModel::soilVegetationModel
     Mw_("Mw", dimMass/dimMoles, 0.01802),
     Mco2_("Mco2", dimMass/dimMoles, 0.04401),
     Lv_("Lv", dimEnergy/dimMass, 2.5e6),
+    a_(1.6),
+    E_PAR_("E_PAR", dimEnergy/dimMoles, 2.24e5),
+
+
+    divqrsw
+    (
+        IOobject
+        (
+            "divqrsw",
+            mesh_.facesInstance(),
+            mesh_,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE,
+            false
+        )
+    ),    
 
     c_
     (
@@ -336,13 +503,79 @@ soilVegetationModel::soilVegetationModel
     psi_Lmax_
     (
         vegetationProperties_.lookup("psi_Lmax")
-    ),           
-     
+    ),
+    gx_max_
+    (
+        vegetationProperties_.lookup("gx_max")
+    ),
+    d_
+    (
+        vegetationProperties_.lookup("d")
+    ),
+    cx_
+    (
+        vegetationProperties_.lookupOrDefault("cx", 2.0)
+    ),
+    Ax_
+    (
+        vegetationProperties_.lookup("Ax")
+    ),
+    s_
+    (
+        vegetationProperties_.lookupOrDefault("s", 0.7)
+    ),
+    gsn_
+    (
+        vegetationProperties_.lookup("gsn")
+    ),
+    Vcmax25_
+    (
+        vegetationProperties_.lookup("Vcmax25")
+    ),
+    Kc25_
+    (
+        vegetationProperties_.lookup("Kc25")
+    ),
+    Ko25_
+    (
+        vegetationProperties_.lookup("Ko25")
+    ),
+    gammac_
+    (
+        vegetationProperties_.lookupOrDefault("gammac", 0.074)
+    ),
+    gammao_
+    (
+        vegetationProperties_.lookupOrDefault("gammao", 0.018)
+    ),
+    kc_
+    (
+        vegetationProperties_.lookup("kc")
+    ),
+    ko_
+    (
+        vegetationProperties_.lookup("ko")
+    ),        
+    rPAR_
+    (
+        vegetationProperties_.lookupOrDefault("rPAR", 0.5)
+    ),
+    gammaPAR_
+    (
+        vegetationProperties_.lookupOrDefault("gammaPAR", 0.015)
+    ),    
+
+
+    gabs_("g", mag(g_)),
+    alpha_("alpha", pow(Hr_/RAI_, 0.5)/pow(2.0*r_, 0.5)),
+
 
     psi_L_("psi_L", dimPressure, 0.0),
     psi_R_("psi_R", dimPressure, 0.0),
     psi_L24_(timestepsInADay_,psi_L24_0_.value()),
     lambda_("lambda", dimMoles/dimMoles, 0.0),
+    internalTime(-1.0),
+
 
     varyingVegetationProperties_
     (
@@ -355,18 +588,6 @@ soilVegetationModel::soilVegetationModel
             IOobject::AUTO_WRITE
         )
     ),
-    divqrsw
-    (
-        IOobject
-        (
-            "divqrsw",
-            mesh_.facesInstance(),
-            mesh_,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE,
-            false
-        )
-    ),    
 
     // isDayTime_(false),
     // a1_
@@ -535,6 +756,32 @@ soilVegetationModel::soilVegetationModel
         mesh_,
         dimensionedScalar("0", dimTemperature, 0)
     ),   
+    qrsw_leaf_
+    (
+        IOobject
+        (
+            "qrsw_leaf",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimEnergy/(dimLength*dimLength), 0.0)
+    ),  
+    qrlw_leaf_
+    (
+        IOobject
+        (
+            "qrlw_leaf",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimEnergy/(dimLength*dimLength), 0.0)
+    ),      
     qrad_leaf_
     (
         IOobject
@@ -548,6 +795,71 @@ soilVegetationModel::soilVegetationModel
         mesh_,
         dimensionedScalar("0", dimEnergy/(dimLength*dimLength), 0.0)
     ),  
+    gs_
+    (
+        IOobject
+        (
+            "gs",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimMoles/(dimLength*dimLength*dimTime), 0.0)
+    ),  
+    gc_eff_
+    (
+        IOobject
+        (
+            "gc_eff",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimMoles/(dimLength*dimLength*dimTime), 0.0)
+    ),  
+    gv_eff_
+    (
+        IOobject
+        (
+            "gv_eff",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimMoles/(dimLength*dimLength*dimTime), 0.0)
+    ),      
+    An_
+    (
+        IOobject
+        (
+            "An",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimMoles/(dimLength*dimLength*dimTime), 0.0)
+    ), 
+    ci_
+    (
+        IOobject
+        (
+            "ci",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimMoles/dimMoles, 0.0)
+    ),     
 
     Sh_
     (
@@ -737,7 +1049,6 @@ soilVegetationModel::soilVegetationModel
         Info << nl << "Vegetation : [Status]      :: Vegetation properties : \n"
              << vegetationProperties_ << nl << endl;
 
-        
         // Info << "Std. pressure Pstd = " << constant::standard::Pstd << endl;
         // Info << "Std. temperature Tstd = " << constant::standard::Tstd << endl;
         // Info << "Avogadro constant Na = " << constant::physicoChemical::NA << endl;
@@ -745,7 +1056,6 @@ soilVegetationModel::soilVegetationModel
         // Info << "Speed of light in vacuum c = " << constant::universal::c << endl;
         // Info << "Universal gas constant R = " << constant::physicoChemical::R << endl;
         // Info << "Stefan-Boltzmann constant sigma = " << constant::physicoChemical::sigma << endl;
-
 
         Info << nl << "Vegetation : [Status]      :: Fixed constants :"  << nl
                    << "                           :: " << rhow_ << nl
@@ -758,20 +1068,27 @@ soilVegetationModel::soilVegetationModel
 
         // Check units
         Info << nl << "Vegetation : [Status]      :: Input constants : " << endl;
-        assertUnit(c_, dimless);
-        assertUnit(cao_, dimless);
-        assertUnit(g_, dimAcceleration);
-        assertUnit(C_, pow(dimTime,0.5)/dimLength);
-        assertUnit(l_, dimLength);
-        assertUnit(Hr_, dimLength);
-        assertUnit(RAI_, dimless);
-        assertUnit(r_, dimLength);
-        assertUnit(beta_, dimTime);
-        assertUnit(betaL_, dimless/(dimPressure*dimPressure));
-                
+        assertDimensions(c_, dimless);
+        assertDimensions(cao_, dimless);
+        assertDimensions(g_, dimAcceleration);
+        assertDimensions(C_, pow(dimTime,0.5)/dimLength);
+        assertDimensions(l_, dimLength);
+        assertDimensions(Hr_, dimLength);
+        assertDimensions(RAI_, dimless);
+        assertDimensions(r_, dimLength);
+        assertDimensions(beta_, dimTime);
+        assertDimensions(betaL_, dimless/(dimPressure*dimPressure));
+        assertDimensions(psi_Lmax_, dimPressure);
+        assertDimensions(gx_max_, dimless/dimTime);
+        assertDimensions(d_, dimPressure);
+        assertDimensions(Ax_, dimLength*dimLength);
+
         // Output vegetation properties
         writeVegetationProperties();
-        
+
+        // Marginal WUE
+        calc_marginalWUE();
+
 
     }
 
@@ -792,8 +1109,8 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
     {
         Info << "Vegetation : [Status]      :: Updating internal clock" << endl;
 
-        Info << "Vegetation : [Soil]        :: Calculating soil properties" << endl;
-        calc_soilProperties(Kl);
+        // Info << "Vegetation : [Soil]        :: Calculating soil properties" << endl;
+        // calc_gsr(Kl);
 
         Info << "Vegetation : [MWUE]        :: Calculating Marginal water use efficiency" << endl;
         calc_marginalWUE();
@@ -803,7 +1120,7 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
 
         // Initialize leaf temperature
         forAll(Tl_, cellI)
-            if (LAD_[cellI] > 10*SMALL)
+            if (LAD_[cellI] > minThreshold)
                 Tl_[cellI] = T[cellI];
 
         // Update internal clock
@@ -813,41 +1130,123 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
     }
     else
     {
-        Info << "Vegetation : [Status]      :: Soil properties and radiation already calculated." << endl;
+        Info << "Vegetation : [Status]      :: MWUE and Radiation already calculated." << endl;
     }
 
-    // Magnitude of velocity
-    volScalarField magU("magU", mag(U));
     
+    // New guess of leaf temperature
+    volScalarField new_Tl("new_Tl", Tl_);
     
-    forAll(LAD_, cellI)
+
+    scalar maxError, maxRelError;
+    label i;
+
+    //- Calculate aerodynamic resistance (mol / m2 s)
+    calc_ga(U, rho);
+
+    // solve leaf temperature, iteratively.
+    label maxIter = 500;
+    for (i=1; i<=maxIter; i++)
     {
-        if (LAD_[cellI] > 10*SMALL)
+
+        // Loop through all the leaf cells
+        forAll(LAD_, cellI)
         {
-            // // Initial leaf temperature
-            // if (i==1)
-            //     Tl_[cellI] = T[cellI];
+            // Only leaf cells
+            if (LAD_[cellI] > minThreshold)
+            {
 
-            // Calculate vapour pressure deficit [Pa/Pa]
-            VPD_[cellI] = calc_VPD(Tl_[cellI], p[cellI], w[cellI]);
+                // Calculate vapour pressure deficit [Pa/Pa]
+                VPD_[cellI] = calc_VPD(Tl_[cellI], p[cellI], w[cellI]);
 
-            // Calculate aerodynamic resistance to CO2 [mol/m2 s]
-            ga_[cellI] = calc_ga(magU[cellI], rho[cellI]);
-        
+                // Calculate aerodynamic resistance to CO2 [mol/m2 s]
+                //ga_[cellI] = calc_ga(magU[cellI], rho[cellI]);
+
+                // Calculate Minimum assimilation rate, stomatal condutance
+                ///////calc_assimilationRate(Tl_[cellI], VPD_[cellI])
+
+                // Calculate Stomatal condutance (mol / m2 s)
+                ///////gs_[cellI] = calc_gs(a1,a2,VPD)
+
+                // Calculate effective conductance to CO2 (mol / m2 s)
+                ///////gc_[cellI] = (gs_[cellI] * ga_[cellI]) / (gs_[cellI] + ga_[cellI]);
+
+                // Calculate effective condutance to H2O (mol / m2 s)
+                ///////gv_[cellI] = a_ * gc_[cellI]; 
+
+
+                // stomatal resistance
+                // rs_[cellI] = calc_resistance_stomatal(pv, pvsat, T[cellI], cellI);
+                // stomatal conductance m/s
+                ///////gs_[cellI] = calc_conductance_stomatal(pv,pvsat,T[cellI],cellI, mean_ws);
+
+                // net heat/vapor conductance m/s
+                ///////gnet = (gs_[cellI] * ga_[cellI]) / (gs_[cellI] + ga_[cellI]) ;
+
+                // convective heat transfer coefficient
+                //h_ch_[cellI] = (2.0*rho[cellI]*cpa_.value())/ra_[cellI];
+                ///////h_ch_[cellI] = 2.0 * ga_[cellI] * rho[cellI] * cpa_.value();
+
+                // convective mass transfer coefficient
+                //h_cm_[cellI] = (rho[cellI]*Ra)/(p[cellI]*Rv*(ra_[cellI]+rs_[cellI]));
+                ///////h_cm_[cellI] = gnet * (rho[cellI]*Ra / (p[cellI]*Rv) ); //*(ra_[cellI]+rs_[cellI]));
+
+                // Calculate transpiration rate (mass flux rate)
+                ///////gv_leaf_[cellI] = nEvapSides_.value() * h_cm_[cellI] * (pvsat - pv);
+                
+                // Calculate latent heat flux
+                ///////qlat_leaf_[cellI] = lambda_.value() * gv_leaf_[cellI];
+
+                // Calculate sensible heat flux
+                ///////qsen_leaf_[cellI] = h_ch_[cellI] * (Tl_[cellI] - T[cellI]);
+
+                // Calculate new leaf temperature
+                //new_Tl[cellI] = T[cellI] + (qrad_leaf_[cellI] - qlat_leaf_[cellI]) * (ra_[cellI]/(2.0*rho[cellI]*cpa_.value()));
+                ///////new_Tl[cellI] = T[cellI] + (qrad_leaf_[cellI] - qlat_leaf_[cellI]) / h_ch_[cellI];
+            }
         }
-    }
+        
+        // Check rel. L-infinity error
+        ///////maxError = gMax(mag(new_Tl.internalField()-Tl_.internalField()));
+        ///////maxRelError = maxError/gMax(mag(new_Tl.internalField()));
 
-    psi_L_.value() = -1e6;
+        // Info
+        Info << "Vegetation: [Leaf Energy Balance] :: Iteration = " << i
+             << " max. Tl = " << gMax(new_Tl)
+             << ", error Tl = "   << maxError
+             //<< " LEB error = " << gMax(qrad_leaf_.internalField() - qsen_leaf_.internalField() - qlat_leaf_.internalField())
+             << endl;
+        
+        // convergence check
+        if ((maxRelError < 1e-12) && (maxError < 1e-12))
+            break;
+        else
+            forAll(Tl_, cellI)
+                Tl_[cellI] = 0.5*Tl_[cellI]+0.5*new_Tl[cellI]; // stabilized // update leaf temp.       
+    }
 
     // Correct boundary conditions
-    VPD_.correctBoundaryConditions();
-    ga_.correctBoundaryConditions();
+    //ga_.correctBoundaryConditions();
+    //gs_.correctBoundaryConditions();
+    //gv_leaf_.correctBoundaryConditions();
+    //qlat_leaf_.correctBoundaryConditions();
+    //qsen_leaf_.correctBoundaryConditions();
 
-    // Export
+    // Iteration info
+    Info << "Vegetation: [Leaf Energy Balance] :: Final residual = " << maxError
+         << ", Final rel. residual = " << maxRelError
+         << ", No Iterations " << i 
+         << endl;
+    
+    Info << "Vegetation: [Leaf Energy Balance] :: int. a*qr = " << fvc::domainIntegrate(qrad_leaf_ * LAD_).value()
+         //<< ", int. a*qs = " << fvc::domainIntegrate(qsen_leaf_ * LAD_).value()
+         //<< ", int. a*ql = " << fvc::domainIntegrate(qlat_leaf_ * LAD_).value() 
+         << endl;
+
+
+    // Export time-dependent vegetation properties
     writeVegetationProperties();
 }
-
-
 
 
 // void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo, const volScalarField& w, const volScalarField& ws)
