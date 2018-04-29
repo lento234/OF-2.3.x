@@ -9,6 +9,7 @@
     volScalarField& rho = rhoFluid[i];
     volVectorField& U = UFluid[i];
     volScalarField& w = wFluid[i];
+    volScalarField& c = cFluid[i];
     //volScalarField& gcr = gcrFluid[i];
     surfaceScalarField& phi = phiFluid[i];
 

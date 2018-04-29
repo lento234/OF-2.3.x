@@ -123,6 +123,9 @@ protected:
             //- Molar mass of CO2 [kg/mol]
             const dimensionedScalar Mco2_;
 
+            //- Molar mass of dry air [kg/mol]
+            const dimensionedScalar Mair_;
+
             //- Latent heat of vaporization of water
             const dimensionedScalar Lv_;
 
@@ -140,7 +143,7 @@ protected:
 
 
             //- Ambient CO2 Concentration [mol/mol]
-            const dimensionedScalar c_;
+            const dimensionedScalar ca_;
 
             //- Ambient O2 Concentration [mol/mol]
             const dimensionedScalar cao_;
@@ -176,7 +179,7 @@ protected:
             const dimensionedScalar lambda_max_;
 
             //- CO2 at maximum. marginal WUE (mol/mol)
-            const dimensionedScalar c_star_;
+            const dimensionedScalar ca_star_;
 
             //- Marginal water use efficiency Coefficient
             const dimensionedScalar betaL_;
@@ -218,7 +221,7 @@ protected:
             const scalar gammao_;
 
             //- Assimilation constant (1/s)
-            const dimensionedScalar kc_;
+            const dimensionedScalar kco_;
 
             //- Assimilation constant (1/s)
             const dimensionedScalar ko_;
@@ -229,6 +232,8 @@ protected:
             //- Apparent Quantum Yield 
             const scalar gammaPAR_;
 
+            //- Number of sides stomata is present
+            const scalar nEvapSides_;
 
             //- Absolute gravitational acceleration (m/s2)
             const dimensionedScalar gabs_;
@@ -236,7 +241,7 @@ protected:
             //- Soil-root conductance constant (-)
             const dimensionedScalar alpha_;
 
-           
+            
 
 
     // Model time-dependent properties
@@ -258,53 +263,8 @@ protected:
 
             //- Varying vegetation properties
             IOdictionary varyingVegetationProperties_;
-
-            //dimensionedScalar a1_;          // stomatal resistance specific model parameters
-            //dimensionedScalar a2_;          // stomatal resistance specific model parameters
-            //dimensionedScalar a3_;          // stomatal resistance specific model parameters
-            
-            // //- Ambient O2 Concentration [mol/mol]
-            // const dimensionedScalar cao_("cao", dimensionSet(0,0,0,0,0,0,0), 210); // 210 mmol/mol - 0.21 mol/mol
-            //     dimensionedScalar("0", dimensionSet(1,-2,-1,0,0,0,0), 0.0)
-
-            
-            // //- Ambient CO2 Concentration [mumol/mol]
-            // dimensionedScalar ca_; // 380 mumol/mol - 0.00038 mol/mol
-
-            // //- Specific heat capacity of air at constant pressure [J/kg K]
-            // dimensionedScalar cpa_;
-
-            // //- Density of water // [kg/m3]
-            // dimensionedScalar rhow_;
-
-            // //- Gas constant air =
-            // //dimensionedScalar Ra_("Ra", [0, 0, 0 ,0 0 0 0 ], 212.1);
-            
-            
-            // //dimensionedScalar D0_;          // vapour pressure corresponding to minimal resistance
-            
-            // dimensionedScalar nEvapSides_;  // number of sides, leaf evaporates from
-            
-            // //dimensionedScalar H_;           // Height of vegetation
-            
-            // //dimensionedScalar kc_;          // extinction coefficient of radiation
-            
-            
-            // //dimensionedScalar Rg0_;         // global radiation at top of canopy
-            // //dimensionedScalar Rl0_;         // long-wave radiation at top of canopy
-            
-            // //dimensionedScalar rhoa_;        // denisty of air
-            // dimensionedScalar rsMin_;       // minimum stomatal resistance
-            
-            //dimensionedScalar TlMin_;       // lower limit of T
-
-            //- lower limit of U, for stability
             
 
-            // dimensionedScalar lambda_;      // latent heat of vaporization
-            // //dimensionedScalar wPWP_;      // permanent wilting point moisture content
-            
-            // dimensionedScalar mtrans_;      // net transpirated mass of water vapour
 
         // Fields
 
@@ -353,6 +313,15 @@ protected:
             //- Intercellular CO2 concentration (mol / m2 s)
             volScalarField ci_;            
 
+            //- Leaf transpiration rate (kg / m2 s)
+            volScalarField gv_leaf_;
+
+            //- Latent heat flux (W / m2)
+            volScalarField qlat_leaf_;
+
+            //- Sensible heat flux (W / m2)
+            volScalarField qsen_leaf_;
+
             //- Energy source term [kg/m s3]
             volScalarField Sh_;
 
@@ -362,44 +331,23 @@ protected:
             //- Absolute mositure source term [kg/m3 s]
             volScalarField Sw_;                 
             
-             //- Soil moisture source term [kg/m3 s]
+            //- CO2 source term [mol / mol s]
+            volScalarField Sc_; 
+
+            //- Soil moisture source term [kg/m3 s]
             volScalarField Sws_;
 
-            // //volScalarField E_;                // transpiration rate
-            // volScalarField gv_leaf_;            // transpiration rate
-            // //volScalarField pv_;               // water vapor pressure
-            // //volScalarField pvsat_;            // saturated water vapor pressure
             
-            
-
-            // volScalarField LAI_;                // leaf area index
-            // //volScalarField wsat_;             // saturated specific humidity
-            // //volScalarField Qlat_;             // latent heat flux
-            //volScalarField qlat_leaf_;          // latent heat flux
-            // //volScalarField Qsen_;             // sensible heat flux
-            // volScalarField qsen_leaf_;          // sensible heat flux
-            
-            // volScalarField gs_;                 // stomatal resistance
-            // //volScalarField rhosat_;           // saturated density field
-            // //volVectorField Rg_;               // global radiation
-            // //volScalarField Rn_;               // global radiation density in volume
-            
-            // volScalarField Tl_;                 // temperature of leaf
-
-            // volScalarField h_ch_;               // convective heat transfer coefficient
-            // volScalarField h_cm_;               // convective mass transfer coefficient
-
-
     // Protected Member Functions
 
         //- Solve the quadratic equation
-        virtual scalar solve_quadratic(const scalar& b, const scalar& c);
+        virtual scalar solve_quadratic(const scalar& qb, const scalar& qc);
 
         //- Calculate the intercellular CO2 concentration
-        virtual scalar calc_ci(const scalar& a1, const scalar& a2, const scalar& ccp, const scalar& gc_eff);
+        virtual scalar calc_ci(const scalar& a1, const scalar& a2, const scalar& ccp, const scalar& gc_eff, const scalar& c);
 
         //- Calculate stomatal condutance (mol / m2 s)
-        virtual scalar calc_gs(const scalar& a1, const scalar& a2, const scalar& VPD);
+        virtual scalar calc_gs(const scalar& a1, const scalar& a2, const scalar& VPD, const scalar& c);
 
         //- Calculate effective CO2 condutance (mol / m2 s)
         virtual scalar calc_gc_eff(const scalar& gs, const scalar& ga);
@@ -408,10 +356,10 @@ protected:
         virtual scalar calc_gv_eff(const scalar& gc_eff);
 
         //- Calculate Assimilation rate (mol / m2 s)
-        virtual scalar calc_An(const scalar& gc_eff, const scalar& ci);
+        virtual scalar calc_An(const scalar& gc_eff, const scalar& ci, const scalar& c);
 
         //- Calculate minimum assimilation rate, stomatal resistances and intercellular CO2 concentration
-        virtual void calc_minimum_An_gs_gceff_ci(const scalar& Tl, const scalar& VPD, const label& cellI);
+        virtual void solve_assimilation(const scalar& Tl, const scalar& VPD, const scalar& c, const label& cellI);
 
         //- Assert the units are as required
         template<class tmpClass>
@@ -419,9 +367,6 @@ protected:
         
         //- Write time-varying vegetation properties
         virtual void writeVegetationProperties();
-
-        // //- Return saturated density of water vapour
-        // virtual double calc_rhosat(const double& T);
 
         //- Return saturated water vapour pressure [Pa]
         virtual scalar calc_pvsat(const scalar& T);
@@ -432,7 +377,7 @@ protected:
         //- Return vapour pressure deficit [Pa/Pa]
         virtual scalar calc_VPD(const scalar& T, const scalar& p, const scalar& w);
 
-        //- Return stomatal condutance to CO2 (mol/m2 s)
+        //- Calculate aerodynamic condutance (mol/m2 s)
         virtual void calc_ga(const volVectorField& U, const volScalarField& rho);
 
         //- Calculate soil-root system conductance (s/m)
@@ -447,19 +392,6 @@ protected:
         //- calculate radiation
         virtual void calc_radiation();
         
-        /*
-        //- calculate aerodynamic, stomatal resistances
-        //virtual void resistance(const volScalarField& magU, const volScalarField& T, const volScalarField& w, const volScalarField& Tl);
-
-        // solve aerodynamic resistance
-        //virtual double calc_resistance_aerodynamic(const double& magU);
-        virtual double calc_conductance_aerodynamic(const double& magU);
-
-        // solve stomtal resistance
-        //virtual double calc_resistance_stomatal(const double& pv, const double& pvsat, const double& T, const int& cellI);
-        //virtual double calc_conductance_stomatal(const double& pv, const double& pvsat, const double& T, const int& cellI);
-        virtual double calc_conductance_stomatal(const double& pv, const double& pvsat, const double& T, const int& cellI, const dimensionedScalar& mean_ws);
-        */
 
 public:
     
@@ -474,6 +406,7 @@ public:
             const volVectorField& U,    //- Fluid velocity [m/s]
             const rhoThermo& thermo,    //- Fluid thermodynamic properties
             const volScalarField& w,    //- Fluid absolute humidity [kg/kg]
+            const volScalarField& c,    //- Fluid CO2 concentration [mol/mol]
 			const volScalarField& Ts,   //- Soil temperature [K]
             const volScalarField& ws,   //- Soil moisture [kg/m3]
             const volScalarField& pc    //- Soil capillary pressure [Pa, kg/ms2]
@@ -491,18 +424,20 @@ public:
             return vegetationProperties_;
         }
     
-        // //- Solve leaf energy balance
-        //virtual void solve(volVectorField&U, volScalarField& T, volScalarField& w);//, volScalarField& Tl_);
-        //virtual void solve(const volVectorField&U, const rhoThermo& thermo, const volScalarField& w);//, volScalarField& Tl_);
-        virtual void solve(const volVectorField&U, const rhoThermo& thermo, const volScalarField& w, const volScalarField& ws, const volScalarField& pc, const volScalarField& Kl);
+        //- Solve leaf energy balance
+        //virtual void solve(const volVectorField&U, const rhoThermo& thermo, const volScalarField& w, const volScalarField& ws, const volScalarField& pc, const volScalarField& Kl);
+        virtual void solve(const volVectorField&U, const rhoThermo& thermo, const volScalarField& w, const volScalarField& c);
 
-        // Source terms
+    // Source terms
 
         //- Return vegetation energy source
         virtual tmp<volScalarField> Sh();
 
         //- Return vegetation specific humidity source
         virtual tmp<volScalarField> Sw();
+
+        //- Return vegetation CO2 source
+        virtual tmp<volScalarField> Sc();
 
         //- Return vegetation momentum source
         virtual tmp<fvVectorMatrix> Su(volScalarField& rho, volVectorField& U);

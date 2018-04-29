@@ -14,24 +14,13 @@ while ((simpleControlFluid.loop() || fluidIteration <= minFluidIteration) && flu
         #include "EEqn.H"
         #include "pEqn.H"
         #include "wEqn.H"
+        #include "cEqn.H"
     }
 
     // Solve vegetation energy balance // every nth iteration
     if ((fluidIteration % vegetationSolveFreq) == 0) // TODO: solution control -> vegetation solve frequency
     {
-        label leafzoneID = -1;
-        label rootzoneID = -1;
-        forAll(vegetationLeafNames, j)
-        {
-            if (fluidRegions[i].name() == vegetationLeafNames[j])
-                leafzoneID = j;
-        }
-        forAll(solidRegions, k)
-        {
-            if (solidRegions[k].name() == vegetationRootNames[leafzoneID])
-                rootzoneID = k;
-        }
-        vegetation.solve(U, thermo, w, wsSolid[rootzoneID], pcSolid[rootzoneID], KrelSolid[rootzoneID]);
+        vegetation.solve(U, thermo, w, c);
     }
 
     turb.correct();

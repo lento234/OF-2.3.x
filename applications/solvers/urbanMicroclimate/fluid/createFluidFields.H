@@ -11,6 +11,7 @@
     PtrList<radiation::radiationModel> radiation(fluidRegions.size());
 	PtrList<solarLoad::solarLoadModel> solarLoad(fluidRegions.size());
     PtrList<volScalarField> wFluid(fluidRegions.size());
+    PtrList<volScalarField> cFluid(fluidRegions.size());
     PtrList<volScalarField> gcrFluid(fluidRegions.size());
 
     List<scalar> initialMassFluid(fluidRegions.size());
@@ -105,6 +106,25 @@
                     fluidRegions[i]
                 )
             );   
+
+            Info<< "    Adding to cFluid\n" << endl;
+            cFluid.set
+            (
+                i,
+                new volScalarField
+                (
+                    IOobject
+                    (
+                        "c",
+                        runTime.timeName(),
+                        fluidRegions[i],
+                        IOobject::MUST_READ,
+                        IOobject::AUTO_WRITE
+                    ),
+                    fluidRegions[i]
+                )
+            );   
+            
 
             Info<< "    Adding to gcrFluid\n" << endl;
             gcrFluid.set

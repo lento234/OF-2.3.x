@@ -13,5 +13,4 @@
     wEqn.relax();
 
     wEqn.solve();
-
 }
