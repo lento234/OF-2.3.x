@@ -81,7 +81,7 @@ void soilVegetationModel::calc_radiation()
             // Add the missing short-wave radiation
             qrsw_leaf_[cellI] += (missingQs/vegiVolume)/ LAD_[cellI];
             // Calculate the net radiation
-            qrad_leaf_[cellI] += qrsw_leaf_[cellI] + qrlw_leaf_[cellI];
+            qrad_leaf_[cellI] = qrsw_leaf_[cellI] + qrlw_leaf_[cellI];
             
         }
     }

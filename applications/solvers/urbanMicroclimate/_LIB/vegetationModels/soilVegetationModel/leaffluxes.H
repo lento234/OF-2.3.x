@@ -123,7 +123,7 @@ scalar soilVegetationModel::calc_gc_eff(const scalar& gs, const scalar& ga)
 //- Calculate stomatal condutance (mol / m2 s)
 scalar soilVegetationModel::calc_gs(const scalar& a1, const scalar& a2, const scalar& VPD, const scalar& c)
 {
-    return a1/(a2 + s_*c) * ( -1.0 + sqrt(c/(a_*lambda_.value()*VPD)) ) + gsn_.value();
+    return a1/(a2 + s_*c + SMALL) * ( -1.0 + sqrt(c/(a_*lambda_.value()*VPD + SMALL)) ) + gsn_.value();
 }
 
 //- Calculate effective vapour conductance (mol / m2 s)
