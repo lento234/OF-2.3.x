@@ -728,11 +728,11 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
         maxRelError = maxError/gMax(mag(new_Tl.internalField()));
 
         // Info
-        Info << "Vegetation: [Leaf Energy Balance] :: Iteration = " << i
-             << " max. Tl = " << gMax(new_Tl)
-             << ", error Tl = "   << maxError
-             //<< " LEB error = " << gMax(qrad_leaf_.internalField() - qsen_leaf_.internalField() - qlat_leaf_.internalField())
-             << endl;
+        // Info << "Vegetation: [Leaf Energy Balance] :: Iteration = " << i
+        //      << " max. Tl = " << gMax(new_Tl)
+        //      << ", error Tl = "   << maxError
+        //      //<< " LEB error = " << gMax(qrad_leaf_.internalField() - qsen_leaf_.internalField() - qlat_leaf_.internalField())
+        //      << endl;
         
         // convergence check
         if ((maxRelError < 1e-12) && (maxError < 1e-12))
@@ -754,12 +754,12 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
     qsen_leaf_.correctBoundaryConditions();
 
     // Iteration info
-    Info << "Vegetation: [Leaf Energy Balance] :: Final residual = " << maxError
+    Info << "Vegetation : [LEB]         :: Final residual = " << maxError
          << ", Final rel. residual = " << maxRelError
          << ", No Iterations " << i 
          << endl;
     
-    Info << "Vegetation: [Leaf Energy Balance] :: int. a*qr = " << fvc::domainIntegrate(qrad_leaf_ * LAD_).value()
+    Info << "Vegetation : [LEB]         :: int. a*qr = " << fvc::domainIntegrate(qrad_leaf_ * LAD_).value()
          << ", int. a*qs = " << fvc::domainIntegrate(qsen_leaf_ * LAD_).value()
          << ", int. a*ql = " << fvc::domainIntegrate(qlat_leaf_ * LAD_).value() 
          << endl;

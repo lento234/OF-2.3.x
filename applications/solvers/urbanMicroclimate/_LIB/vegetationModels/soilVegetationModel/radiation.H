@@ -20,7 +20,6 @@ void soilVegetationModel::calc_radiation()
     scalar integrateQs = gSum(vegiPatch.magSf() * vegiPatchQs);
     scalar vegiVolume  = gSum(pos(Cf_.internalField() - 10*SMALL)*mesh_.V());
 
-    
     Info << "Vegetation : [Radiation]   :: int. Qr = " << integrateQr
          << ", int. Qs = " << integrateQs 
          << ", vol. = " << vegiVolume << endl; 
@@ -44,11 +43,11 @@ void soilVegetationModel::calc_radiation()
     // Time of the day
     label timestepsInADay_ = divqrsw.size();
     Time& time = const_cast<Time&>(mesh_.time());
-    Info << "Vegetation : [Radiation]   :: time.value() = " << time.value();
+    //Info << "Vegetation : [Radiation]   :: time.value() = " << time.value();
     label timestep = ceil( (time.value()/(86400/timestepsInADay_))-0.5 );
-    Info << ", 1 timestep = " << timestep;
+    //Info << ", 1 timestep = " << timestep;
     timestep = timestep % timestepsInADay_;
-    Info << ", 2 timestep = " << timestep << endl;
+    //Info << ", 2 timestep = " << timestep << endl;
 
     // Net radiation absorbed by vegetation
     scalarList divqrswi =  divqrsw[timestep];
@@ -70,7 +69,7 @@ void soilVegetationModel::calc_radiation()
     // Integrate direct short-wave radiation absorbed by vegetation
     dimensionedScalar integrateQrsw = fvc::domainIntegrate(qrsw_leaf_ * LAD_);
 
-    Info << "Vegetation : [Radiation]   :: int. Qrsw = " << integrateQrsw << endl;
+    //Info << "Vegetation : [Radiation]   :: int. Qrsw = " << integrateQrsw << endl;
 
     // Missing short-wave radiation, diffused and otherwise.
     scalar missingQs = integrateQs - integrateQrsw.value(); // needs to be added to satisfy energy balance, sadly
