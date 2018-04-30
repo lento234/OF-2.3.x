@@ -33,6 +33,7 @@ void soilVegetationModel::solve_assimilation(const scalar& Tl, const scalar& VPD
         // Quantum flux density
         scalar Qp = rPAR_ * qrsw_leaf_[cellI] / E_PAR_.value();
         
+
         a1 = gammaPAR_*Qp;
         a2 = 2.0*ccp;
 
@@ -45,9 +46,9 @@ void soilVegetationModel::solve_assimilation(const scalar& Tl, const scalar& VPD
 
         // Assimilate rate AE
         scalar A_E = calc_An(gc_eff_E, ci_E, c);
-    
+        
     // Minimum assimilation
-    if (abs(A_E) < abs(A_C))
+    if (mag(A_E) < mag(A_C))
     {
         // Light limited 
         gs_[cellI] = gs_E;
@@ -61,7 +62,7 @@ void soilVegetationModel::solve_assimilation(const scalar& Tl, const scalar& VPD
         gs_[cellI] = gs_C;
         gc_eff_[cellI] = gc_eff_C;
         ci_[cellI] = ci_C;
-        An_[cellI] = A_C;        
+        An_[cellI] = A_C;       
     }
 
     // Calculate effective vapour conductance (mol / m2 s)

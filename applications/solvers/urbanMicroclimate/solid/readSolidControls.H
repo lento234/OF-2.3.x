@@ -56,4 +56,6 @@ scalar PicardToleranceTs =
 word pcEqnForm =
     runTime.controlDict().lookupOrDefault<word>("pcEqnForm", "pc-based"); 
 
+Info << "pcEqnForm : " << pcEqnForm << endl;   
+
 // ************************************************************************* //

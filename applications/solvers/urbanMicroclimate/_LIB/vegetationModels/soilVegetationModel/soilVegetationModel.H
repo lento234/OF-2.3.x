@@ -407,8 +407,8 @@ public:
             const rhoThermo& thermo,    //- Fluid thermodynamic properties
             const volScalarField& w,    //- Fluid absolute humidity [kg/kg]
             const volScalarField& c,    //- Fluid CO2 concentration [mol/mol]
-			const volScalarField& Ts,   //- Soil temperature [K]
-            const volScalarField& ws,   //- Soil moisture [kg/m3]
+			//const volScalarField& Ts,   //- Soil temperature [K]
+            //const volScalarField& ws,   //- Soil moisture [kg/m3]
             const volScalarField& pc    //- Soil capillary pressure [Pa, kg/ms2]
         );
 
@@ -426,7 +426,11 @@ public:
     
         //- Solve leaf energy balance
         //virtual void solve(const volVectorField&U, const rhoThermo& thermo, const volScalarField& w, const volScalarField& ws, const volScalarField& pc, const volScalarField& Kl);
-        virtual void solve(const volVectorField&U, const rhoThermo& thermo, const volScalarField& w, const volScalarField& c);
+        virtual void solve(const volVectorField& U, const rhoThermo& thermo, const volScalarField& w, const volScalarField& c);
+
+        //- Solve Soil-Plant-Atmospheric Contiuum
+        /////// virtual void solve_SPAC(const volScalarField& ws, const volScalarField& pc, const volScalarField& Kl);
+
 
     // Source terms
 
@@ -443,7 +447,7 @@ public:
         virtual tmp<fvVectorMatrix> Su(volScalarField& rho, volVectorField& U);
 
         //- Return soil moisture source term
-        virtual tmp<volScalarField> Sws(volScalarField& Kl, volScalarField& Cl, volScalarField& pc); 
+        virtual tmp<volScalarField> Sws(volScalarField& Kl, volScalarField& pc); 
 
         //- Read vegetationProperties dictionary
         virtual bool read();

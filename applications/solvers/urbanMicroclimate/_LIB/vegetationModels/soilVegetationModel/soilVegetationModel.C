@@ -87,8 +87,8 @@ soilVegetationModel::soilVegetationModel
     const rhoThermo& thermo,    //- Fluid thermodynamic properties
     const volScalarField& w,    //- Fluid absolute humidity [kg/kg]
     const volScalarField& c,    //- Fluid CO2 concentration [mol/mol]
-    const volScalarField& Ts,   //- Soil temperature [K]
-    const volScalarField& ws,   //- Soil moisture [kg/m3]
+    //const volScalarField& Ts,   //- Soil temperature [K]
+    //const volScalarField& ws,   //- Soil moisture [kg/m3]
     const volScalarField& pc    //- Soil capillary pressure [Pa, kg/ms2]
 ):
     IOdictionary
@@ -106,9 +106,9 @@ soilVegetationModel::soilVegetationModel
     vegetationProperties_(*this),
     
     runTime_(U.time()),
-    runTimeSoil_(Ts.time()),
+    runTimeSoil_(pc.time()),
     mesh_(U.mesh()),
-    meshSoil_(Ts.mesh()),
+    meshSoil_(pc.mesh()),
     UMin_("UMin", dimVelocity, SMALL),
     minThreshold(10*SMALL),
 
@@ -642,8 +642,7 @@ soilVegetationModel::soilVegetationModel
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-//, const volScalarField& ws, const volScalarField& pc, const volScalarField& Kl)
-// solve vegetation model
+// solve leaf energy balance 
 void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo, const volScalarField& w, const volScalarField& c)
 {
     const volScalarField& p = thermo.p();
@@ -816,21 +815,22 @@ tmp<volScalarField> soilVegetationModel::Sc()
     return Sc_;
 }
 
-// return soil moisture source term
-tmp<volScalarField> soilVegetationModel::Sws(volScalarField& Kl, volScalarField& Cl, volScalarField& pc)
+// return soil moisture source term (WIP)
+tmp<volScalarField> soilVegetationModel::Sws(volScalarField& Kl, volScalarField& pc)
 {
     // Hydraulic liquid diffusivity, m2/s
     //volScalarField Dl("Dl", Kl/Cl);
 
-    // Net transpiration rate kg/s
-    //dimensionedScalar mtrans("mtrans", fvc::domainIntegrate(LAD_ * gv_leaf_));
- 
-    // source term for water uptake due to roots kg/(m3s)
-    //Sws_ = - (mtrans * RAD_ * Dl) / fvc::domainIntegrate(RAD_ * Dl);
-    //Spc_ = - (0.0 * mtrans * RAD_ * Dl) / fvc::domainIntegrate(RAD_ * Dl);
+    /*
+    // Solve Soil-Plant-Atmosphere Continuum
+    solve_SPAC(const volScalarField& pc, const volScalarField& Kl)
+
     
-    //Info << "Vegetation: [soil root uptake] :: Sws_ max = " << gMax(Sws_) 
-    //     << ", min: " << gMin(Sws_) << endl;
+    // source term for water uptake due to roots kg/(m3s)
+    Sws_ = - gsr_ * (psi_S - psi_R_) * RAD_;
+    
+    Sws_.correctBoundaryConditions();
+    */
 
     return Sws_;
 }

@@ -12,8 +12,11 @@
 
     while ( solidInternalTime < storeFluidDeltaT )
     {         
-        Info << nl << "Time = " << runTime.timeName() << ", deltaT = " << runTime.deltaT().value() << endl;  
+        Info << nl << "Time = " << runTime.timeName() << ", deltaT = " << runTime.deltaT().value()
+             << ", region = " << solidRegions[i].name() << endl;  
+        
         Info << "solidInternalTime: " << solidInternalTime << endl;
+        
         pc.storePrevIter();
         Ts.storePrevIter();
 
