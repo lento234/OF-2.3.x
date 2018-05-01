@@ -88,8 +88,15 @@ void soilVegetationModel::calc_radiation()
     qrsw_leaf_.correctBoundaryConditions();
     qrad_leaf_.correctBoundaryConditions();
 
-    Info << "Vegetation : [Radiation]   :: update. int. Qrsw = " << fvc::domainIntegrate(qrad_leaf_ * LAD_) 
-         << ", Qr + Qs = " << integrateQr + integrateQs << endl;
+    //scalar Qp = rPAR_ * qrsw_leaf_[cellI] / E_PAR_.value();  
+    // Calculate the canopy-top PAR.
+    Qp_.value() = rPAR_ * gMax(qrsw_leaf_) / E_PAR_.value();  
+
+    Info << "Vegetation : [Radiation]   :: update. int. Qrsw = " << fvc::domainIntegrate(qrad_leaf_ * LAD_).value() 
+         << ", Qr + Qs = " << integrateQr + integrateQs
+         << ", Qp [PAR] = " << Qp_.value() << endl;
+
+
 
 }
 

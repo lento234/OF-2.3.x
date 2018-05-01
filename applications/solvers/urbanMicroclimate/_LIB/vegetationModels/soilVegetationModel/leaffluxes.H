@@ -35,10 +35,14 @@ void soilVegetationModel::solve_assimilation(const scalar& Tl, const scalar& VPD
     // Calculate light limiting coefficients (A_E)
 
         // Quantum flux density
-        scalar Qp = rPAR_ * qrsw_leaf_[cellI] / E_PAR_.value();
+        //scalar Qp = rPAR_ * qrsw_leaf_[cellI] / E_PAR_.value();  
+        // use canopy top Qp instead.
+        
+        // add residual
         
 
-        a1 = gammaPAR_*Qp;
+        //a1 = gammaPAR_*Qp;
+        a1 = gammaPAR_*Qp_.value();
         a2 = 2.0*ccp;
 
         // Conductance due to limited Ae

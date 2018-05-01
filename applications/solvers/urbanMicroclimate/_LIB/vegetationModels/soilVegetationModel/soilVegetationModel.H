@@ -258,6 +258,9 @@ protected:
             //- Marginal water use efficiency
             dimensionedScalar lambda_;
 
+            //- Photosynthetically active radiation
+            dimensionedScalar Qp_;
+
             //- Internal clock
             scalar internalTime;
 

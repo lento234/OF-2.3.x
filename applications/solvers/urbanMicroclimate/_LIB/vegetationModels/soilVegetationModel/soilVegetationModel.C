@@ -69,6 +69,7 @@ void soilVegetationModel::writeVegetationProperties()
     varyingVegetationProperties_.set("psi_L", psi_L_);
     varyingVegetationProperties_.set("psi_R", psi_R_);
     varyingVegetationProperties_.set("lambda_", lambda_);
+    varyingVegetationProperties_.set("Qp_", Qp_);
 
     //Info
     Info << "Vegetation : [Status]      :: Writing varying vegetation properties" << endl;
@@ -252,7 +253,7 @@ soilVegetationModel::soilVegetationModel
     ),        
     rPAR_
     (
-        vegetationProperties_.subDict("radCoeffs").lookupOrDefault("rPAR", 0.5)
+        vegetationProperties_.subDict("radCoeffs").lookupOrDefault("rPAR", 0.8)
     ),
     gammaPAR_
     (
@@ -272,8 +273,8 @@ soilVegetationModel::soilVegetationModel
     psi_R_("psi_R", dimPressure, 0.0),
     psi_L24_(timestepsInADay_,psi_L24_0_.value()),
     lambda_("lambda", dimMoles/dimMoles, 0.0),
+    Qp_("Qp", dimMoles/(dimLength*dimLength*dimTime), 0.0),    
     internalTime(-1.0),
-
 
     varyingVegetationProperties_
     (
