@@ -108,8 +108,8 @@ void soilVegetationModel::writeVegetationProperties()
 
     // Energy balance
     dimensionedScalar Qrad("Qrad", fvc::domainIntegrate(qrad_leaf_ * LAD_));
-    dimensionedScalar Qlat("Qlat", fvc::domainIntegrate(qrad_leaf_ * LAD_));
-    dimensionedScalar Qsen("Qsen", fvc::domainIntegrate(qrad_leaf_ * LAD_));
+    dimensionedScalar Qlat("Qlat", fvc::domainIntegrate(qlat_leaf_ * LAD_));
+    dimensionedScalar Qsen("Qsen", fvc::domainIntegrate(qsen_leaf_ * LAD_));
     
     varyingVegetationProperties_.set("Qrad", Qrad);
     varyingVegetationProperties_.set("Qlat", Qlat);
