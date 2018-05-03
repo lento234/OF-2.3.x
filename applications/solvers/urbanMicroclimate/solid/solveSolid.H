@@ -133,6 +133,12 @@
 
     runTime.setDeltaT(storeFluidDeltaT);
     runTime.setTime(storeFluidTimeStep,storeFluidTimeIndex);
-}
 
+    // Export vegetation
+    forAll(vegetationRootNames, j)
+    {
+        if (solidRegions[i].name() == vegetationRootNames[j])
+            vegetation.write();
+    }
+}
 

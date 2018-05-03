@@ -28,6 +28,7 @@ License
 #include "moisture.H"
 #include "plantfluxes.H"
 #include "radiation.H"
+#include "soilroot.H"
 
 using namespace Foam::constant;
 //using namespace Foam::constant::mathematical;
@@ -56,24 +57,69 @@ void soilVegetationModel::assertDimensions(const tmpClass& sourceVar, const dime
             << sourceVar.dimensions()
             << exit(FatalError);
     }
-    else //debug
-    {
-        Info << sourceVar << endl;
-    }
+    // else //debug
+    // {
+    //     Info << sourceVar << endl;
+    // }
 }
 
 //- Write time-varying vegetation properties
 void soilVegetationModel::writeVegetationProperties()
 {
-    // Update dictionary
-    varyingVegetationProperties_.set("psi_L", psi_L_);
-    varyingVegetationProperties_.set("psi_R", psi_R_);
-    varyingVegetationProperties_.set("lambda_", lambda_);
-    varyingVegetationProperties_.set("Qp_", Qp_);
-
+    
     //Info
     Info << "Vegetation : [Status]      :: Writing varying vegetation properties" << endl;
 
+    // Update dictionary
+
+    // Scalar properties
+    varyingVegetationProperties_.set("psi_L", psi_L_); // leaf water potential
+    varyingVegetationProperties_.set("psi_R", psi_R_); // root water potential
+    varyingVegetationProperties_.set("psi_L24av", dimensionedScalar("psi_L24av", dimPressure, average(psi_L24_)) ); // water potential 24 hr
+    varyingVegetationProperties_.set("lambda", lambda_); // WUE
+    varyingVegetationProperties_.set("Qp", Qp_); // PAR flux density
+    varyingVegetationProperties_.set("E", dimensionedScalar("E", E_)); // Net vapour flux
+    varyingVegetationProperties_.set("gx", gx_); // xylem conductance
+
+    // Min, Maximum leaf temperature
+    scalar Tlmax = 0.0;
+    scalar Tlmin = 1000.0;
+    forAll(LAD_,cellI)
+    {
+        if (LAD_[cellI] > minThreshold)
+        {
+            Tlmax = max(Tlmax, Tl_[cellI]);
+            Tlmin = min(Tlmin, Tl_[cellI]);
+        }
+    }
+    List<scalar> Tlmax_(Pstream::nProcs());
+    List<scalar> Tlmin_(Pstream::nProcs());
+    Tlmax_[Pstream::myProcNo()] = Tlmax;
+    Tlmin_[Pstream::myProcNo()] = Tlmin;
+    Pstream::gatherList(Tlmax_);
+    Pstream::scatterList(Tlmax_);
+    Pstream::gatherList(Tlmin_);
+    Pstream::scatterList(Tlmin_);
+    Tlmax = gMax(Tlmax_);
+    Tlmin = gMin(Tlmin_);
+
+    varyingVegetationProperties_.set("Tlmax", dimensionedScalar("Tlmax", dimTemperature, Tlmax)); // maxmimum leaf temperature
+    varyingVegetationProperties_.set("Tlmin", dimensionedScalar("Tlmin", dimTemperature, Tlmin)); // minimum leaf temperature
+
+    // Energy balance
+    dimensionedScalar Qrad("Qrad", fvc::domainIntegrate(qrad_leaf_ * LAD_));
+    dimensionedScalar Qlat("Qlat", fvc::domainIntegrate(qrad_leaf_ * LAD_));
+    dimensionedScalar Qsen("Qsen", fvc::domainIntegrate(qrad_leaf_ * LAD_));
+    
+    varyingVegetationProperties_.set("Qrad", Qrad);
+    varyingVegetationProperties_.set("Qlat", Qlat);
+    varyingVegetationProperties_.set("Qsen", Qsen);
+
+    // Assimilation Total CO2 extraction
+    dimensionedScalar An("An", fvc::domainIntegrate(An_ * LAD_));
+    varyingVegetationProperties_.set("An", An);
+
+    
     // Export to file
     varyingVegetationProperties_.regIOobject::write();
 }
@@ -269,11 +315,13 @@ soilVegetationModel::soilVegetationModel
     alpha_("alpha", pow(Hr_/RAI_, 0.5)/pow(2.0*r_, 0.5)),
 
 
-    psi_L_("psi_L", dimPressure, 0.0),
+    psi_L_("psi_L", dimPressure, psi_L24_0_.value()),
     psi_R_("psi_R", dimPressure, 0.0),
-    psi_L24_(timestepsInADay_,psi_L24_0_.value()),
+    psi_L24_(timestepsInADay_, psi_L24_0_.value()),
     lambda_("lambda", dimMoles/dimMoles, 0.0),
     Qp_("Qp", dimMoles/(dimLength*dimLength*dimTime), 0.0),    
+    E_("E", dimMass/dimTime, 0.0),   
+    gx_("gx", dimTime/dimLength, 0.0),   
     internalTime(-1.0),
 
     varyingVegetationProperties_
@@ -493,6 +541,19 @@ soilVegetationModel::soilVegetationModel
         mesh_,
         dimensionedScalar("0", dimMass/(dimLength*dimLength*dimTime), 0.0)
     ), 
+    gv_root_
+    (
+        IOobject
+        (
+            "gv_root",
+            runTimeSoil_.timeName(),
+            meshSoil_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        meshSoil_,
+        dimensionedScalar("0", dimMass/(dimLength*dimLength*dimTime), 0.0)
+    ),     
     qlat_leaf_
     (
         IOobject
@@ -587,7 +648,7 @@ soilVegetationModel::soilVegetationModel
     {
         Info << nl << "         Defined custom vegetation model: soil-vegetation foam" << endl;
         
-        Info << nl << "Vegetation : [Status]      :: Vegetation properties : \n"
+        Info << nl << nl << "Vegetation : [Status]      :: Vegetation properties : \n"
              << vegetationProperties_ << nl << endl;
 
         // Info << "Std. pressure Pstd = " << constant::standard::Pstd << endl;
@@ -598,17 +659,17 @@ soilVegetationModel::soilVegetationModel
         // Info << "Universal gas constant R = " << constant::physicoChemical::R << endl;
         // Info << "Stefan-Boltzmann constant sigma = " << constant::physicoChemical::sigma << endl;
 
-        Info << nl << "Vegetation : [Status]      :: Fixed constants :"  << nl
-                   << "                           :: " << rhow_ << nl
-                   << "                           :: " << Ra_ << nl
-                   << "                           :: " << Rv_ << nl
-                   << "                           :: " << cpa_ << nl
-                   << "                           :: " << Mco2_ << nl
-                   << "                           :: " << Lv_ << nl
-                   << "                           :: " << Mw_ << nl <<endl;
+        // Info << nl << "Vegetation : [Status]      :: Fixed constants :"  << nl
+        //            << "                           :: " << rhow_ << nl
+        //            << "                           :: " << Ra_ << nl
+        //            << "                           :: " << Rv_ << nl
+        //            << "                           :: " << cpa_ << nl
+        //            << "                           :: " << Mco2_ << nl
+        //            << "                           :: " << Lv_ << nl
+        //            << "                           :: " << Mw_ << nl <<endl;
 
         // Check units
-        Info << nl << "Vegetation : [Status]      :: Input constants : " << endl;
+        // Info << nl << "Vegetation : [Status]      :: Input constants : " << endl;
         assertDimensions(ca_, dimless);
         assertDimensions(cao_, dimless);
         assertDimensions(g_, dimAcceleration);
@@ -634,10 +695,8 @@ soilVegetationModel::soilVegetationModel
         //dictionary relaxationDict = mesh_.solutionDict().subDict("relaxationFactors");
         //scalar Tl_relax = relaxationDict.lookupOrDefault<scalar>("Tl", 0.5);
 
-        
-
         // Output vegetation properties
-        writeVegetationProperties();
+        // writeVegetationProperties();
 
     }
 
@@ -727,13 +786,6 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
         // Check rel. L-infinity error
         maxError = gMax(mag(new_Tl.internalField()-Tl_.internalField()));
         maxRelError = maxError/gMax(mag(new_Tl.internalField()));
-
-        // Info
-        // Info << "Vegetation: [Leaf Energy Balance] :: Iteration = " << i
-        //      << " max. Tl = " << gMax(new_Tl)
-        //      << ", error Tl = "   << maxError
-        //      //<< " LEB error = " << gMax(qrad_leaf_.internalField() - qsen_leaf_.internalField() - qlat_leaf_.internalField())
-        //      << endl;
         
         // convergence check
         if ((maxRelError < 1e-12) && (maxError < 1e-12))
@@ -754,6 +806,9 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
     qlat_leaf_.correctBoundaryConditions();
     qsen_leaf_.correctBoundaryConditions();
 
+    //- Store net transpiration rate (kg/s) 
+    E_ = fvc::domainIntegrate(LAD_ * gv_leaf_);
+
     // Iteration info
     Info << "Vegetation : [LEB]         :: Final residual = " << maxError
          << ", Final rel. residual = " << maxRelError
@@ -765,9 +820,12 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
          << ", int. a*ql = " << fvc::domainIntegrate(qlat_leaf_ * LAD_).value() 
          << endl;
 
+    Info << "Vegetation : [LEB]         :: Net transpiration E = " << E_.value() << endl;
+         
+         
 
     // Export time-dependent vegetation properties
-    writeVegetationProperties();
+    // writeVegetationProperties();
 }
 
 // -----------------------------------------------------------------------------
@@ -819,19 +877,18 @@ tmp<volScalarField> soilVegetationModel::Sc()
 // return soil moisture source term (WIP)
 tmp<volScalarField> soilVegetationModel::Sws(volScalarField& Kl, volScalarField& pc)
 {
-    // Hydraulic liquid diffusivity, m2/s
-    //volScalarField Dl("Dl", Kl/Cl);
+    
+    //- Calculate soil water potential
+    const volScalarField psi_S("psi_S", pc); // + g & meshSoil_.C();
 
-    /*
-    // Solve Soil-Plant-Atmosphere Continuum
-    solve_SPAC(const volScalarField& pc, const volScalarField& Kl)
-
+    // Solve Soil-Plant-Atmosphere Continuum, psi_L, psi_R, gsr
+    solve_SPAC(Kl, psi_S);
     
     // source term for water uptake due to roots kg/(m3s)
-    Sws_ = - gsr_ * (psi_S - psi_R_) * RAD_;
+    //Sws_ = - gsr_ * (psi_S - psi_R_) * RAD_;
+    Sws_ = RAD_ * gv_root_;
     
     Sws_.correctBoundaryConditions();
-    */
 
     return Sws_;
 }
@@ -842,6 +899,12 @@ tmp<volScalarField> soilVegetationModel::Sws(volScalarField& Kl, volScalarField&
 bool soilVegetationModel::read()
 {
     return true;
+}
+
+
+void soilVegetationModel::write()
+{
+    writeVegetationProperties();
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

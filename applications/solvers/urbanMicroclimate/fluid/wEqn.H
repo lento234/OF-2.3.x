@@ -4,11 +4,11 @@
 
     fvScalarMatrix wEqn
     (
-        fvm::ddt(rho,w)
+        fvm::ddt(rho, w)
       + fvm::div(phi, w)
       - fvm::laplacian(rho*Dm + turb.mut()/Sct, w)
       ==
-        vegetation.Sw() // vegetation moisture source term
+        vegetation.Sw() // vegetation moisture source term kg/m3 s
     );
     wEqn.relax();
 

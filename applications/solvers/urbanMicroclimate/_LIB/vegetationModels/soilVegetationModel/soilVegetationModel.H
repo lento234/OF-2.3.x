@@ -261,6 +261,13 @@ protected:
             //- Photosynthetically active radiation
             dimensionedScalar Qp_;
 
+            //- Net transpiration rate
+            dimensionedScalar E_;
+
+            //- Xylem conductance
+            dimensionedScalar gx_;
+
+
             //- Internal clock
             scalar internalTime;
 
@@ -318,6 +325,9 @@ protected:
 
             //- Leaf transpiration rate (kg / m2 s)
             volScalarField gv_leaf_;
+
+            //- Root transpiration rate (kg / m2 s)
+            volScalarField gv_root_;
 
             //- Latent heat flux (W / m2)
             volScalarField qlat_leaf_;
@@ -394,7 +404,18 @@ protected:
 
         //- calculate radiation
         virtual void calc_radiation();
-        
+
+        //- Solve soil-plant-atmosphere contiuum
+        virtual void solve_SPAC(const volScalarField& Kl, const volScalarField& psi_S);
+
+        //- Objective function for SPAC minimization problem
+        virtual scalar SPAC_objective_fx(const scalar& psi_L, const volScalarField& psi_S);
+
+        //- Calculate root water potential (Pa)
+        virtual scalar calc_psi_R(const scalar& psi_L, const scalar& gx);
+
+        //- Update psi_L24 list
+        virtual void update_psiL24();
 
 public:
     
@@ -410,9 +431,7 @@ public:
             const rhoThermo& thermo,    //- Fluid thermodynamic properties
             const volScalarField& w,    //- Fluid absolute humidity [kg/kg]
             const volScalarField& c,    //- Fluid CO2 concentration [mol/mol]
-			//const volScalarField& Ts,   //- Soil temperature [K]
-            //const volScalarField& ws,   //- Soil moisture [kg/m3]
-            const volScalarField& pc    //- Soil capillary pressure [Pa, kg/ms2]
+			const volScalarField& pc    //- Soil capillary pressure [Pa, kg/ms2]
         );
 
     //- Destructor
@@ -428,12 +447,7 @@ public:
         }
     
         //- Solve leaf energy balance
-        //virtual void solve(const volVectorField&U, const rhoThermo& thermo, const volScalarField& w, const volScalarField& ws, const volScalarField& pc, const volScalarField& Kl);
         virtual void solve(const volVectorField& U, const rhoThermo& thermo, const volScalarField& w, const volScalarField& c);
-
-        //- Solve Soil-Plant-Atmospheric Contiuum
-        /////// virtual void solve_SPAC(const volScalarField& ws, const volScalarField& pc, const volScalarField& Kl);
-
 
     // Source terms
 
@@ -454,6 +468,9 @@ public:
 
         //- Read vegetationProperties dictionary
         virtual bool read();
+
+        //- Write
+        virtual void write();
 };
 
 

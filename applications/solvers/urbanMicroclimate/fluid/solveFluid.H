@@ -34,6 +34,9 @@ while ((simpleControlFluid.loop() || fluidIteration <= minFluidIteration) && flu
 
 }
 
+// Write vegetation fields
+vegetation.write();
+
 Info<< nl << fluidRegions[i].name() << " region solution converged in "
     << fluidIteration-1 << " iterations" << nl << endl;
 
