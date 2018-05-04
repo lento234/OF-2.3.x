@@ -691,6 +691,9 @@ soilVegetationModel::soilVegetationModel
         assertDimensions(kco_, dimless/dimTime);
         assertDimensions(ko_, dimless/dimTime);
 
+        // Info << "RAD = "  <<  gMax(RAD_) << endl;
+        // Info << "RAI = "  <<  RAI_ << endl;
+
         // read relaxation factor for Tl - aytac
         //dictionary relaxationDict = mesh_.solutionDict().subDict("relaxationFactors");
         //scalar Tl_relax = relaxationDict.lookupOrDefault<scalar>("Tl", 0.5);
