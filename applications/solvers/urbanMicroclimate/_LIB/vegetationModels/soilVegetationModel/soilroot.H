@@ -49,12 +49,18 @@ scalar soilVegetationModel::SPAC_objective_fx(const scalar& psi_L, const volScal
 
     //- Calculate root update (kg/m2s)
     gv_root_ = - gsr_ * (psi_S - psi_R_);
+    
+    gv_root_.correctBoundaryConditions();
 
     //- Calculate net root uptake (kg/s)
-    const dimensionedScalar Qr_ = fvc::domainIntegrate( RAD_ * gv_root_);
+    const dimensionedScalar Qr = fvc::domainIntegrate( RAD_ * gv_root_);
 
     //- Error (kg/s)
-    scalar error = E_.value() + Qr_.value();
+    scalar error = E_.value() + Qr.value();
+
+    // Info << "E = " << E_.value()
+    //      << ", Qr =  " << Qr.value()
+    //      << ", error = " << error << endl;
 
     return error;
 }
@@ -67,12 +73,16 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
     //- Calculate effective soil-root system conductance (s/m) - gsr_
     calc_gsr(Kl);
 
-    scalar relError, xn, fxnm1, fxnm2;
+    // Info << "gsr: min  = " << gMin(gsr_)
+    //      << ", max = " << gMax(gsr_)
+    //      << endl;
+         
+    scalar error, relError, xn, fxnm1, fxnm2;
     scalar xnm1 = 0;
     scalar xnm2 = -10e6;
     
-    scalar reltol = 1e-12; // should be in solutiondict
-    label maxiter = 100;   // should be in solutiondict
+    scalar reltol = 1e-12; //#TODO#: should be in solutiondict
+    label maxiter = 200;   //#TODO#: should be in solutiondict
 
     // Solve the objective function
     fxnm2 = SPAC_objective_fx(xnm2, psi_S); // obtain the mismatch
@@ -84,13 +94,29 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
         fxnm1 = SPAC_objective_fx(xnm1, psi_S);
 
         // Secant method
+        if (mag(fxnm1-fxnm2) < SMALL)
+        { 
+            Info << "[WARNING] :: oh oh.... stranger danger" << endl;
+            fxnm1 = SPAC_objective_fx(xnm1*0.5, psi_S);
+        } 
         xn =  xnm1 - fxnm1 * (xnm1 - xnm2) / (fxnm1 - fxnm2);
 
+        // error = mag(fxnm1);
+        // relError = mag(fxnm1) / mag( E_.value() );
+        
         // relative error
-        relError = mag(xn-xnm1) / mag(xn);
+        error = mag(xn-xnm1);
+        relError = error / mag(xn);
+        
+        // Info << "secant iter i = " << i 
+        //      << ", psi_L = " << xn/1e6 
+        //      << " MPa, error = " << error
+        //      << ", rel. error = " << relError << endl;
+
         // Check convergence
         if ( relError < reltol)
         {
+            // Info << "converged ! error = " << relError << endl;
             break;
         }
         else
@@ -100,13 +126,36 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
             fxnm2 = fxnm1;
         }
         
-        // Info << "secant iter i = " << i 
-        //      << ", psi_L = " << xn/1e6 
-        //      << " MPa, error = " << relError << endl;
     }
 
     // Update psi_L
     psi_L_.value() = xnm1;
+
+    
+    //#TODO#: Remove, if okay
+    if ( (psi_L_.value() > 0) || (psi_L_.value() < -10e6) )
+    {
+        Info << "                       [WARNING] "
+             << " psi_L outside bound, "
+             << "psi_L = " << psi_L_.value() 
+             << endl;
+    }
+    if ( (psi_R_.value() > 0) )
+    {
+        Info << "                       [WARNING] "
+             << " psi_R positive, "
+             << "psi_R = " << psi_R_.value() 
+             << endl;
+    }
+    if ( (psi_R_.value() < psi_L_.value()) )
+    {
+        Info << "                       [WARNING] "
+             << " psi_R < psi_L (reverse), "
+             << "psi_L = " << psi_L_.value() 
+             << "psi_R = " << psi_R_.value() 
+             << endl;
+    }
+
 
 
     Info << "VEGETATION: [SPAC] : psi_L = " << round(1e4 * psi_L_.value() / 1e6) / 1e4

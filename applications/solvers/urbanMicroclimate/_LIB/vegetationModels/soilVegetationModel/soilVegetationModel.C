@@ -747,7 +747,7 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
 
     scalar CHTC, CMTC;
     // solve leaf temperature, iteratively.
-    label maxIter = 500;
+    label maxIter = 500; //#TODO# : should in solution dict
     for (i=1; i<=maxIter; i++)
     {
 
@@ -788,11 +788,11 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
         maxRelError = maxError/gMax(mag(new_Tl.internalField()));
         
         // convergence check
-        if ((maxRelError < 1e-12) && (maxError < 1e-12))
+        if ((maxRelError < 1e-12) && (maxError < 1e-12)) //#TODO# : should in solution dict
             break;
         else
             forAll(Tl_, cellI)
-                Tl_[cellI] = 0.5*Tl_[cellI]+0.5*new_Tl[cellI]; // stabilized // update leaf temp.       
+                Tl_[cellI] = 0.5*Tl_[cellI]+0.5*new_Tl[cellI];// //#TODO# : should in solution dict, stabilized // update leaf temp.       
     }
 
     // Correct boundary conditions
@@ -881,9 +881,36 @@ tmp<volScalarField> soilVegetationModel::Sws(volScalarField& Kl, volScalarField&
     //- Calculate soil water potential
     const volScalarField psi_S("psi_S", pc); // + g & meshSoil_.C();
 
+    // double psi_Savg = 0;
+    // double Klavg = 0;
+    // int ncells = 0;
+    // forAll(RAD_,cellI)
+    // {
+    //     if (RAD_[cellI] > minThreshold)
+    //     {
+    //         psi_Savg += psi_S[cellI];
+    //         Klavg += Kl[cellI];
+    //         ncells++;
+    //     }
+    // }
+    // psi_Savg /= float(ncells);
+    // Klavg /= float(ncells);
+
+    // Info << "psi_S: min  = " << gMin(psi_S)
+    //      << ", max = " << gMax(psi_S)
+    //      << ", average = " << psi_Savg
+    //      << endl;
+
+
+    // Info << "Kl: min  = " << gMin(Kl)
+    //      << ", max = " << gMax(Kl)
+    //      << ", average = " << Klavg
+    //      << endl;
+
+
     // Solve Soil-Plant-Atmosphere Continuum, psi_L, psi_R, gsr
     solve_SPAC(Kl, psi_S);
-    
+
     // source term for water uptake due to roots kg/(m3s)
     //Sws_ = - gsr_ * (psi_S - psi_R_) * RAD_;
     Sws_ = RAD_ * gv_root_;
