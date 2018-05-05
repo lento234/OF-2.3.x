@@ -29,6 +29,7 @@ License
 #include "volFields.H"
 #include "mappedPatchBase.H"
 #include "fixedValueFvPatchFields.H"
+#include "uniformDimensionedFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -210,11 +211,19 @@ void CFDHAMsolidMoistureCoupledMixedFvPatchScalarField::updateCoeffs()
     scalarField K_pt(pcp.size(), 0.0);
     K_pt = patch().lookupPatchField<volScalarField, scalar>("K_pt");                 
     scalarField X = K_pt*fieldTs.snGrad();
-    //////////////////////////////////                
+
+    //-- Gravity flux --//
+    //lookup gravity vector
+    uniformDimensionedVectorField g = db().lookupObject<uniformDimensionedVectorField>("g");
+    scalarField gn = g.value() & patch().nf();
+
+    scalarField phiG = Krel*rhol*gn;
+    //////////////////////////////////
 
     if(impermeable_ == false)
     {
-        refGrad() = (vaporFlux + gl - X)/(Krel + K_v); 
+        refGrad() = (vaporFlux + gl + phiG - X)/(Krel + K_v);
+//      refGrad() = (vaporFlux + gl - X)/(Krel + K_v);
         forAll(refValue(),faceI)
         {
             if(gl[faceI]>0){refValue()[faceI]=-1001;}

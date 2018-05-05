@@ -6,6 +6,17 @@ forAll(vegetationRootNames, j)
 		hasRoots = 1;
 }
 
+//Construct gravity flux
+dimensionedScalar rhol
+(
+   "rhol",
+   dimMass/dimVolume,
+   scalar(1000)
+);
+
+surfaceScalarField phiG =  (fvc::interpolate(Krel,"Krel")*rhol*g) & mesh.Sf();
+
+
 if (hasRoots)
 {
 
@@ -23,6 +34,7 @@ if (hasRoots)
 			==
 			  fvm::laplacian(Krel+K_v,pc,"laplacian(Krel,pc)")
 			+ fvc::laplacian(K_pt,Ts,"laplacian(Krel,pc)")
+			- fvc::div(phiG)
 			+ pc_ss
 			+ vegetation.Sws(Krel,pc) // root uptake
 		);
@@ -38,6 +50,7 @@ if (hasRoots)
 			==
 			  fvm::laplacian(Krel+K_v,pc,"laplacian(Krel,pc)")
 			+ fvc::laplacian(K_pt,Ts,"laplacian(Krel,pc)")
+			- fvc::div(phiG)
 			+ vegetation.Sws(Krel,pc) // root uptake
 		);
 		pcEqn.solve(); 
@@ -61,6 +74,7 @@ else
 			==
 			  fvm::laplacian(Krel+K_v,pc,"laplacian(Krel,pc)")
 			+ fvc::laplacian(K_pt,Ts,"laplacian(Krel,pc)")
+			- fvc::div(phiG)
 			+ pc_ss
 		);
 		pcEqn.solve(); 
@@ -75,6 +89,7 @@ else
 			==
 			  fvm::laplacian(Krel+K_v,pc,"laplacian(Krel,pc)")
 			+ fvc::laplacian(K_pt,Ts,"laplacian(Krel,pc)")
+			- fvc::div(phiG)
 		);
 		pcEqn.solve(); 
 	}

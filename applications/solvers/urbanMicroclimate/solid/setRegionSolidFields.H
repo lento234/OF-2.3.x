@@ -4,7 +4,7 @@ Info<< "Reading buildingMaterial Information\n" << endl;
 
 labelList faceType(mesh.nFaces(), -1);
 labelList cellType(mesh.nCells(), -1);
-//const labelList& own = mesh.faceOwner();
+// const labelList& own = mesh.faceOwner();
 
 PtrList<dictionary> Materials(solidTransportProperties[i].lookup("buildingMaterials"));   
 
@@ -18,7 +18,7 @@ volScalarField& Krel = KrelSolid[i];
 volScalarField& K_v = K_vSolid[i];
 volScalarField& K_pt = K_ptSolid[i];
 volScalarField& Crel = CrelSolid[i];
-
+const uniformDimensionedVectorField& g = gSolid[i];
 
 label vegRegionID = -1;
 

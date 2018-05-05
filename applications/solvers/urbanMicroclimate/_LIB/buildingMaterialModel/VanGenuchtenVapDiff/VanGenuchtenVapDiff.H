@@ -34,24 +34,26 @@ Description
     m = 1 - 1/n
 
     water retention
-    w = wcap * (1+(alpha*pc)^n)^-m
+    w = (wcap-wr) * (1+(alpha*pc)^n)^-m + wr
 
     liquid permeability
-    Krel = Ks * (w/wcap)^0.5 * (1-(1-(w/wcap)^1/m)^m)^2
+    We = (w-wcap)/(wcap-wr)
+    Krel = Ks * (We)^0.5 * (1-(1-(We)^1/m)^m)^2
 
     vapor permeability
-    Kv = (2.61e-5/(muDry*Rv*T))*(1-w/wcap)/(A*(1-w/wcap)^2 + B)
+    Kv = (2.61e-5/(muDry*Rv*T))*(1-We)/(A*(1-We)^2 + B)
 
     B = 1 - A;
     muDry = vapor resistance factor of dry material [-]
 
     *requires definition of the following additional entries:
-         -wcap
-         -n
-         -alpha
-         -Ks
-         -muDry
-         -A
+         -wcap:  saturated moisture content [kg/m^3]
+         -wr:    residual moisture content [kg/m^3]
+         -n:     VG exponent [-]
+         -alpha: VG coefficient [Pa^-1]
+         -Ks:    saturated hydraulic conductivity divided gravity [s]
+         -muDry: vapor resistance factor of dry material [-]
+         -A:     coefficient [-]
 
     Author: Andrea Ferrari
 
@@ -90,6 +92,7 @@ class VanGenuchtenVapDiff
         scalar Ks_;
         scalar muDry_;
         scalar A_;
+        scalar wr_;
 
         bool vaporDiffusion_;
     // Private Member Functions

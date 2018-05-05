@@ -68,6 +68,7 @@ int main(int argc, char *argv[])
     #include "createVegetationFields.H"
 
     #include "initContinuityErrs.H"
+    #include "initSolidContinuityErrs.H"
     #include "readFluidControls.H"
     #include "readSolidControls.H"    
     //#include "readSolidTimeControls.H"
@@ -115,7 +116,6 @@ int main(int argc, char *argv[])
 			Info<< "\nSolving for solid region "
 				<< solidRegions[i].name() << endl;
 			#include "setRegionSolidFields.H"
-			//#include "readSolidMultiRegionSIMPLEControls.H"
 			#include "solveSolid.H"
 		}
 
