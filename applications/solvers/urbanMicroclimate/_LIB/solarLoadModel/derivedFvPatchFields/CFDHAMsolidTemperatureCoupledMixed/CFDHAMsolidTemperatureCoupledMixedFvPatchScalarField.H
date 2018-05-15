@@ -72,6 +72,9 @@ class CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField
          //- Name of the solar radiative heat flux in the neighbour region
         const word QsNbrName_;
 
+        //- Is there a vegetation region? If so, this b.c. get use radiation fluxes Qs and Qr from that region
+        const bool vegetationExists_;             	                    
+
          //- is the patch impermeable?
         const bool impermeable_;                    
 

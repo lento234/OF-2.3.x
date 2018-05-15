@@ -218,7 +218,7 @@ void CFDHAMsolidMoistureCoupledMixedFvPatchScalarField::updateCoeffs()
     scalarField gn = g.value() & patch().nf();
 
     scalarField phiG = Krel*rhol*gn;
-    //////////////////////////////////
+    //////////////////////////////////                
 
     if(impermeable_ == false)
     {

@@ -36,7 +36,7 @@ if (hasRoots)
 			+ fvc::laplacian(K_pt,Ts,"laplacian(Krel,pc)")
 			- fvc::div(phiG)
 			+ pc_ss
-			+ vegetation.Sws(Krel,pc) // root uptake
+			+ vegetation.Sws(Krel,pc) // root uptake kg
 		);
 		pcEqn.solve(); 
 
