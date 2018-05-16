@@ -27,14 +27,12 @@ void soilVegetationModel::calc_gsr(const volScalarField& Kl)
         }
     }
     gsr_.correctBoundaryConditions();
-
-    //Info << "Debug ::: min = " << gMin(gsr_) << ", max = " << gMax(gsr_) << endl;
 }
 
 //- Calculate root water potential (Pa)
 scalar soilVegetationModel::calc_psi_R(const scalar& psi_L, const scalar& gx)
 {
-    return psi_L + E_.value() / gx;
+    return psi_L + (rhow_*gabs_*H_).value() + (E_.value() / gx);
 }
 
 //- Objective function for SPAC minimization problem
@@ -72,10 +70,6 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
 
     //- Calculate effective soil-root system conductance (s/m) - gsr_
     calc_gsr(Kl);
-
-    // Info << "gsr: min  = " << gMin(gsr_)
-    //      << ", max = " << gMax(gsr_)
-    //      << endl;
          
     scalar error, relError, xn, fxnm1, fxnm2;
     scalar xnm1 = 0;
@@ -157,10 +151,34 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
     }
 
 
+    // Determine min. and max psi_S
+    scalar psi_Smin=0.0, psi_Smax=-VGREAT;
+    forAll(RAD_, cellI)
+    {
+        if (RAD_[cellI] > minThreshold)
+        {
+            psi_Smin = min(psi_Smin, psi_S[cellI]);
+            psi_Smax = max(psi_Smax, psi_S[cellI]);
+        }
+    }
+
+    List<scalar> psi_Smin_(Pstream::nProcs());
+    List<scalar> psi_Smax_(Pstream::nProcs());
+    psi_Smin_[Pstream::myProcNo()] = psi_Smin;
+    psi_Smax_[Pstream::myProcNo()] = psi_Smax;
+    Pstream::gatherList(psi_Smin_);
+    Pstream::scatterList(psi_Smax_);
+    Pstream::gatherList(psi_Smin_);
+    Pstream::scatterList(psi_Smax_);
+    psi_Smin = gMax(psi_Smin_);
+    psi_Smax = gMin(psi_Smax_);
+
 
     Info << "VEGETATION: [SPAC] : psi_L = " << round(1e4 * psi_L_.value() / 1e6) / 1e4
          << " MPa, psi_R = " << round( 1e4 * psi_R_.value() / 1e6 ) / 1e4
-         << " MPa, psi_S = " << round( 1e4 * average(psi_S).value() / 1e6 ) / 1e4
+         //<< " MPa, psi_S = " << round( 1e4 * average(psi_S).value() / 1e6 ) / 1e4
+         << " MPa, psi_S min. = " << round( 1e4 * psi_Smin / 1e6 ) / 1e4
+         << " MPa, psi_S max. = " << round( 1e4 * psi_Smax / 1e6 ) / 1e4
          << " MPa, Final rel. residual = " << relError
          << ", No Iterations " << i << endl;
     

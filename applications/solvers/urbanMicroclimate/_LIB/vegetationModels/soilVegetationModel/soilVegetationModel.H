@@ -48,6 +48,8 @@ SourceFiles
 #include "vectorIOList.H"
 #include <ctime>
 #include "constants.H"
+#include "uniformDimensionedFields.H"
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -266,6 +268,9 @@ protected:
 
             //- Xylem conductance
             dimensionedScalar gx_;
+
+            //- Tree height
+            dimensionedScalar H_;
 
 
             //- Internal clock
