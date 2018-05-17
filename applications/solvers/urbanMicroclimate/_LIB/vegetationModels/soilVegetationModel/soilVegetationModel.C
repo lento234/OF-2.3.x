@@ -877,6 +877,7 @@ tmp<volScalarField> soilVegetationModel::Sc()
 tmp<volScalarField> soilVegetationModel::Sws(volScalarField& Kl, volScalarField& pc)
 {
     uniformDimensionedVectorField g = db().lookupObject<uniformDimensionedVectorField>("g");
+    
     //- Calculate soil water potential
     volScalarField psi_S("psi_S", pc - ( (rhow_ * g) & meshSoil_.C() ) );
     psi_S.correctBoundaryConditions();

@@ -152,7 +152,9 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
 
 
     // Determine min. and max psi_S
-    scalar psi_Smin=0.0, psi_Smax=-VGREAT;
+    scalar psi_Smin=0.0;
+    scalar psi_Smax=-1e50;
+
     forAll(RAD_, cellI)
     {
         if (RAD_[cellI] > minThreshold)
@@ -167,11 +169,11 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
     psi_Smin_[Pstream::myProcNo()] = psi_Smin;
     psi_Smax_[Pstream::myProcNo()] = psi_Smax;
     Pstream::gatherList(psi_Smin_);
+    Pstream::scatterList(psi_Smin_);
+    Pstream::gatherList(psi_Smax_);
     Pstream::scatterList(psi_Smax_);
-    Pstream::gatherList(psi_Smin_);
-    Pstream::scatterList(psi_Smax_);
-    psi_Smin = gMax(psi_Smin_);
-    psi_Smax = gMin(psi_Smax_);
+    psi_Smin = gMin(psi_Smin_);
+    psi_Smax = gMax(psi_Smax_);
 
 
     Info << "VEGETATION: [SPAC] : psi_L = " << round(1e4 * psi_L_.value() / 1e6) / 1e4
