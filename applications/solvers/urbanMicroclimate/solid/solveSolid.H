@@ -47,6 +47,7 @@
                     #include "revertValues.H"    
                     break;
                 }
+                Info << "before pc corrected boundary !" << endl;
                 pc.correctBoundaryConditions();
             ///////////////////////////////
 
