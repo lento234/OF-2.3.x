@@ -34,6 +34,7 @@ void soilVegetationModel::calc_marginalWUE()
 
     // Calculate Marginal Water use efficiency (lamba) 
     lambda_.value() = lambda_max_.value() * (ca_.value() / ca_star_.value()) * exp ( - betaL_.value() * pow(psi_L24_avg - psi_Lmax_.value(), 2));
+    //lambda_.value() = lambda_max_.value() * (ca_.value() / ca_star_.value()) * exp ( - betaL_.value() * psi_L24_avg ); * betaL (1/MPa)
 }
 
 } // FOAM

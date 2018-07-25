@@ -41,9 +41,11 @@ scalar soilVegetationModel::SPAC_objective_fx(const scalar& psi_L, const volScal
     
     //- Xylem condutance [s/m]
     gx_.value() = calc_gx(psi_L);
+    Info << "gx = " << gx_.value() << endl;
 
     //- Calculate root water potential (Pa)
     psi_R_.value() = calc_psi_R(psi_L, gx_.value());
+    Info << "psiR = " << psi_R_.value() << endl;
 
     //- Calculate root update (kg/m2s)
     gv_root_ = - gsr_ * (psi_S - psi_R_);
@@ -56,9 +58,9 @@ scalar soilVegetationModel::SPAC_objective_fx(const scalar& psi_L, const volScal
     //- Error (kg/s)
     scalar error = E_.value() + Qr.value();
 
-    // Info << "E = " << E_.value()
-    //      << ", Qr =  " << Qr.value()
-    //      << ", error = " << error << endl;
+    Info << "E = " << E_.value()
+         << ", Qr =  " << Qr.value()
+         << ", error = " << error << endl;
 
     return error;
 }
@@ -70,13 +72,13 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
 
     //- Calculate effective soil-root system conductance (s/m) - gsr_
     calc_gsr(Kl);
-         
+    
     scalar error, relError, xn, fxnm1, fxnm2;
     scalar xnm1 = 0;
     scalar xnm2 = -10e6;
     
     scalar reltol = 1e-12; //#TODO#: should be in solutiondict
-    label maxiter = 200;   //#TODO#: should be in solutiondict
+    label maxiter = 1000;   //#TODO#: should be in solutiondict
 
     // Solve the objective function
     fxnm2 = SPAC_objective_fx(xnm2, psi_S); // obtain the mismatch
@@ -95,6 +97,17 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
         } 
         xn =  xnm1 - fxnm1 * (xnm1 - xnm2) / (fxnm1 - fxnm2);
 
+        if (xn < -10e6)
+        {
+            Info << "[WARNING] :: psi_L reached too low: " << xn / 1e6 << " MPa" << endl;
+            xn = -10e6;
+        }
+        if (xn > 0)
+        {  
+            Info << "[WARNING] :: psi_L reached too high: " << xn / 1e6 << " MPa" << endl;
+            xn = 0;
+        }
+
         // error = mag(fxnm1);
         // relError = mag(fxnm1) / mag( E_.value() );
         
@@ -102,10 +115,10 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
         error = mag(xn-xnm1);
         relError = error / mag(xn);
         
-        // Info << "secant iter i = " << i 
-        //      << ", psi_L = " << xn/1e6 
-        //      << " MPa, error = " << error
-        //      << ", rel. error = " << relError << endl;
+        Info << "secant iter i = " << i 
+             << ", psi_L = " << xn/1e6 
+             << " MPa, error = " << error
+             << ", rel. error = " << relError << endl;
 
         // Check convergence
         if ( relError < reltol)
