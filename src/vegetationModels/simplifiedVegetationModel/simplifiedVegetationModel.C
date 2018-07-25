@@ -68,11 +68,11 @@ simplifiedVegetationModel::simplifiedVegetationModel
     // (
     //     vegetationProperties_.lookup("rhoa")
     // ),
-    cd_
+    Cf_
     (
         IOobject
         (
-            "cd",
+            "Cf",
             runTime_.timeName(),
             mesh_,
             IOobject::MUST_READ,
