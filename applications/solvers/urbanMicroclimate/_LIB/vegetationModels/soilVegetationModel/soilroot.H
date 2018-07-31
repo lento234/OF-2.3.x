@@ -32,7 +32,7 @@ void soilVegetationModel::calc_gsr(const volScalarField& Kl)
 //- Calculate root water potential (Pa)
 scalar soilVegetationModel::calc_psi_R(const scalar& psi_L, const scalar& gx)
 {
-    return psi_L + (rhow_*gabs_*H_).value() + (E_.value() / gx);
+    return psi_L + (rhow_*gabs_*H_).value() + (E_.value() / (gx + SMALL));
 }
 
 //- Objective function for SPAC minimization problem
@@ -41,11 +41,11 @@ scalar soilVegetationModel::SPAC_objective_fx(const scalar& psi_L, const volScal
     
     //- Xylem condutance [s/m]
     gx_.value() = calc_gx(psi_L);
-    Info << "gx = " << gx_.value() << endl;
+    //Info << "gx = " << gx_.value() << endl;
 
     //- Calculate root water potential (Pa)
     psi_R_.value() = calc_psi_R(psi_L, gx_.value());
-    Info << "psiR = " << psi_R_.value() << endl;
+    //Info << "psiR = " << psi_R_.value() << endl;
 
     //- Calculate root update (kg/m2s)
     gv_root_ = - gsr_ * (psi_S - psi_R_);
@@ -58,9 +58,9 @@ scalar soilVegetationModel::SPAC_objective_fx(const scalar& psi_L, const volScal
     //- Error (kg/s)
     scalar error = E_.value() + Qr.value();
 
-    Info << "E = " << E_.value()
-         << ", Qr =  " << Qr.value()
-         << ", error = " << error << endl;
+    //Info << "E = " << E_.value()
+    //     << ", Qr =  " << Qr.value()
+    //     << ", error = " << error << endl;
 
     return error;
 }
@@ -100,12 +100,10 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
         if (xn < -10e6)
         {
             Info << "[WARNING] :: psi_L reached too low: " << xn / 1e6 << " MPa" << endl;
-            xn = -10e6;
         }
         if (xn > 0)
         {  
             Info << "[WARNING] :: psi_L reached too high: " << xn / 1e6 << " MPa" << endl;
-            xn = 0;
         }
 
         // error = mag(fxnm1);
@@ -146,6 +144,8 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
              << " psi_L outside bound, "
              << "psi_L = " << psi_L_.value() 
              << endl;
+        Info << "                       [WARNING] " 
+             << " Possible fatal water stress. " << endl;
     }
     if ( (psi_R_.value() > 0) )
     {
