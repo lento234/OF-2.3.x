@@ -1244,14 +1244,14 @@ int main(int argc, char *argv[])
     }
 
 
-    Info << "\nWriting to constant: LAI " << endl;
-    LAIList.write();
+    //Info << "\nWriting to constant: LAI " << endl;
+    //LAIList.write();
 
     Info << "\nWriting to constant: LAI boundary" << endl;
     LAIboundaryList.write();
 
-    Info << "\nWriting to constant: qrsw" << endl;
-    qrswList.write();
+    //Info << "\nWriting to constant: qrsw" << endl;
+    //qrswList.write();
 
     Info << "\nWriting to constant: div qrsw" << endl;
     divqrswList.write();
