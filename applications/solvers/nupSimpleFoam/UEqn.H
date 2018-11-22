@@ -6,7 +6,8 @@
       + turbulence->divDevReff(U)
       ==
       fvOptions(U)
-      - fvm::SuSp(0.5*Cf*mag(U), U)
+      - fvm::SuSp(cd*a*mag(U), U) // should be twice as much
+      //- fvm::SuSp(0.5*cd*a*mag(U), U)
 
     );
 

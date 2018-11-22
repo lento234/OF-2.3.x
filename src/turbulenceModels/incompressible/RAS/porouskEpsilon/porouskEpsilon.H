@@ -120,7 +120,7 @@ protected:
 
             volScalarField k_;
             volScalarField epsilon_;
-            volScalarField Cf_;
+            volScalarField a_;
             volScalarField nut_;
 
 public:
@@ -186,9 +186,9 @@ public:
         }
 
         //- return LAD
-        virtual tmp<volScalarField> Cf() const
+        virtual tmp<volScalarField> a() const
         {
-            return Cf_;
+            return a_;
         }
 
         //- Return the Reynolds stress tensor

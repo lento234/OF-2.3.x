@@ -13,7 +13,7 @@
     );
 
     // Assign parameters: Drag coefficient
-    dimensionedScalar Cdf
+    dimensionedScalar cd
     (
-        vegetationProperties.lookup("Cdf")
+        vegetationProperties.lookup("cd")
     );

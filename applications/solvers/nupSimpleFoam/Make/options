@@ -12,6 +12,7 @@ EXE_INC = \
 
 
 EXE_LIBS = \
+    -L$(FOAM_USER_LIBBIN) \
     -lincompressibleTurbulenceModel \
     -lincompressibleRASModels \
     -lincompressibleTransportModels \

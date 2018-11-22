@@ -102,7 +102,7 @@ protected:
 
             volScalarField k_;
             volScalarField epsilon_;
-            volScalarField Cf_;
+            volScalarField a_;
             volScalarField nut_;
 
 

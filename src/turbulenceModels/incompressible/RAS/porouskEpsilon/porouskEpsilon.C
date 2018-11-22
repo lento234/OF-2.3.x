@@ -37,7 +37,6 @@ namespace RASModels
 {
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
 defineTypeNameAndDebug(porouskEpsilon, 0);
 addToRunTimeSelectionTable(RASModel, porouskEpsilon, dictionary);
 
@@ -178,11 +177,11 @@ porouskEpsilon::porouskEpsilon
         ),
         autoCreateEpsilon("epsilon", mesh_)
     ),
-    Cf_
+    a_
     (
         IOobject
         (
-            "Cf",
+            "a",
             runTime_.timeName(),
             mesh_,
             IOobject::MUST_READ,
@@ -351,8 +350,8 @@ void porouskEpsilon::correct()
      ==
         C1_*G*epsilon_/k_
       - fvm::Sp(C2_*epsilon_/k_, epsilon_)
-      + fvm::SuSp(betaP_*C4_*Cf_*pow(mag(U_),3)/k_,epsilon_)
-      - fvm::SuSp(betaD_*C5_*Cf_*mag(U_),epsilon_)
+      + fvm::SuSp(betaP_*C4_*a_*pow(mag(U_),3)/k_,epsilon_)
+      - fvm::SuSp(betaD_*C5_*a_*mag(U_),epsilon_)
     );
 
     epsEqn().relax();
@@ -372,8 +371,8 @@ void porouskEpsilon::correct()
      ==
         G
       - fvm::Sp(epsilon_/k_, k_)
-      + fvm::SuSp(betaP_*Cf_*pow(mag(U_),3)/k_, k_)
-      - fvm::SuSp(betaD_*Cf_*mag(U_), k_)
+      + fvm::SuSp(betaP_*a_*pow(mag(U_),3)/k_, k_)
+      - fvm::SuSp(betaD_*a_*mag(U_), k_)
     );
 
     kEqn().relax();

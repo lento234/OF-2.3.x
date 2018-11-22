@@ -206,11 +206,11 @@ porousrealizableKE::porousrealizableKE
         ),
         autoCreateEpsilon("epsilon", mesh_)
     ),
-    Cf_
+    a_
     (
         IOobject
         (
-            "Cf",
+            "a",
             runTime_.timeName(),
             mesh_,
             IOobject::MUST_READ,
@@ -371,8 +371,8 @@ void porousrealizableKE::correct()
             C2_*epsilon_/(k_ + sqrt(nu()*epsilon_)),
             epsilon_
         )
-      + fvm::Sp(betaP_*C4_*Cf_*pow(mag(U_),3)/k_,epsilon_)
-      - fvm::Sp(betaD_*C5_*Cf_*mag(U_),epsilon_)
+      + fvm::Sp(betaP_*C4_*a_*pow(mag(U_),3)/k_,epsilon_)
+      - fvm::Sp(betaD_*C5_*a_*mag(U_),epsilon_)
     );
 
     epsEqn().relax();
@@ -392,8 +392,8 @@ void porousrealizableKE::correct()
      ==
         G
       - fvm::Sp(epsilon_/k_, k_)
-      + fvm::Sp(betaP_*Cf_*pow(mag(U_),3)/k_, k_)
-      - fvm::Sp(betaD_*Cf_*mag(U_), k_)
+      + fvm::Sp(betaP_*a_*pow(mag(U_),3)/k_, k_)
+      - fvm::Sp(betaD_*a_*mag(U_), k_)
     );
 
     kEqn().relax();
