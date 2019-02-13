@@ -1,0 +1,102 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.4.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+convertToMeters 1;
+
+meshprop
+{
+    xMin    1.9;
+    xMax    8.3;
+    yMin    0.0054;
+    yMax    1.9;
+    zMin    -0.01875;
+    zMax    1.6;
+    xCells  141;
+    yCells  62;
+    zCells  32;
+}
+
+vertices
+(
+    ($:meshprop.xMin $:meshprop.yMin $:meshprop.zMin)
+    ($:meshprop.xMax $:meshprop.yMin $:meshprop.zMin)
+    ($:meshprop.xMax $:meshprop.yMax $:meshprop.zMin)
+    ($:meshprop.xMin $:meshprop.yMax $:meshprop.zMin)
+    
+    ($:meshprop.xMin $:meshprop.yMin $:meshprop.zMax)
+    ($:meshprop.xMax $:meshprop.yMin $:meshprop.zMax)
+    ($:meshprop.xMax $:meshprop.yMax $:meshprop.zMax)
+    ($:meshprop.xMin $:meshprop.yMax $:meshprop.zMax)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7)
+    (
+        $:meshprop.xCells
+        $:meshprop.yCells
+        $:meshprop.zCells
+    )
+    simpleGrading (1 1 1)
+);
+
+edges
+(
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (0 3 7 4)
+        );
+    }
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (1 5 6 2)
+        );
+    }
+    ground
+    {
+        type wall;
+        faces
+        (
+            (0 1 2 3)
+        );
+    }
+    frontAndBack
+    {
+        type wall;
+        faces
+        (
+            (0 4 5 1)
+            (3 2 6 7)
+            (4 7 6 5)
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //

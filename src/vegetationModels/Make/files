@@ -1,3 +1,4 @@
 simplifiedVegetationModel/simplifiedVegetationModel.C
+vegetationModel/vegetationModel.C
 
 LIB=$(FOAM_USER_LIBBIN)/libvegetationModels

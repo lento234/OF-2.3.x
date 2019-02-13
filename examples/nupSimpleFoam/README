@@ -1,0 +1,29 @@
+# Log
+
+- refined the mesh ( 0.02 dx at wake )
+- converged at 1e-4 for p, 1e-5 for all other
+- first converged simulation.
+
+- convergence tol changed to 1e-6 and 1e-8
+- converged.
+
+- added sample planes
+
+- change (increased) LAD
+- increased mesh resolution 0.01 m
+- reduced vegetation volume 0.175*0.175 * 0.2
+
+- changed LAD back, mesh back, vegetation back
+- cd to 0.5
+- converged 48xx
+
+- changed LAD, interpolated from xray imaging
+- playing around with turbulence model
+- omega
+
+- 127 s, 1099 iter .. no init
+
+- Default settings (basecase):
+    - LAD: varying          2x: (constant, varying) 
+    - RAS: porous real.KE   4x: ( KE, real. KE, porous KE, porous real.KE)
+    - Cd : 0.5              6x: (0.2, 0.3, 0.4, 0.5, 0.6, 0.7)

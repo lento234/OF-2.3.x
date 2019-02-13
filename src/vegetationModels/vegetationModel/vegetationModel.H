@@ -85,6 +85,7 @@ protected:
     dimensionedScalar a1_;     // stomatal resistance specific model parameters
     dimensionedScalar a2_;     // stomatal resistance specific model parameters
     dimensionedScalar a3_;     // stomatal resistance specific model parameters
+    dimensionedScalar cd_;     // drag coefficient
     dimensionedScalar cpa_;     // specific heat of air at constant pressure
     dimensionedScalar C_;       // proportionality factor of ra
     dimensionedScalar D0_;      // vapour pressure corresponding to minimal resistance
@@ -101,11 +102,10 @@ protected:
     dimensionedScalar lambda_;  // latent heat of vaporization
     // -----------------------------------------------
     // Model fields
-    volScalarField Cf_;     // vegetation drag coefficient
+    volScalarField a_;     // vegetation drag coefficient
     volScalarField E_;      // transpiration rate
     volScalarField ev_;     // water vapor pressure
     volScalarField evsat_;  // saturated water vapor pressure
-    volScalarField LAD_;    // leaf area density
     volScalarField LAI_;    // leaf area index
     volScalarField qsat_;   // saturated specific humidity
     volScalarField Ql_;     // latent heat flux
@@ -148,6 +148,12 @@ public:
             return vegetationProperties_;
         }
 
+        //- return leaf area density
+        volScalarField a() const
+        {
+            return a_;
+        }
+
         // -----------------------------------------------
 
         // return saturated density of water vapour
@@ -172,7 +178,8 @@ public:
         virtual tmp<volScalarField> Sh();
 
         // return vegetation momentum source
-        virtual tmp<fvVectorMatrix> Su(volVectorField& U);
+        //virtual tmp<fvVectorMatrix> Su(volVectorField& U);
+        virtual tmp<volVectorField> Su(volVectorField& U);
 
         // return vegetation specific humidity source
         virtual tmp<volScalarField> Sq();

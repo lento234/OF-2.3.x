@@ -106,6 +106,7 @@ protected:
         // Model coefficients
 
             dimensionedScalar Cmu_;
+            dimensionedScalar cd_;
             dimensionedScalar C1_;
             dimensionedScalar C2_;
             dimensionedScalar C4_;

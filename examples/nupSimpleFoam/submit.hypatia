@@ -1,0 +1,33 @@
+#!/bin/bash
+#PBS -N basecase
+#PBS -l walltime=1:00:00
+#PBS -l 'nodes=4:ppn=20'
+#PBS -q newshort
+#PBS -j eo
+
+# goto workdir
+cd "$PBS_O_WORKDIR"
+
+# Get number of processes
+nprocs=$PBS_NP
+
+# Modify decomposeParDict accordingly
+#sed -i "/numberOfSubdomains/ s/[0-9][0-9]/$nprocs/" system/decomposeParDict
+sed -i "/numberOfSubdomains/ s/\([0-9]\+\)/$nprocs/" system/decomposeParDict
+
+# Generate mesh and decompose
+make mesh >> log.prerun
+make map >> log.prerun
+make decompose >> log.prerun
+
+# Initialize "potentialFOAM"
+#make initialize
+
+# Run
+mpirun -np $nprocs nupSimpleFoam -parallel > log.solver
+
+# Reconstruct and clean up
+reconstructPar && make clean >> log.postrun
+# Sample data
+make sample >> log.postrun
+#make vtk >> log.postrun

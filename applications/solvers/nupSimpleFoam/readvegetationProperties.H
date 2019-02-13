@@ -17,3 +17,6 @@
     (
         vegetationProperties.lookup("cd")
     );
+
+    // Info leaf drag coefficient
+    Info << "Vegetation drag coefficient : " << cd << "\n" <<endl;

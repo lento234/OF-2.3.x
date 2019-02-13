@@ -76,6 +76,8 @@ int main(int argc, char *argv[])
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info<< "\nStarting time loop\n" << endl;
+    
+    label iteration = 0;
 
     while (simple.loop())
     {
@@ -96,7 +98,11 @@ int main(int argc, char *argv[])
         }
 
         // Solve vegetation energy balance
-        vegetation.solve(U, T, q);
+        if (iteration++ % 10 == 0)
+        {
+            Info << "Vegetation:    Iteration " << iteration << endl;
+            vegetation.solve(U, T, q);
+        }
 
         // solve k, epsilon
         turbulence->correct();

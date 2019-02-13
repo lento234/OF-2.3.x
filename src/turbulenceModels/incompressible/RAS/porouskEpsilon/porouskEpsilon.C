@@ -64,6 +64,15 @@ porouskEpsilon::porouskEpsilon
             0.09
         )
     ),
+    cd_
+    (
+        dimensioned<scalar>::lookupOrAddToDict
+        (
+            "cd",
+            coeffDict_,
+            0.2
+        )
+    ),
     C1_
     (
         dimensioned<scalar>::lookupOrAddToDict
@@ -294,6 +303,7 @@ bool porouskEpsilon::read()
     if (RASModel::read())
     {
         Cmu_.readIfPresent(coeffDict());
+        cd_.readIfPresent(coeffDict());
         C1_.readIfPresent(coeffDict());
         C2_.readIfPresent(coeffDict());
         C4_.readIfPresent(coeffDict());
@@ -371,8 +381,8 @@ void porouskEpsilon::correct()
      ==
         G
       - fvm::Sp(epsilon_/k_, k_)
-      + fvm::SuSp(betaP_*a_*pow(mag(U_),3)/k_, k_)
-      - fvm::SuSp(betaD_*a_*mag(U_), k_)
+      + fvm::SuSp(betaP_*cd_*a_*pow(mag(U_),3)/k_, k_)
+      - fvm::SuSp(betaD_*cd_*a_*mag(U_), k_)
     );
 
     kEqn().relax();
@@ -383,6 +393,16 @@ void porouskEpsilon::correct()
     // Re-calculate viscosity
     nut_ = Cmu_*sqr(k_)/epsilon_;
     nut_.correctBoundaryConditions();
+
+
+    // Write fields
+    //volScalarField k_P("k_P", nut_*2*magSqr(symm(fvc::grad(U_)))); // std. prod
+    //volScalarField k_Pveg("k_Pveg", betaP_*cd_*a_*pow(mag(U_),3)); // vegetation prod.
+    //volScalarField k_Dveg("k_Dveg", - betaD_*cd_*a_*mag(U_)/k_); // vegetation dissi.
+    //k_P.write();
+    //k_Pveg.write();
+    //k_Dveg.write();
+
 }
 
 

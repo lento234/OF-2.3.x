@@ -1,0 +1,131 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.4.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+    class           dictionary;
+    location        "system";
+    object          sampleDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+setFormat raw; // xmgr, jplot, gnuplot, raw, vtk, csv
+
+surfaceFormat raw; // foamFile, vtk, null
+
+interpolationScheme cellPointFace; //cell;
+
+fields
+(
+    a
+    k
+    U
+);
+
+
+surfaces
+(
+
+    verticalPlane
+    {
+        type            plane;    // always triangulated
+        basePoint       (1 1 0.1);
+        normalVector    (0 1 0);
+        interpolate     true;
+        triangulate     true;
+    }
+    
+    horizonatalPlane
+    {
+        type            plane;    // always triangulated
+        basePoint       (1 1 0.15);
+        normalVector    (0 0 1);
+        interpolate     true;
+        triangulate     true;
+    }
+    
+    h60mm
+    {
+        type            plane;    // always triangulated
+        basePoint       (1 1 0.06);
+        normalVector    (0 0 1);
+        interpolate     true;
+        triangulate     true;
+    }
+    h90mm
+    {
+        type            plane;    // always triangulated
+        basePoint       (1 1 0.09);
+        normalVector    (0 0 1);
+        interpolate     true;
+        triangulate     true;
+    }
+    h120mm
+    {
+        type            plane;    // always triangulated
+        basePoint       (1 1 0.12);
+        normalVector    (0 0 1);
+        interpolate     true;
+        triangulate     true;
+    }
+    h150mm
+    {
+        type            plane;    // always triangulated
+        basePoint       (1 1 0.15);
+        normalVector    (0 0 1);
+        interpolate     true;
+        triangulate     true;
+    }
+    h180mm
+    {
+        type            plane;    // always triangulated
+        basePoint       (1 1 0.18);
+        normalVector    (0 0 1);
+        interpolate     true;
+        triangulate     true;
+    }
+    h210mm
+    {
+        type            plane;    // always triangulated
+        basePoint       (1 1 0.21);
+        normalVector    (0 0 1);
+        interpolate     true;
+        triangulate     true;
+    }
+    h240mm
+    {
+        type            plane;    // always triangulated
+        basePoint       (1 1 0.24);
+        normalVector    (0 0 1);
+        interpolate     true;
+        triangulate     true;
+    }
+    h270mm
+    {
+        type            plane;    // always triangulated
+        basePoint       (1 1 0.27);
+        normalVector    (0 0 1);
+        interpolate     true;
+        triangulate     true;
+    }
+
+);
+
+sets
+(
+    //xMidVegVbelow
+    //{
+    //    type            face;//face;midPoint//midPointAndFace
+    //    axis            xyz;
+    //    start           (0 0 0);
+    //    end             (0 0 0.8);
+    //}
+
+);

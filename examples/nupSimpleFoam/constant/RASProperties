@@ -1,0 +1,49 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.4.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      RASProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// include vegetation properties (ex. drag coefficient)
+#include        "vegetationProperties"
+
+// STANDARD MODELS
+//RASModel        kEpsilon;
+//RASModel        realizableKE;
+//RASModel        kOmegaSST;
+
+// ADVANCED MODELS
+//RASModel        porouskEpsilon;
+RASModel        porousrealizableKE;
+
+turbulence      on;
+
+printCoeffs     on;
+
+porousrealizableKECoeffs
+{
+    cd          $dragCoeff;
+    betaP       1.0;
+    betaD       5.1; // 4.0;
+    C4          0.9; // 1.5;
+    C5          0.9; // 1.5;
+    Cmu         0.09;
+    E           9.8;
+    kappa       0.41;
+    A0          4.0;
+    sigmaEps    1.3;
+    sigmak      1.0;
+}
+
+// ************************************************************************* //

@@ -10,7 +10,8 @@
         fvm::div(phi, q)
       - fvm::laplacian(DqEff, q)
       ==
-        vegetation.Sq() // vegetation energy source term
+        fvOptions(q)
+        + vegetation.Sq() // vegetation energy source term
     );
 
     qEqn.relax();

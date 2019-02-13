@@ -1,0 +1,37 @@
+#!/bin/bash -l
+#SBATCH --job-name=wtcom
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=mlento@ethz.ch
+#SBATCH --time=00:30:00
+#SBATCH --nodes=5
+#SBATCH --ntasks-per-core=1
+#SBATCH --ntasks-per-node=36
+#SBATCH --cpus-per-task=1
+#SBATCH --partition=normal
+#SBATCH --constraint=mc
+
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+
+# OpenFOAM 2.4.0
+source ~/loadopenfoam
+
+nprocs=$SLURM_NTASKS
+
+# Modify decomposeParDict accordingly
+sed -i "/numberOfSubdomains/ s/\([0-9]\+\)/$nprocs/" system/decomposeParDict
+
+# Generate mesh and decompose
+make mesh >> log.prerun
+make map >> log.prerun
+make decompose >> log.prerun
+
+# Run
+#simpleFoam > log.solver
+#srun simpleFoam -parallel > log.solver
+srun nupSimpleFoam -parallel > log.solver
+
+# Reconstruct and clean up
+reconstructPar && make clean >> log.postrun
+
+# Sample data
+make sample >> log.postrun
