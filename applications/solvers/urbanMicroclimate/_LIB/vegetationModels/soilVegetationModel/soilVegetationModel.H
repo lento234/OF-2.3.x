@@ -359,10 +359,11 @@ protected:
     // Protected Member Functions
 
         //- Solve the quadratic equation
-        virtual scalar solve_quadratic(const scalar& qb, const scalar& qc);
+        //virtual scalar solve_quadratic(const scalar& qb, const scalar& qc);
 
         //- Calculate the intercellular CO2 concentration
-        virtual scalar calc_ci(const scalar& a1, const scalar& a2, const scalar& ccp, const scalar& gc_eff, const scalar& c, const scalar& Rd);
+        //virtual scalar calc_ci(const scalar& a1, const scalar& a2, const scalar& ccp, const scalar& gc_eff, const scalar& c, const scalar& Rd);
+        virtual scalar calc_ci(const scalar& c, const scalar& VPD); 
 
         //- Calculate stomatal condutance (mol / m2 s)
         virtual scalar calc_gs(const scalar& a1, const scalar& a2, const scalar& VPD, const scalar& c);
