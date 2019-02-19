@@ -769,7 +769,7 @@ void soilVegetationModel::solve(const volVectorField& U, const rhoThermo& thermo
                 CMTC = Mw_.value() * gv_eff_[cellI];
 
                 // Calculate transpiration rate (mass flux rate, kg / m2 s)
-                gv_leaf_[cellI] = nEvapSides_ * CMTC * VPD_[cellI];
+                gv_leaf_[cellI] = nEvapSides_ * CMTC * VPD_[cellI]; // maybe an error R_a /R_v missing....
                 
                 // Calculate latent heat flux (W / m2)
                 qlat_leaf_[cellI] = Lv_.value() * gv_leaf_[cellI];
@@ -866,7 +866,7 @@ tmp<volScalarField> soilVegetationModel::Sw()
 // return co2 source term  (mol/mol * kg/m3 s)
 tmp<volScalarField> soilVegetationModel::Sc()
 {
-    Sc_ = - (LAD_ * An_ * Mco2_); //#todo: Mair_ -> Mco2_
+    Sc_ = - (LAD_ * An_ * Mair_); //#todo: Mair_ -> Mco2_
 
     //Correct boundary condition
     Sc_.correctBoundaryConditions();
