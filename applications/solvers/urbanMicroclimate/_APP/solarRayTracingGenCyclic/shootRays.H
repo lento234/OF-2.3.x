@@ -35,7 +35,7 @@ const label maxDynListLength = 10000;
             start.append(fc + 0.0001*d);
             startIndex.append(i);
             startArea.append(area);
-            end.append(fc + 0.9999*d);
+            end.append(fc + 1.0001*d);
             label globalI = globalNumbering.toGlobal(Pstream::myProcNo(), i);
             endIndex.append(globalI);
             if (startIndex.size() > maxDynListLength)
@@ -45,30 +45,116 @@ const label maxDynListLength = 10000;
         }
         
         List<pointIndexHit> hitInfo(startIndex.size());
-        surfacesMesh.findLine(start, end, hitInfo);
-        
+        List<pointIndexHit> hitInfoCyclic(startIndex.size());
+
+	    bool cyclicTest = true;   
+        do
+        {	 
+		cyclicTest = false;
+      
+		surfacesMesh.findLine(start, end, hitInfo);
+		cyclicMesh.findLine(start, end, hitInfoCyclic); 
+		
+        vectorField normals(startIndex.size());
+		cyclicMesh.getNormal(hitInfoCyclic,normals);
+		
         Info << "start: " << start << endl;
-        //Info << "startArea: " << startArea << endl;
-        Info << "end: " << end << endl;
-        
-        forAll (hitInfo, rayI)
-        {
-            if (!hitInfo[rayI].hit()) // if the ray did not hit any surface between start and end positions...
-            {
-                scalar cosPhiTest = (startArea[rayI] & sunPos)/(mag(startArea[rayI])*mag(sunPos) + SMALL);
-                if (cosPhiTest < 0) // ... and if the surface is looking towards the sun
-                {
-                    rayStartFace.append(startIndex[rayI]);
-                    rayEndFace.append(endIndex[rayI]);
-                }
+
+        forAll (start, rayI)
+		{
+		    Info << "rayI: " << rayI << start[rayI] << end[rayI] << endl;
+			
+		    if (!hitInfo[rayI].hit()) // if the ray did not hit any surface between start and end positions...
+		    {
+		        scalar cosPhiTest = (startArea[rayI] & sunPos)/(mag(startArea[rayI])*mag(sunPos) + SMALL);
+		        if (cosPhiTest < 0) // ... and if the surface is looking towards the sun
+		        {
+		            if (hitInfoCyclic[rayI].hit()) // if the ray hit cyclic boundaries
+		            {
+		                //Info << "Startpoint was here: " << start[rayI] << endl;
+		                //Info << "Endpoint was here: " << end[rayI] << endl;
+
+                        vector normal = normals[rayI];
+       	                vector diff = max_ - min_;
+	                    vector diffDotNormal = ((diff & normal) * cmptMag(normal));
+
+                        point newFc = hitInfoCyclic[rayI].hitPoint() - diffDotNormal;
+
+		                scalar i1 = 0; scalar i2 = 0; scalar i3 = 0;
+		                if (sunPos.x() > 0.0)
+		                {
+		                    i1 = (max_.x() - newFc.x())/sunPos.x();
+		                } 
+		                else if (sunPos.x() < 0.0)
+		                {
+		                    i1 = (min_.x() - newFc.x())/sunPos.x();
+		                } 
+		                else {i1 = VGREAT;}
+
+		                if (sunPos.y() > 0.0)
+		                {
+		                    i2 = (max_.y() - newFc.y())/sunPos.y();
+		                } 
+		                else if (sunPos.y() < 0.0)
+		                {
+		                    i2 = (min_.y() - newFc.y())/sunPos.y();
+		                }
+		                else{i2 = VGREAT;}
+
+		                if (sunPos.z() > 0.0)
+		                {
+		                    i3 = (max_.z() - newFc.z())/sunPos.z();
+		                } 
+		                else if (sunPos.z() < 0.0)
+		                {
+		                    i3 = (min_.z() - newFc.z())/sunPos.z();
+		                }
+		                else{i3 = VGREAT;}
+                            //Info << "newFc: " << newFc << endl;
+		                scalar k = min(i1, min(i2, i3));
+                        point newRemFc = k*point(sunPos.x(),sunPos.y(),sunPos.z())+newFc;
+                        vector newD = newRemFc - newFc; 
+		                point newStart = newFc + 0.0001*newD;
+                        point newEnd = newFc + 1.0001*newD;
+                            Info << "New Startpoint is here: " << newStart << endl;
+		                    //Info << "New Endpoint is here: " << newEnd << endl;
+		                start[rayI] = newStart;
+		                end[rayI] = newEnd;
+
+		                cyclicTest = true;
+		            }
+		            else
+		            {
+		                rayStartFace.append(startIndex[rayI]);
+		                rayEndFace.append(endIndex[rayI]);
+                        Info << "Clear" << endl;
+		            }
+		        }
+		        else
+		        {
+		            Info << "Not looking towards the sun" << endl;
+		        }
             }
-        }
+		    else
+		    {
+		        Info << "Hit a wall" << endl;
+		    }
+					
+		}
+
+		if(cyclicTest == true)
+		{
+		    rayStartFace.clear();
+		    rayEndFace.clear();                 
+		}
+	}while (returnReduce(cyclicTest, orOp<bool>()));               
 
         start.clear();
         startIndex.clear();
         end.clear();
         endIndex.clear();
-
+        hitInfo.clear();
+        hitInfoCyclic.clear();
     }while (returnReduce(i < myFc.size(), orOp<bool>()));
 
 //}

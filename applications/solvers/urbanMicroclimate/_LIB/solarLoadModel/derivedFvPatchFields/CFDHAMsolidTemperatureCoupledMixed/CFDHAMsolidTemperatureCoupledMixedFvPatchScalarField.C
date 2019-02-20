@@ -313,18 +313,18 @@ void CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField::updateCoeffs()
         mpp.distribute(QsNbr);
     }   
 
+        //-- Gravity-enthalpy flux --//
+        //lookup gravity vector
+        uniformDimensionedVectorField g = db().lookupObject<uniformDimensionedVectorField>("g");
+        scalarField gn = g.value() & patch().nf();
+        scalarField phiGT = (cap_l*(Tp-Tref))*Krel*rhol*gn;
+        
         // term with capillary moisture gradient:                          
         scalarField X = ((cap_l*(Tp-Tref)*Krel)+(cap_v*(Tp-Tref)+L_v)*K_v)*fieldpc.snGrad();
         //////////////////////////////////  
-        scalarField CR = ( pos(patchInternalField()+fieldpc.snGrad()/patch().deltaCoeffs()+1E3)*(Krel+K_v)*fieldpc.snGrad() +
+        scalarField CR = ( pos(patchInternalField()+fieldpc.snGrad()/patch().deltaCoeffs()+1E3)*((Krel+K_v)*fieldpc.snGrad() - Krel*rhol*gn) +
                            neg(patchInternalField()+fieldpc.snGrad()/patch().deltaCoeffs()+1E3)*gl ) * cap_l*(rainTemp -Tref) * pos(gl-VSMALL);
 
-        //-- Gravity-enthalpy flux --//
-        //lookup gravity vector
-       uniformDimensionedVectorField g = db().lookupObject<uniformDimensionedVectorField>("g");
-       scalarField gn = g.value() & patch().nf();
-
-       scalarField phiGT = (cap_l*(Tp-Tref))*Krel*rhol*gn;
 
     if(impermeable_ == false)
     {

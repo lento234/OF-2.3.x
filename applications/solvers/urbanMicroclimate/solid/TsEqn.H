@@ -11,8 +11,8 @@ surfaceScalarField phiGT = (cap_l*fvc::interpolate(Ts-Tref)*fvc::interpolate(Kre
 if(pcEqnForm == "mixed")
 {
    dimensionedScalar rDeltaT = 1.0/runTime.deltaT();
-   volScalarField Ts_sn = Ts_n*(rho_m*cap_m + ws_n*cap_l);
-   volScalarField Ts_st = Ts_old*(rho_m*cap_m + ws_old*cap_l);
+   volScalarField Ts_sn = Ts_n*(rho_m*cap_m + ws*cap_l);
+   volScalarField Ts_st = Ts_old*(rho_m*cap_m + ws*cap_l);
    volScalarField Ts_ss = rDeltaT*(Ts_st - Ts_sn);
 
    Ts.oldTime() = Ts_n;  //using Ts from previous Picard iteration, instead of previous time

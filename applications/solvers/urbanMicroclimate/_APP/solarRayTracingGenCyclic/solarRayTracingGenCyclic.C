@@ -62,6 +62,8 @@ Description
 #include "IOdictionary.H"
 #include "fixedValueFvPatchFields.H"
 #include "wallFvPatch.H"
+#include "wallPolyPatch.H"
+#include "processorCyclicPolyPatch.H"    
 
 #include "unitConversion.H"
 
@@ -74,8 +76,7 @@ triSurface triangulate
     const labelListIOList& finalAgglom,
     labelList& triSurfaceToAgglom,
     const globalIndex& globalNumbering,
-    const polyBoundaryMesh& coarsePatches,
-    point moveSTL
+    const polyBoundaryMesh& coarsePatches
 )
 {
     const polyMesh& mesh = bMesh.mesh();
@@ -138,7 +139,7 @@ triSurface triangulate
     triSurface surface
     (
         rawSurface.localFaces(),
-        rawSurface.localPoints() + moveSTL
+        rawSurface.localPoints()
     );
 
     // Add patch names to surface
@@ -564,6 +565,10 @@ int main(int argc, char *argv[])
 
     globalIndex globalNumbering(nCoarseFaces);       
     
+    // Set up searching engine for obstacles
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #include "searchingEngine.H"    
+
     // Determine rays between coarse face centres
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     DynamicList<label> rayStartFace(nCoarseFaces + 0.01*nCoarseFaces);
@@ -589,17 +594,6 @@ int main(int argc, char *argv[])
         min_ = ::Foam::min(min_, minList[i]);
         max_ = ::Foam::max(max_, maxList[i]);
     }    
-    
-    // Set up searching engine for obstacles
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #include "searchingEngine.H"  
-
-    // update min_ and max_ because we enlarged the domain for cyclic solar tracing
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~          
-    min_.x() = min_.x() - (max_.x()-min_.x());
-    min_.z() = min_.z() - (max_.z()-min_.z());
-    max_.x() = max_.x() + (max_.x()-min_.x());
-    max_.z() = max_.z() + (max_.z()-min_.z());
 
     // Find the Solar Ray Start Points within domain
     // ######################################   
@@ -695,10 +689,9 @@ int main(int argc, char *argv[])
 
         #include "shootRays.H"
 
-
         forAll(rayStartFace, i)
         {
-            nVisibleFaceFaces[rayStartFace[i]]++;
+            nVisibleFaceFaces[rayStartFace[i]] = 1;
         }
 
         label nViewFactors = 0;
