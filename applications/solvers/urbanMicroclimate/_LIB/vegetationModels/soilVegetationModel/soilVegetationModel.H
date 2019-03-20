@@ -156,6 +156,9 @@ protected:
             //- Leaf boundary layer conductance proportionality factor
             const dimensionedScalar C_;
 
+            //- Tree height
+            const dimensionedScalar H_;
+
             //- Characteristic size of plant leaf [m]
             const dimensionedScalar l_;
 
@@ -268,10 +271,6 @@ protected:
 
             //- Xylem conductance
             dimensionedScalar gx_;
-
-            //- Tree height
-            dimensionedScalar H_;
-
 
             //- Internal clock
             scalar internalTime;

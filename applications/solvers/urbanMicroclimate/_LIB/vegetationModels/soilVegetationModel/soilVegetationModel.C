@@ -201,6 +201,10 @@ soilVegetationModel::soilVegetationModel
     (
         vegetationProperties_.subDict("leafCoeffs").lookup("C")
     ),
+    H_
+    (
+        vegetationProperties_.subDict("leafCoeffs").lookup("H")
+    ),
     l_
     (
         vegetationProperties_.subDict("leafCoeffs").lookup("l")
@@ -322,7 +326,7 @@ soilVegetationModel::soilVegetationModel
     Qp_("Qp", dimMoles/(dimLength*dimLength*dimTime), 0.0),    
     E_("E", dimMass/dimTime, 0.0),   
     gx_("gx", dimTime/dimLength, 0.0),   
-    H_("H", dimLength, 0.0),
+    //H_("H", dimLength, 0.0),
     internalTime(-1.0),
 
     varyingVegetationProperties_
@@ -684,16 +688,19 @@ soilVegetationModel::soilVegetationModel
 
         
         // Determine tree height
+        /*
         vector nz = -(g_/gabs_).value();
+        scalar meshmin = gMin(mesh_.C() & nz);
         forAll(LAD_,cellI)
             if (LAD_[cellI] > minThreshold)
-                H_.value() = max(mesh_.C()[cellI] & nz, H_.value());
-        
+                H_.value() = max(mesh_.C()[cellI] & nz - meshmin, H_.value());
+
         List<scalar> Hlist_(Pstream::nProcs());
         Hlist_[Pstream::myProcNo()] = H_.value();
         Pstream::gatherList(Hlist_);
         Pstream::scatterList(Hlist_);
         H_.value() = gMax(Hlist_);
+        */
 
         Info << "Tree height H = " << H_ << endl;        
 
