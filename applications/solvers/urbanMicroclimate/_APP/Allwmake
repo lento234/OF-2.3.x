@@ -4,6 +4,11 @@ cd ${0%/*} || exit 1    # run from this directory
 set -x
 
 #wmake calculateUTCI
+
+wmake faceAgglomerateNew
+wmake solarRayTracingVegGenNew
+wmake viewFactorsGenUpdatedNew
+
 wmake solarRayTracingGen
 wmake solarRayTracingVegGen
 wmake solarRaysThroughVegGen
