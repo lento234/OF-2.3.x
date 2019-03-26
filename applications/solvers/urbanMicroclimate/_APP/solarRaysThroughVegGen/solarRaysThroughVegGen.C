@@ -727,6 +727,14 @@ int main(int argc, char *argv[])
          )
      );
 
+    #include "readGravitationalAcceleration.H"
+
+    Info << "Gravity is = " << g << endl;
+
+    const vector ez = - g.value()/mag(g.value());
+
+    Info << "Vertical vector : " << ez << endl;
+
     scalar beta = vegetationProperties.lookupOrDefault("beta", 0.5);//(0-90)*(PI/180);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -738,8 +746,8 @@ int main(int argc, char *argv[])
     // Mesh setup
     int nMeshCells = mesh.cells().size();
 
-    vector n1(0,0,1); // original vector
-    n1 /= mag(n1);
+    //vector n1(0,0,1); // original vector
+    //n1 /= mag(n1);
 
     // Mesh cell centers
     pointField pmeshC = mesh.C();
@@ -837,14 +845,14 @@ int main(int argc, char *argv[])
         n2 /= mag(n2);
 
         // only if sun is above the horizon
-        if (n2[1] > 0)
+        if ( (n2 & ez) > 0)
         {
             ////////////////////////////////////////////////////////////////////
             // Setup
 
             // Define rotation matrix
-            tensor T(rotationTensor(n2,n1));       // from n1 to n2
-            tensor Tinv(rotationTensor(n1,n2));    // from n2 back to n1
+            tensor T(rotationTensor(n2,ez));       // from n1 to n2
+            tensor Tinv(rotationTensor(ez,n2));    // from n2 back to n1
 
             /////////////// (Step 1.d) Determine bbox of vegetation (rotated coordinate system)
             // Calculated in the rotated coordinate system
