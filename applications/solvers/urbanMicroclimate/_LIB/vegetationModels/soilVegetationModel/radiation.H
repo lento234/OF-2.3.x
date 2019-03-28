@@ -9,7 +9,43 @@ void soilVegetationModel::calc_radiation()
     // ---------------------------------------------
     
     // Direct+Diffused long-wave and short-wave radiative heat flux at vegetation boundary
+    
+    // Multiple patches
     const fvMesh& vegiMesh = mesh_.time().lookupObject<fvMesh>("vegetation"); // "vegetation" a.k.a radiation domain mesh
+    //Info << "boundary : " << vegiMesh.boundaryMesh() << endl;
+
+    const polyBoundaryMesh& bMesh = vegiMesh.boundaryMesh();
+    const wordList allPatchNames = bMesh.names();
+    const keyType key = "air_to_vegetation.*";
+
+    //Info << "allPatchNames = " << allPatchNames << endl;
+    labelList patchIDs = findStrings(key, allPatchNames);
+
+    //Info << "patchIDs = " << patchIDs << endl;
+
+    Info << "Vegetation : [Radiation]   :: Number of air_to_vegetation patches = " << patchIDs.size() << endl;
+    
+    scalar integrateQr = 0.0;
+    scalar integrateQs = 0.0;
+
+    forAll(patchIDs, index)
+    {
+        const label patchI = patchIDs[index];
+
+        Info << "Patch = " << allPatchNames[patchI] << endl;
+
+        // Get patch
+        const fvPatch& vegiPatch = vegiMesh.boundary()[patchI];
+
+        //Long-wave, short-wave
+        const scalarField vegiPatchQr = vegiPatch.lookupPatchField<volScalarField, scalar>("Qr");
+        const scalarField vegiPatchQs = vegiPatch.lookupPatchField<volScalarField, scalar>("Qs");
+
+        integrateQr += gSum(vegiPatch.magSf() * vegiPatchQr);
+        integrateQs += gSum(vegiPatch.magSf() * vegiPatchQs);
+    }
+    
+    /*
     const label patchi = vegiMesh.boundaryMesh().findPatchID("air_to_vegetation"); // patch id
     const fvPatch& vegiPatch = vegiMesh.boundary()[patchi]; // patch boundary of vegetation
     scalarField vegiPatchQr = vegiPatch.lookupPatchField<volScalarField, scalar>("Qr"); // long-wave (diffused)
@@ -18,6 +54,8 @@ void soilVegetationModel::calc_radiation()
     // Net radiation inside vegetation : surface integral
     scalar integrateQr = gSum(vegiPatch.magSf() * vegiPatchQr);
     scalar integrateQs = gSum(vegiPatch.magSf() * vegiPatchQs);
+    */
+   
     scalar vegiVolume  = gSum(pos(Cf_.internalField() - 10*SMALL)*mesh_.V());
 
     Info << "Vegetation : [Radiation]   :: int. Qr = " << integrateQr
