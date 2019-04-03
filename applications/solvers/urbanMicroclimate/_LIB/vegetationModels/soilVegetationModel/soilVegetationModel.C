@@ -119,6 +119,8 @@ void soilVegetationModel::writeVegetationProperties()
     dimensionedScalar An("An", fvc::domainIntegrate(An_ * LAD_));
     varyingVegetationProperties_.set("An", An);
 
+    // Leaf water potential 24 hrs
+    varyingVegetationProperties_.set("psi_L24", psi_L24_); //psi_L24_(timestepsInADay_, psi_L24_0_.value())
     
     // Export to file
     varyingVegetationProperties_.regIOobject::write();
@@ -151,7 +153,7 @@ soilVegetationModel::soilVegetationModel
     ),
 
     vegetationProperties_(*this),
-    
+
     runTime_(U.time()),
     runTimeSoil_(pc.time()),
     mesh_(U.mesh()),
@@ -171,7 +173,6 @@ soilVegetationModel::soilVegetationModel
     a_(1.6),
     E_PAR_("E_PAR", dimEnergy/dimMoles, 2.24e5),
 
-
     divqrsw
     (
         IOobject
@@ -183,7 +184,7 @@ soilVegetationModel::soilVegetationModel
             IOobject::NO_WRITE,
             false
         )
-    ),    
+    ), 
 
     ca_
     (
@@ -318,17 +319,6 @@ soilVegetationModel::soilVegetationModel
     gabs_("g", mag(g_)),
     alpha_("alpha", pow(Hr_/RAI_, 0.5)/pow(2.0*r_, 0.5)),
 
-
-    psi_L_("psi_L", dimPressure, psi_L24_0_.value()),
-    psi_R_("psi_R", dimPressure, 0.0),
-    psi_L24_(timestepsInADay_, psi_L24_0_.value()),
-    lambda_("lambda", dimMoles/dimMoles, 0.0),
-    Qp_("Qp", dimMoles/(dimLength*dimLength*dimTime), 0.0),    
-    E_("E", dimMass/dimTime, 0.0),   
-    gx_("gx", dimTime/dimLength, 0.0),   
-    //H_("H", dimLength, 0.0),
-    internalTime(-1.0),
-
     varyingVegetationProperties_
     (
         IOobject
@@ -336,10 +326,21 @@ soilVegetationModel::soilVegetationModel
             "varyingVegetationProperties",
             runTime_.timeName(),
             mesh_,
-            IOobject::NO_READ,
+            IOobject::MUST_READ, //IOobject::NO_READ,
             IOobject::AUTO_WRITE
         )
     ),
+
+    psi_L_("psi_L", dimPressure, psi_L24_0_.value()), //psi_L_("psi_L", dimPressure, 0.0),
+    psi_R_("psi_R", dimPressure, 0.0),
+    //psi_L24_(timestepsInADay_, psi_L24_0_.value()),
+    psi_L24_(varyingVegetationProperties_.lookup("psi_L24")),
+    lambda_("lambda", dimMoles/dimMoles, 0.0),
+    Qp_("Qp", dimMoles/(dimLength*dimLength*dimTime), 0.0),    
+    E_("E", dimMass/dimTime, 0.0),   
+    gx_("gx", dimTime/dimLength, 0.0),   
+    //H_("H", dimLength, 0.0),
+    internalTime(-1.0),
 
     Cf_
     (
@@ -656,6 +657,9 @@ soilVegetationModel::soilVegetationModel
         Info << nl << nl << "Vegetation : [Status]      :: Vegetation properties : \n"
              << vegetationProperties_ << nl << endl;
 
+        Info << nl << nl << "Vegetation : [Status]      :: Varying vegetation properties : \n"
+             << varyingVegetationProperties_ << nl << endl;
+        
         // Info << "Std. pressure Pstd = " << constant::standard::Pstd << endl;
         // Info << "Std. temperature Tstd = " << constant::standard::Tstd << endl;
         // Info << "Avogadro constant Na = " << constant::physicoChemical::NA << endl;

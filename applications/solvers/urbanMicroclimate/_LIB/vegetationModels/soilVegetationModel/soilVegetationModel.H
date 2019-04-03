@@ -246,10 +246,11 @@ protected:
             //- Soil-root conductance constant (-)
             const dimensionedScalar alpha_;
 
-            
-
 
     // Model time-dependent properties
+
+            //- Varying vegetation properties
+            IOdictionary varyingVegetationProperties_;
 
             //- Leaf water potential [Pa]
             dimensionedScalar psi_L_;
@@ -274,10 +275,6 @@ protected:
 
             //- Internal clock
             scalar internalTime;
-
-            //- Varying vegetation properties
-            IOdictionary varyingVegetationProperties_;
-            
 
 
         // Fields
