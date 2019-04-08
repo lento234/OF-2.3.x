@@ -877,7 +877,7 @@ tmp<volScalarField> soilVegetationModel::Sw()
 // return co2 source term  (mol/mol * kg/m3 s)
 tmp<volScalarField> soilVegetationModel::Sc()
 {
-    Sc_ = - (LAD_ * An_ * Mair_); //#todo: Mair_ -> Mco2_
+    Sc_ = (LAD_ * An_ * Mair_);
 
     //Correct boundary condition
     Sc_.correctBoundaryConditions();

@@ -41,7 +41,6 @@ scalar soilVegetationModel::SPAC_objective_fx(const scalar& psi_L, const volScal
     
     //- Xylem condutance [s/m]
     gx_.value() = calc_gx(psi_L);
-    //Info << "gx = " << gx_.value() << endl;
 
     //- Calculate root water potential (Pa)
     psi_R_.value() = calc_psi_R(psi_L, gx_.value());
@@ -77,8 +76,8 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
     scalar xnm1 = 0;
     scalar xnm2 = -10e6;
     
-    scalar reltol = 1e-12; //#TODO#: should be in solutiondict
-    label maxiter = 1000;   //#TODO#: should be in solutiondict
+    scalar reltol = 1e-6; //#TODO#: should be in solutiondict
+    label maxiter = 200;  //#TODO#: should be in solutiondict
 
     // Solve the objective function
     fxnm2 = SPAC_objective_fx(xnm2, psi_S); // obtain the mismatch
@@ -144,8 +143,8 @@ void soilVegetationModel::solve_SPAC(const volScalarField& Kl, const volScalarFi
              << " psi_L outside bound, "
              << "psi_L = " << psi_L_.value() 
              << endl;
-        Info << "                       [WARNING] " 
-             << " Possible fatal water stress. " << endl;
+        Info << "                       [WARNING] "
+             << " Possible fatal water stress " << endl;
     }
     if ( (psi_R_.value() > 0) )
     {

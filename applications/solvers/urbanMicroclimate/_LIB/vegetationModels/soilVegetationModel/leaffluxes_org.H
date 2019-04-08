@@ -7,6 +7,9 @@ void soilVegetationModel::solve_assimilation(const scalar& Tl, const scalar& VPD
     // Aerodynamic resistance
     scalar ga = ga_[cellI];
 
+        // Intercellular CO2
+        //scalar ci = calc_ci(c, VPD); // updated ci equation
+    
     // Calculating rubisco limited coefficients (A_C)
 
         // Coefficients
@@ -20,7 +23,6 @@ void soilVegetationModel::solve_assimilation(const scalar& Tl, const scalar& VPD
 
         scalar a1 = Vcmax;
         scalar a2 = Kc * (1.0 + cao_.value() / Ko);
-        scalar ccp = (Kc/(2*Ko)) * cao_.value() * (ko_.value()/kco_.value());
 
         // Condutance due to limited Ac
         scalar gs_C = calc_gs(a1, a2, VPD, c);
@@ -31,6 +33,7 @@ void soilVegetationModel::solve_assimilation(const scalar& Tl, const scalar& VPD
 
         // Assimilaion rate Ac
         scalar A_C = calc_An(gc_eff_C, ci_C, c);
+        //scalar A_C = calc_An(gc_eff_C, ci, c);
 
     // Calculate light limiting coefficients (A_E)
 
@@ -38,6 +41,8 @@ void soilVegetationModel::solve_assimilation(const scalar& Tl, const scalar& VPD
         //scalar Qp = rPAR_ * qrsw_leaf_[cellI] / E_PAR_.value();  
         // use canopy top Qp instead.
         
+        // Calculate co2 compension point 
+        scalar ccp = (Kc/(2*Ko)) * cao_.value() * (ko_.value()/kco_.value());
 
         //a1 = gammaPAR_*Qp;
         a1 = gammaPAR_*Qp_.value();
@@ -52,6 +57,7 @@ void soilVegetationModel::solve_assimilation(const scalar& Tl, const scalar& VPD
 
         // Assimilate rate AE
         scalar A_E = calc_An(gc_eff_E, ci_E, c);
+        //scalar A_E = calc_An(gc_eff_E, ci, c);
         
     // Minimum assimilation
     if (mag(A_E) < mag(A_C))
@@ -71,6 +77,9 @@ void soilVegetationModel::solve_assimilation(const scalar& Tl, const scalar& VPD
         An_[cellI] = A_C;       
     }
 
+    // Intercellular CO2
+    //ci_[cellI] = ci;
+
     // Calculate effective vapour conductance (mol / m2 s)
     gv_eff_[cellI] = calc_gv_eff(gc_eff_[cellI]);
 
@@ -81,6 +90,7 @@ void soilVegetationModel::solve_assimilation(const scalar& Tl, const scalar& VPD
 scalar soilVegetationModel::calc_An(const scalar& gc_eff, const scalar& ci, const scalar& c)
 {
     return gc_eff * (ci - c);
+    //return gc_eff * (c - ci); // reverse direction
 }
 
 //- Calculate the intercellular CO2 concentration
@@ -96,6 +106,15 @@ scalar soilVegetationModel::calc_ci(const scalar& a1, const scalar& a2, const sc
 
     return ci;
 }
+
+/*
+//- Calculate the intercellular CO2 concentration
+scalar soilVegetationModel::calc_ci(const scalar& c, const scalar& VPD)
+{
+    return c - sqrt(a_ * lambda_.value() * VPD * c);
+}
+*/
+
 
 //- Calculate aerodynamic condutance (mol/m2 s)
 void soilVegetationModel::calc_ga(const volVectorField& U, const volScalarField& rho)
