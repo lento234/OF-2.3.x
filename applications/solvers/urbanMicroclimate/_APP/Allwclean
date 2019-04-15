@@ -3,13 +3,26 @@ cd ${0%/*} || exit 1    # run from this directory
 
 set -x
 
-wclean calculateUTCI
-wclean solarRayTracingGen
-wclean solarRayTracingVegGen
 wclean solarRaysThroughVegGen
-wclean solarRayTracingGenCyclic
+wclean solarRayTracingVegGen
+wclean solarRayTracingVegGenNew
+
+wclean solarRayTracingGen
+wclean faceAgglomerateNew
+
 wclean viewFactorsGenSky
 wclean viewFactorsGenUpdated
+wclean viewFactorsGenUpdatedNew
+wclean solarRayTracingGenCyclic
 wclean viewFactorsGenUpdatedCyclic
 wclean viewFactorsGenUpdatedCyclicSky
 
+wclean calculateqrsw
+wclean blockmeshdg
+wclean calcSf
+wclean calculateTmrt
+wclean calculateTmrtVeg
+wclean fieldAvgRoot
+wclean fieldMinMax
+wclean refineMeshCustom
+wclean wtoRH

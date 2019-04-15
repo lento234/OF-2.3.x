@@ -331,10 +331,12 @@ soilVegetationModel::soilVegetationModel
         )
     ),
 
-    psi_L_("psi_L", dimPressure, psi_L24_0_.value()), //psi_L_("psi_L", dimPressure, 0.0),
+    psi_L24_(varyingVegetationProperties_.lookup("psi_L24")),
+    psi_L_("psi_L", dimPressure, psi_L24_[psi_L24_.size()-1]), //psi_L_("psi_L", dimPressure, 0.0),
+    //psi_L_("psi_L", dimPressure, psi_L24_0_.value()), //psi_L_("psi_L", dimPressure, 0.0),
     psi_R_("psi_R", dimPressure, 0.0),
     //psi_L24_(timestepsInADay_, psi_L24_0_.value()),
-    psi_L24_(varyingVegetationProperties_.lookup("psi_L24")),
+    //psi_L24_(varyingVegetationProperties_.lookup("psi_L24")),
     lambda_("lambda", dimMoles/dimMoles, 0.0),
     Qp_("Qp", dimMoles/(dimLength*dimLength*dimTime), 0.0),    
     E_("E", dimMass/dimTime, 0.0),   

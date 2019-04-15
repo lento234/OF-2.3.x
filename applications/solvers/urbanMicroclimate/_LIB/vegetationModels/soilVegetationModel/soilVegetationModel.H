@@ -252,14 +252,14 @@ protected:
             //- Varying vegetation properties
             IOdictionary varyingVegetationProperties_;
 
+            //- 24h average Leaf water potential [Pa]
+            scalarList psi_L24_;
+
             //- Leaf water potential [Pa]
             dimensionedScalar psi_L_;
 
             //- Root water potential [Pa]
             dimensionedScalar psi_R_;
-
-            //- 24h average Leaf water potential [Pa]
-            scalarList psi_L24_;
 
             //- Marginal water use efficiency
             dimensionedScalar lambda_;

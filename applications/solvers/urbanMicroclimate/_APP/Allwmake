@@ -3,18 +3,25 @@ cd ${0%/*} || exit 1    # run from this directory
 
 set -x
 
-#wmake calculateUTCI
-
-wmake faceAgglomerateNew
+wmake solarRaysThroughVegGen
+wmake solarRayTracingVegGen
 wmake solarRayTracingVegGenNew
-wmake viewFactorsGenUpdatedNew
 
 wmake solarRayTracingGen
-wmake solarRayTracingVegGen
-wmake solarRaysThroughVegGen
-wmake solarRayTracingGenCyclic
+wmake faceAgglomerateNew
+
 wmake viewFactorsGenSky
 wmake viewFactorsGenUpdated
+wmake viewFactorsGenUpdatedNew
+wmake solarRayTracingGenCyclic
 wmake viewFactorsGenUpdatedCyclic
 wmake viewFactorsGenUpdatedCyclicSky
 
+wmake calculateqrsw
+wmake calcSf
+wmake calculateTmrt
+wmake calculateTmrtVeg
+wmake fieldAvgRoot
+wmake fieldMinMax
+wmake refineMeshCustom
+wmake wtoRH
