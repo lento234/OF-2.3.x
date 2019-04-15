@@ -1,3 +1,0 @@
-calculateUTCI.C
-
-EXE = $(FOAM_USER_APPBIN)/calculateUTCI

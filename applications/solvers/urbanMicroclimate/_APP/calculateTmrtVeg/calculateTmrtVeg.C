@@ -683,6 +683,10 @@ int main(int argc, char *argv[])
 
                     label airPatchID = airMesh.boundaryMesh().findPatchID(mesh.boundaryMesh().names()[patchID]);
 
+                    // Skip boundary if not found (i.e., only in vegetation domain)
+                    if (airPatchID == -1)
+                        continue;
+
                     Info << "airPatchID " << airPatchID << endl;
 
                     if (pp.size() > 0)
